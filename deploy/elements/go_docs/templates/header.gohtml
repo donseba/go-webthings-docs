@@ -1,0 +1,17 @@
+{{ define "header.gohtml" }}
+<header class="app-header">
+    <a class="brand" href="{{ .BasePath }}">
+        <div class="brand-mark">gd</div>
+        <span>
+            <strong>go-doc</strong>
+            <small>typed contracts for Go templates</small>
+        </span>
+    </a>
+    <nav class="top-nav family-nav">
+        <a href="/go-partial"{{ if eq .AppName "go-partial" }} class="active" aria-current="page"{{ end }}>go-partial</a>
+        <a href="/go-docs"{{ if eq .AppName "go-docs" }} class="active" aria-current="page"{{ end }}>go-docs</a>
+        <a href="/go-router"{{ if eq .AppName "go-router" }} class="active" aria-current="page"{{ end }}>go-router</a>
+        <a href="https://github.com/donseba/go-doc">GitHub</a>
+    </nav>
+</header>
+{{ end }}

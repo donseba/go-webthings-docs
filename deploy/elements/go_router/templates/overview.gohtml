@@ -1,0 +1,36 @@
+{{ define "content" }}
+<div class="actions">
+    <a class="button primary" href="{{ goRouterPath "/routing" }}">Start routing</a>
+    <a class="button" href="{{ goRouterPath "/hosts" }}">Host routing</a>
+    <a class="button" href="{{ goRouterPath "/production" }}">Production notes</a>
+</div>
+
+<section class="grid">
+    <a class="card" href="{{ goRouterPath "/routing" }}">
+        <strong>Standard-library patterns</strong>
+        <p>Register method-aware routes using Go's <code>net/http</code> ServeMux pattern syntax.</p>
+    </a>
+    <a class="card" href="{{ goRouterPath "/hosts" }}">
+        <strong>Host and subdomain routing</strong>
+        <p>Scope routes to exact hosts, named subdomains, and wildcard tenant subdomains.</p>
+    </a>
+    <a class="card" href="{{ goRouterPath "/named-routes" }}">
+        <strong>Named routes</strong>
+        <p>Name routes once and generate paths or full URLs from route names.</p>
+    </a>
+    <a class="card" href="{{ goRouterPath "/openapi" }}">
+        <strong>OpenAPI helpers</strong>
+        <p>Attach lightweight route metadata and expose an OpenAPI document from the router.</p>
+    </a>
+</section>
+
+<h2>A small router</h2>
+<pre><code>r := router.New(http.NewServeMux(), "Example API", "1.0.0")
+
+r.Get("/", home).As("home")
+r.Get("/users/{id}", showUser).As("users.show")
+
+log.Fatal(http.ListenAndServe(":8080", r))</code></pre>
+
+<p><code>go-router</code> stays close to <code>net/http</code>. It adds the website ergonomics that usually collect around a plain mux: groups, middleware, host routing, named routes, static files, status handlers, JSON helpers, and route diagnostics.</p>
+{{ end }}

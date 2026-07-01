@@ -1,0 +1,13 @@
+{{ define "content" }}
+<h2>Purpose</h2>
+<p><code>Recover</code> protects the server from handler panics. It logs the recovered value and returns <code>500 Internal Server Error</code>.</p>
+<pre><code>r.Use(middleware.Recover)</code></pre>
+
+<h2>Example</h2>
+<pre><code>r.Get("/panic", func(w http.ResponseWriter, req *http.Request) {
+    panic("Panic!")
+})</code></pre>
+
+<h2>Production placement</h2>
+<p>Keep recovery near the outer edge of the middleware stack so it can catch panics from most downstream middleware and handlers.</p>
+{{ end }}

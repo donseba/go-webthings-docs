@@ -1,0 +1,259 @@
+package site
+
+import (
+	"fmt"
+	"html/template"
+	"io/fs"
+	"log"
+	"net/http"
+	"strings"
+
+	router "github.com/donseba/go-router"
+)
+
+type goRouterApp struct {
+	fs    fs.FS
+	nav   []NavItem
+	pages map[string]goDocsPage
+}
+
+func registerGoRouterDocsRoutes(r *router.Router, domain string) {
+	for path, page := range goRouterDocs.pages {
+		if path == "/" {
+			continue
+		}
+		routePath := GoRouterPath(path)
+		r.Get(routePath, goRouterDocs.page(page)).As(fmt.Sprintf("%s.go-router.%s", domain, strings.TrimPrefix(path, "/")))
+	}
+}
+
+func mustNewGoRouterDocs() *goRouterApp {
+	return &goRouterApp{
+		fs: mustSubFS(siteFS, "elements/go_router"),
+		nav: []NavItem{
+			{Path: "/", Label: "Introduction", Group: "Guide"},
+			{Path: "/routing", Label: "Routing", Group: "Guide"},
+			{Path: "/groups", Label: "Groups and with", Group: "Guide"},
+			{Path: "/hosts", Label: "Hosts and subdomains", Group: "Guide"},
+			{Path: "/named-routes", Label: "Named routes", Group: "Guide"},
+			{Path: "/mounting", Label: "Mounting", Group: "Guide"},
+			{Path: "/middleware", Label: "Overview", Group: "Middleware"},
+			{Path: "/middleware/request-id", Label: "Request ID", Group: "Middleware"},
+			{Path: "/middleware/logger", Label: "Logger", Group: "Middleware"},
+			{Path: "/middleware/recover", Label: "Recover", Group: "Middleware"},
+			{Path: "/middleware/timeout", Label: "Timeout", Group: "Middleware"},
+			{Path: "/middleware/real-ip", Label: "Real IP", Group: "Middleware"},
+			{Path: "/middleware/security-headers", Label: "Security headers", Group: "Middleware"},
+			{Path: "/middleware/cors", Label: "CORS", Group: "Middleware"},
+			{Path: "/middleware/content-length", Label: "Content length", Group: "Middleware"},
+			{Path: "/middleware/timer", Label: "Timer", Group: "Middleware"},
+			{Path: "/params", Label: "Path params", Group: "Reference"},
+			{Path: "/json-helpers", Label: "JSON helpers", Group: "Reference"},
+			{Path: "/static-files", Label: "Static files", Group: "Reference"},
+			{Path: "/status-handlers", Label: "Status handlers", Group: "Reference"},
+			{Path: "/trailing-slashes", Label: "Trailing slashes", Group: "Reference"},
+			{Path: "/diagnostics", Label: "Diagnostics", Group: "Reference"},
+			{Path: "/openapi", Label: "OpenAPI", Group: "Reference"},
+			{Path: "/production", Label: "Production", Group: "Reference"},
+		},
+		pages: map[string]goDocsPage{
+			"/": {
+				Template:    "templates/overview.gohtml",
+				Title:       "HTTP routing for Go websites",
+				Description: "go-router wraps net/http with host routing, groups, middleware, named routes, and practical docs helpers.",
+				Section:     "Documentation",
+			},
+			"/routing": {
+				Template:    "templates/routing.gohtml",
+				Title:       "Routing",
+				Description: "Register method-aware routes, groups, and path parameters using standard ServeMux patterns.",
+				Section:     "Guide",
+			},
+			"/groups": {
+				Template:    "templates/groups.gohtml",
+				Title:       "Groups and with",
+				Description: "Share path prefixes, middleware, and docs metadata without leaving net/http.",
+				Section:     "Guide",
+			},
+			"/hosts": {
+				Template:    "templates/hosts.gohtml",
+				Title:       "Hosts and subdomains",
+				Description: "Scope handlers to exact hosts, named subdomains, and wildcard subdomains.",
+				Section:     "Guide",
+			},
+			"/named-routes": {
+				Template:    "templates/named_routes.gohtml",
+				Title:       "Named routes",
+				Description: "Generate paths and full URLs from stable route names.",
+				Section:     "Guide",
+			},
+			"/mounting": {
+				Template:    "templates/mounting.gohtml",
+				Title:       "Mounting routers",
+				Description: "Mount normal handlers or child routers while preserving route names, route walks, and OpenAPI metadata.",
+				Section:     "Guide",
+			},
+			"/middleware": {
+				Template:    "templates/middleware.gohtml",
+				Title:       "Middleware",
+				Description: "Use standard net/http middleware globally, inside groups, or inside host routers.",
+				Section:     "Middleware",
+			},
+			"/middleware/request-id": {
+				Template:    "templates/middleware_request_id.gohtml",
+				Title:       "Request ID middleware",
+				Description: "Propagate or generate an X-Request-ID value and store it on the request context.",
+				Section:     "Middleware",
+			},
+			"/middleware/logger": {
+				Template:    "templates/middleware_logger.gohtml",
+				Title:       "Logger middleware",
+				Description: "Log method, URI, status, bytes written, duration, and request ID.",
+				Section:     "Middleware",
+			},
+			"/middleware/recover": {
+				Template:    "templates/middleware_recover.gohtml",
+				Title:       "Recover middleware",
+				Description: "Convert panics into 500 responses while logging the recovered value.",
+				Section:     "Middleware",
+			},
+			"/middleware/timeout": {
+				Template:    "templates/middleware_timeout.gohtml",
+				Title:       "Timeout middleware",
+				Description: "Wrap handlers with http.TimeoutHandler for request deadlines.",
+				Section:     "Middleware",
+			},
+			"/middleware/real-ip": {
+				Template:    "templates/middleware_real_ip.gohtml",
+				Title:       "Real IP middleware",
+				Description: "Set RemoteAddr from forwarding headers, preferably only for trusted proxies.",
+				Section:     "Middleware",
+			},
+			"/middleware/security-headers": {
+				Template:    "templates/middleware_security_headers.gohtml",
+				Title:       "Security headers middleware",
+				Description: "Apply practical browser security headers with optional overrides.",
+				Section:     "Middleware",
+			},
+			"/middleware/cors": {
+				Template:    "templates/middleware_cors.gohtml",
+				Title:       "CORS middleware",
+				Description: "Allow configured origins, methods, headers, credentials, and preflight cache age.",
+				Section:     "Middleware",
+			},
+			"/middleware/content-length": {
+				Template:    "templates/middleware_content_length.gohtml",
+				Title:       "Content length middleware",
+				Description: "Buffer normal responses so Content-Length can be set before the body is written.",
+				Section:     "Middleware",
+			},
+			"/middleware/timer": {
+				Template:    "templates/middleware_timer.gohtml",
+				Title:       "Timer middleware",
+				Description: "A tiny development timer that logs duration, method, and path.",
+				Section:     "Middleware",
+			},
+			"/params": {
+				Template:    "templates/params.gohtml",
+				Title:       "Path parameters",
+				Description: "Read ServeMux path values directly or through typed helper functions.",
+				Section:     "Reference",
+			},
+			"/json-helpers": {
+				Template:    "templates/json_helpers.gohtml",
+				Title:       "JSON helpers",
+				Description: "Small request and response helpers for compact JSON APIs.",
+				Section:     "Reference",
+			},
+			"/static-files": {
+				Template:    "templates/static_files.gohtml",
+				Title:       "Static files",
+				Description: "Serve asset directories and files, including host-scoped assets.",
+				Section:     "Reference",
+			},
+			"/status-handlers": {
+				Template:    "templates/status_handlers.gohtml",
+				Title:       "Status handlers",
+				Description: "Customize router-generated 404, 405, and other status responses.",
+				Section:     "Reference",
+			},
+			"/trailing-slashes": {
+				Template:    "templates/trailing_slashes.gohtml",
+				Title:       "Trailing slashes",
+				Description: "Choose whether the router redirects between slash and non-slash variants.",
+				Section:     "Reference",
+			},
+			"/diagnostics": {
+				Template:    "templates/diagnostics.gohtml",
+				Title:       "Route diagnostics",
+				Description: "Walk the route tree or print a route table during startup and tests.",
+				Section:     "Reference",
+			},
+			"/openapi": {
+				Template:    "templates/openapi.gohtml",
+				Title:       "OpenAPI",
+				Description: "Attach lightweight route metadata and inspect the generated document.",
+				Section:     "Reference",
+			},
+			"/production": {
+				Template:    "templates/production.gohtml",
+				Title:       "Production",
+				Description: "Startup registration, middleware defaults, and deployment checks.",
+				Section:     "Reference",
+			},
+		},
+	}
+}
+
+func GoRouterPath(path string) string {
+	if path == "" || path == "/" {
+		return "/go-router"
+	}
+	return "/go-router" + path
+}
+
+func (app *goRouterApp) overview(w http.ResponseWriter, r *http.Request) {
+	if strings.TrimSuffix(r.URL.Path, "/") != "/go-router" {
+		renderNotFound(w, r)
+		return
+	}
+	app.render(w, r, app.pages["/"])
+}
+
+func (app *goRouterApp) page(page goDocsPage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		app.render(w, r, page)
+	}
+}
+
+func (app *goRouterApp) render(w http.ResponseWriter, r *http.Request, page goDocsPage) {
+	tmpl, err := template.New("layout.gohtml").Funcs(template.FuncMap{
+		"isActive": func(path string) bool {
+			return r.URL.Path == path
+		},
+		"goRouterPath": GoRouterPath,
+	}).ParseFS(
+		app.fs,
+		"templates/layout.gohtml",
+		"templates/sidebar.gohtml",
+		"templates/header.gohtml",
+		page.Template,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := tmpl.ExecuteTemplate(w, "layout.gohtml", GoDocsPageData{
+		Title:       page.Title,
+		Description: page.Description,
+		Section:     page.Section,
+		AppName:     "go-router",
+		Path:        r.URL.Path,
+		BasePath:    "/go-router",
+		Nav:         app.nav,
+	}); err != nil {
+		log.Printf("render go-router docs error: %v", err)
+	}
+}

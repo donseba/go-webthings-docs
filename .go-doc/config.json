@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "include": ["/"],
+  "exclude": ["vendor", "bin"],
+  "providers": [
+    "github.com/donseba/go-partial",
+    "github.com/donseba/go-partial/exp/interactions",
+    "github.com/donseba/go-partial/exp/templatehelpers",
+    "github.com/donseba/go-partial/ext/errors"
+  ],
+  "functions": {
+    "docsPath": "donseba/go-webthings-docs/internal/site.DocsPath",
+    "goDocsPath": "donseba/go-webthings-docs/internal/site.GoDocsPath",
+    "goRouterPath": "donseba/go-webthings-docs/internal/site.GoRouterPath"
+  },
+  "writeIndex": false
+}

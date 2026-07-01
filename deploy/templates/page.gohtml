@@ -1,0 +1,45 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.PageData */}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body class="m-0 bg-slate-950 font-sans text-slate-50 [background:linear-gradient(180deg,rgba(27,38,53,.58),transparent_360px),#0d1117]">
+<main class="mx-auto grid max-w-5xl gap-6 px-11 py-12 pb-28">
+    <header class="grid gap-4 border-b border-slate-800 py-7">
+        <p class="leading-7 text-slate-400 text-[13px] font-extrabold uppercase text-emerald-300">go-webthings</p>
+        <h1 class="max-w-4xl text-5xl font-extrabold leading-tight text-slate-50">{{ .Title }}</h1>
+        <p class="leading-7 text-slate-400 max-w-4xl text-lg leading-8 text-slate-300">{{ .Description }}</p>
+        <nav class="flex flex-wrap gap-2.5" aria-label="Elements">
+            {{ range .Elements }}
+                <a class="inline-flex min-h-9 items-center rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 hover:bg-sky-400/10 hover:text-slate-50" href="/{{ .Slug }}">{{ .Slug }}</a>
+            {{ end }}
+        </nav>
+    </header>
+
+    <section class="grid gap-4">
+        <dl class="grid gap-3 rounded-lg border border-slate-700 bg-slate-800/90 p-5">
+            <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Request host</dt>
+            <dd class="m-0"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ .Host }}</code></dd>
+            <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Production route</dt>
+            <dd class="m-0"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ .Production }}</code></dd>
+            <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Local route</dt>
+            <dd class="m-0"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ .Local }}</code></dd>
+        </dl>
+
+        {{ if .Element }}
+            <p class="leading-7 text-slate-400"><strong class="text-slate-50">{{ .Element.Slug }}</strong>: {{ .Element.Description }}</p>
+        {{ else }}
+            <ul class="grid list-disc gap-2 pl-6 text-slate-400">
+                {{ range .Elements }}
+                    <li><a class="text-sky-100" href="/{{ .Slug }}">{{ .Slug }}</a> - {{ .Description }}</li>
+                {{ end }}
+            </ul>
+        {{ end }}
+    </section>
+</main>
+</body>
+</html>

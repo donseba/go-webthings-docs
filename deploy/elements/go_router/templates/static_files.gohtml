@@ -1,0 +1,14 @@
+{{ define "content" }}
+<h2>Directories</h2>
+<pre><code>r.ServeFiles("/assets/", http.Dir("./assets"))</code></pre>
+
+<h2>Single files</h2>
+<pre><code>r.ServeFile("/favicon.ico", "./static/favicon.ico")</code></pre>
+
+<h2>Host-scoped assets</h2>
+<pre><code>r.Subdomain("docs", "example.com", func(docs *router.Router) {
+    docs.ServeFiles("/assets/", http.Dir("./assets"))
+})</code></pre>
+
+<p>Host-scoped routes use host-specific muxes, so shared assets should be registered inside each subdomain router that needs them.</p>
+{{ end }}

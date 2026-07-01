@@ -1,0 +1,15 @@
+{{ define "content" }}
+<h2>Configure origins</h2>
+<p><code>CORS</code> validates request origins and handles preflight requests.</p>
+<pre><code>r.Use(middleware.CORS(middleware.CORSOptions{
+    AllowedOrigins: []string{"https://example.com"},
+    AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+    AllowedHeaders: []string{"Content-Type", "Authorization"},
+}))</code></pre>
+
+<h2>Wildcard origins</h2>
+<p><code>*</code> allows all origins. Entries like <code>*.example.com</code> allow subdomains but not the bare apex host.</p>
+
+<h2>Credentials and preflight</h2>
+<p>When credentials are enabled with an all-origin policy, the middleware echoes a valid request origin instead of returning <code>*</code>. Preflight requests are checked against configured methods and headers before returning <code>204 No Content</code>.</p>
+{{ end }}

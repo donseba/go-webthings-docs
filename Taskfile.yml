@@ -1,0 +1,132 @@
+version: '3'
+
+dotenv: [".env"]
+
+tasks:
+  default:
+    desc: Display all available tasks as the default action
+    cmds:
+      - task -l
+
+  install-tailwind:
+    desc: Install tailwindcss for the current OS
+    cmds:
+      - task: install-tailwind-{{OS}}
+
+  build-css:
+    desc: Build the shared docs stylesheet from Tailwind source
+    cmds:
+      - task: build-css-{{OS}}
+
+  build-css-windows:
+    desc: Build the shared docs stylesheet on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe -i '.\\deploy\\static\\site.tailwind.css' -o '.\\deploy\\static\\site.css' --minify"
+
+  build-css-darwin:
+    desc: Build the shared docs stylesheet on macOS
+    platforms: [darwin]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-darwin
+      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+
+  build-css-linux:
+    desc: Build the shared docs stylesheet on Linux
+    platforms: [linux]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-linux
+      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+
+  install-tailwind-windows:
+    desc: Install tailwindcss on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin')) { New-Item -ItemType Directory -Path '.\\bin' | Out-Null }; Invoke-WebRequest -Uri 'https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-windows-x64.exe' -OutFile '.\\bin\\tailwindcss.exe'"
+
+  install-tailwind-darwin:
+    desc: Install tailwindcss on macOS
+    platforms: [darwin]
+    cmds:
+      - mkdir -p ./bin
+      - ARCH=$(uname -m); if [ "$ARCH" = "arm64" ]; then URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64"; else URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-x64"; fi; curl -sL "$URL" -o ./bin/tailwindcss
+      - chmod +x ./bin/tailwindcss
+
+  install-tailwind-linux:
+    desc: Install tailwindcss on Linux
+    platforms: [linux]
+    cmds:
+      - mkdir -p ./bin
+      - ARCH=$(uname -m); if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-arm64"; else URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64"; fi; curl -sL "$URL" -o ./bin/tailwindcss
+      - chmod +x ./bin/tailwindcss
+
+  install-golangci-lint:
+    desc: Install golangci-lint
+    cmds:
+      - go version
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.5
+      - golangci-lint --version
+
+  install-goimports-reviser:
+    desc: Install goimports-reviser
+    cmds:
+      - go install -v github.com/incu6us/goimports-reviser/v3@latest
+
+  install-gofumpt:
+    desc: Install gofumpt
+    cmds:
+      - go install mvdan.cc/gofumpt@latest
+
+  deps:
+    desc: handle dependencies
+    cmds:
+      - go mod tidy
+
+  test:
+    desc: Run go tests
+    cmd: go test ./... -cover -race
+
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - go version
+      - golangci-lint run
+
+
+  watch-css-darwin-linux:
+    platforms: [darwin, linux]
+    cmds:
+      - ./bin/tailwindcss --cwd ./deploy -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
+
+  watch-css-windows:
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
+
+  watch-css:
+    desc: Watch for changes in the css files
+    deps:
+      - watch-css-darwin-linux
+      - watch-css-windows
+
+  serve-darwin-linux:
+    desc: Run the server on macOS/Linux
+    platforms: [darwin, linux]
+    cmds:
+      - go build -o ./deploy/main ./cmd/docs/main.go
+      - cd ./deploy && ./main
+
+  serve-windows:
+    desc: Run the server on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -Command "go build -o .\\deploy\\main.exe .\\cmd\\docs\\main.go"
+      - powershell -NoProfile -Command "Set-Location .\\deploy; .\\main.exe"
+
+  serve:
+    desc: Run the server
+    cmds:
+      - cmd: task serve-windows
+        platforms: [windows]
+      - cmd: task serve-darwin-linux
+        platforms: [darwin, linux]

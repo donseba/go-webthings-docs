@@ -1,0 +1,22 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/site.DocsNavPage
+*/}}
+<aside id="docs-sidebar" class="family-sidebar"{{ oobAttr }}>
+    {{ range .Groups }}
+        {{ $group := . }}
+        <section class="side-group">
+            <h2>{{ $group }}</h2>
+            {{ range $.Nav }}
+                {{ if eq .Group $group }}
+                    {{ $path := docsPath .Path }}
+                    <a href="{{ $path }}"
+                       hx-get="{{ $path }}"
+                       hx-target="#content"
+                       hx-push-url="true"
+                       {{ if urlIs $path }}aria-current="page"{{ end }}
+                       class="side-link {{ if urlIs $path }}active{{ end }}">{{ .Label }}</a>
+                {{ end }}
+            {{ end }}
+        </section>
+    {{ end }}
+</aside>

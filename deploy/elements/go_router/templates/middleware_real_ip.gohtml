@@ -1,0 +1,14 @@
+{{ define "content" }}
+<h2>Trusted proxy mode</h2>
+<p>For production proxy deployments, prefer <code>RealIPWithOptions</code>. It only trusts forwarding headers when the remote address belongs to a configured proxy.</p>
+<pre><code>r.Use(middleware.RealIPWithOptions(middleware.RealIPOptions{
+    TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
+}))</code></pre>
+
+<h2>Convenience mode</h2>
+<p><code>RealIP</code> trusts forwarding headers from any client. That is convenient locally, but usually too broad for internet-facing deployments.</p>
+<pre><code>r.Use(middleware.RealIP)</code></pre>
+
+<h2>Headers</h2>
+<p>The middleware understands <code>X-Forwarded-For</code>, <code>X-Real-IP</code>, and <code>Forwarded</code> when proxy headers are trusted.</p>
+{{ end }}
