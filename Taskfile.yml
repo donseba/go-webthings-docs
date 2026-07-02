@@ -126,8 +126,8 @@ tasks:
   watch-docs-css:
     desc: Watch for changes in the css files
     deps:
-      - watch-css-darwin-linux
-      - watch-css-windows
+      - watch-docs-css-darwin-linux
+      - watch-docs-css-windows
 
   serve-docs-darwin-linux:
     desc: Run the server on macOS/Linux

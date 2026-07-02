@@ -86,7 +86,7 @@ func registerDomain(r *router.Router, domain string) {
 }
 
 func registerStaticRoutes(r *router.Router) {
-	r.ServeFiles("/assets/", http.FS(mustSubFS(siteFS, "static")))
+	r.ServeFiles("/assets/", http.FS(mustSubFS(siteFS, "assets")))
 }
 
 func registerSectionRoutes(r *router.Router, section Section, domain string) {
