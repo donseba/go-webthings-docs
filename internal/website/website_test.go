@@ -56,6 +56,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"go-webthings",
+				`<body class="main-body">`,
 				"Composable Go packages",
 				`<link rel="canonical" href="https://go-webthings.com">`,
 				`<meta property="og:image" content="https://go-webthings.com/assets/img/go-webthings-400.png">`,
@@ -301,6 +302,25 @@ func TestSharedStylesheet(t *testing.T) {
 	}
 }
 
+func TestMainStylesheet(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/assets/css/styles.css", nil)
+	req.Host = "go-webthings.com"
+	rec := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, ".main-body") || !strings.Contains(body, ".main-card") {
+		t.Fatalf("expected main website stylesheet, got:\n%s", body)
+	}
+	if strings.Contains(body, ".docs-body") {
+		t.Fatalf("main stylesheet should not be the docs stylesheet, got:\n%s", body)
+	}
+}
+
 func TestDocsCodeHighlightAsset(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/assets/js/code-highlight.js", nil)
 	req.Host = "docs.go-webthings.com"
@@ -401,6 +421,34 @@ func TestDocsTemplatesUseDeployLayout(t *testing.T) {
 
 	if _, err := fs.Stat(websiteFS, "elements"); err == nil {
 		t.Fatal("old element template tree should not exist")
+	}
+	if _, err := fs.Stat(mainFS, "templates/page.gohtml"); err != nil {
+		t.Fatalf("expected main website template to exist: %v", err)
+	}
+	if _, err := fs.Stat(mainFS, "assets/css/styles.css"); err != nil {
+		t.Fatalf("expected main website stylesheet to exist: %v", err)
+	}
+}
+
+func TestWebsiteFileSystemFromDeployRoot(t *testing.T) {
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	deployRoot := filepath.Join(repoRoot, "deploy", "website")
+	previous, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(previous); err != nil {
+			t.Fatalf("restore cwd: %v", err)
+		}
+	})
+	if err := os.Chdir(deployRoot); err != nil {
+		t.Fatal(err)
+	}
+
+	fsys := docsFileSystem()
+	if _, err := fs.Stat(fsys, "templates/general/layout.gohtml"); err != nil {
+		t.Fatalf("expected deploy root to resolve docs templates: %v", err)
 	}
 }
 

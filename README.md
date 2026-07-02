@@ -48,9 +48,8 @@ The deployable website lives under `deploy/website` and is split into deploy sec
 - `deploy/website/showcase`
 
 The app loads deploy files from the filesystem at runtime. When running from the repository
-root, it uses `deploy/website/docs`; when running the built binary from
-`deploy/website/main`, it uses the sibling `../docs` directory. Set `ASSET_DIR` to override
-this.
+root, it uses `deploy/website/docs`; when running the built binary from `deploy/website`,
+it uses the `docs` directory next to the executable. Set `ASSET_DIR` to override this.
 
 The element documentation templates live under `deploy/website/docs/templates/go_partial`,
 `deploy/website/docs/templates/go_doc`, and `deploy/website/docs/templates/go_router`;
@@ -58,3 +57,8 @@ shared shell templates live under `deploy/website/docs/templates/general`.
 The shared docs-family stylesheet source lives at `deploy/website/docs/tailwind/main.css`;
 the generated output is `deploy/website/docs/assets/css/styles.css` and is served as
 `/assets/css/styles.css` for each docs/showcase host.
+
+The main website has its own deploy files under `deploy/website/main`. Its template is
+`deploy/website/main/templates/page.gohtml`, its copied image assets live in
+`deploy/website/main/assets/img`, and its stylesheet source/output live at
+`deploy/website/main/tailwind/main.css` and `deploy/website/main/assets/css/styles.css`.

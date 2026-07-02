@@ -1,0 +1,81 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .SEO.Title }}</title>
+    <meta name="description" content="{{ .SEO.Description }}">
+    <link rel="canonical" href="{{ .SEO.Canonical }}">
+    <meta property="og:type" content="{{ .SEO.Type }}">
+    <meta property="og:site_name" content="{{ .SEO.SiteName }}">
+    <meta property="og:title" content="{{ .SEO.Title }}">
+    <meta property="og:description" content="{{ .SEO.Description }}">
+    <meta property="og:url" content="{{ .SEO.Canonical }}">
+    <meta property="og:image" content="{{ .SEO.Image }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ .SEO.Title }}">
+    <meta name="twitter:description" content="{{ .SEO.Description }}">
+    <meta name="twitter:image" content="{{ .SEO.Image }}">
+    <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body class="main-body">
+<main class="main-hub">
+    <header class="main-hero">
+        <div class="main-hero-copy">
+            <p class="main-eyebrow"><span aria-hidden="true">#_&gt;</span> hello and welcome to</p>
+            <h1>{{ .Title }}</h1>
+            <p class="main-lead">{{ .Description }}</p>
+            <nav class="main-actions" aria-label="Website sections">
+                <a href="https://docs.go-webthings.com/go-partial">Docs</a>
+                <a href="https://showcase.go-webthings.com/go-partial">Showcase</a>
+                <a href="https://github.com/donseba">GitHub</a>
+            </nav>
+        </div>
+        <img class="main-hero-img" src="/assets/img/go-webthings-400.png" alt="go-webthings">
+    </header>
+
+    {{ if .Element }}
+        <section class="main-feature">
+            <img src="{{ .Element.Image }}" alt="{{ .Element.Name }}">
+            <div>
+                <p class="main-eyebrow">{{ .Section }}</p>
+                <h2>{{ .Element.Name }}</h2>
+                <p>{{ .Element.Description }}</p>
+                <a class="main-primary" href="{{ if .Element.Link }}{{ .Element.Link }}{{ else }}/{{ .Element.Slug }}{{ end }}">Open {{ .Element.Slug }}</a>
+            </div>
+        </section>
+    {{ else }}
+        <section class="main-card-grid" aria-label="go-webthings elements">
+            {{ range .Elements }}
+                <a class="main-card" href="{{ if .Link }}{{ .Link }}{{ else }}/{{ .Slug }}{{ end }}">
+                    <img src="{{ .Image }}" alt="{{ .Name }}">
+                    <span>
+                        <strong>{{ .Slug }}</strong>
+                        <span>{{ .Description }}</span>
+                    </span>
+                </a>
+            {{ end }}
+        </section>
+    {{ end }}
+
+    {{ if .Element }}
+        <section class="main-route-panel">
+            <div>
+                <p>Request host</p>
+                <code>{{ .Host }}</code>
+            </div>
+            <div>
+                <p>Production route</p>
+                <code>{{ .Production }}</code>
+            </div>
+            <div>
+                <p>Local route</p>
+                <code>{{ .Local }}</code>
+            </div>
+        </section>
+    {{ end }}
+</main>
+</body>
+</html>

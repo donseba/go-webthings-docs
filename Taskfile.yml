@@ -14,29 +14,50 @@ tasks:
       - task: install-tailwind-{{OS}}
 
   build-css:
-    desc: Build the shared docs stylesheet from Tailwind source
+    desc: Build the website stylesheets from Tailwind source
     cmds:
-      - task: build-css-{{OS}}
+      - task: build-docs-css-{{OS}}
+      - task: build-main-css-{{OS}}
 
-  build-css-windows:
+  build-docs-css-windows:
     desc: Build the shared docs stylesheet on Windows
     platforms: [windows]
     cmds:
       - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe --cwd '.\\deploy\\website\\docs' -i '.\\tailwind\\main.css' -o '.\\assets\\css\\styles.css' --minify"
 
-  build-css-darwin:
+  build-docs-css-darwin:
     desc: Build the shared docs stylesheet on macOS
     platforms: [darwin]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-darwin
       - ./bin/tailwindcss --cwd ./deploy/website/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
-  build-css-linux:
+  build-docs-css-linux:
     desc: Build the shared docs stylesheet on Linux
     platforms: [linux]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-linux
       - ./bin/tailwindcss --cwd ./deploy/website/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
+
+  build-main-css-windows:
+    desc: Build the main website stylesheet on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe --cwd '.\\deploy\\website\\main' -i '.\\tailwind\\main.css' -o '.\\assets\\css\\styles.css' --minify"
+
+  build-main-css-darwin:
+    desc: Build the main website stylesheet on macOS
+    platforms: [darwin]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-darwin
+      - ./bin/tailwindcss --cwd ./deploy/website/main -i ./tailwind/main.css -o ./assets/css/styles.css --minify
+
+  build-main-css-linux:
+    desc: Build the main website stylesheet on Linux
+    platforms: [linux]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-linux
+      - ./bin/tailwindcss --cwd ./deploy/website/main -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   install-tailwind-windows:
     desc: Install tailwindcss on Windows
@@ -133,15 +154,15 @@ tasks:
     desc: Run the website server on macOS/Linux
     platforms: [darwin, linux]
     cmds:
-      - go build -o ./deploy/website/main/website ./cmd/website/main.go
-      - cd ./deploy/website/main && ./website
+      - go build -o ./deploy/website/website ./cmd/website/main.go
+      - cd ./deploy/website && ./website
 
   serve-website-windows:
     desc: Run the website server on Windows
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -Command "go build -o .\\deploy\\website\\main\\website.exe .\\cmd\\website\\main.go"
-      - powershell -NoProfile -Command "Set-Location .\\deploy\\website\\main; .\\website.exe"
+      - powershell -NoProfile -Command "go build -o .\\deploy\\website\\website.exe .\\cmd\\website\\main.go"
+      - powershell -NoProfile -Command "Set-Location .\\deploy\\website; .\\website.exe"
 
   serve-website:
     desc: Run the website server

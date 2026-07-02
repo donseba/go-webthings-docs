@@ -16,7 +16,10 @@ import (
 	router "github.com/donseba/go-router"
 )
 
-var websiteFS fs.FS = websiteFileSystem()
+var (
+	websiteFS fs.FS = docsFileSystem()
+	mainFS    fs.FS = mainFileSystem()
+)
 
 var (
 	elementNames = []string{
@@ -97,30 +100,30 @@ func registerDomain(r *router.Router, domain string) {
 	})
 
 	r.Subdomain("docs", domain, func(docs *router.Router) {
-		registerStaticRoutes(docs)
+		registerStaticRoutes(docs, websiteFS)
 		registerSectionRoutes(docs, SectionDocs, domain)
 	})
 
 	r.Subdomain("showcase", domain, func(showcase *router.Router) {
-		registerStaticRoutes(showcase)
+		registerStaticRoutes(showcase, websiteFS)
 		registerSectionRoutes(showcase, SectionShowcase, domain)
 	})
 }
 
 func registerMainRoutes(r *router.Router, domain, routeScope string) {
-	registerStaticRoutes(r)
+	registerStaticRoutes(r, mainFS)
 	r.Get("/", mainIndex(domain)).As(fmt.Sprintf("%s.%s.index", domain, routeScope))
 	r.Get("/{element}", mainElement(domain)).As(fmt.Sprintf("%s.%s.element", domain, routeScope))
 }
 
-func registerStaticRoutes(r *router.Router) {
-	r.ServeFiles("/assets/", http.FS(mustSubFS(websiteFS, "assets")))
-	r.Get("/favicon.ico", serveAssetFile("assets/img/favicon.ico"))
+func registerStaticRoutes(r *router.Router, fsys fs.FS) {
+	r.ServeFiles("/assets/", http.FS(mustSubFS(fsys, "assets")))
+	r.Get("/favicon.ico", serveAssetFile(fsys, "assets/img/favicon.ico"))
 }
 
-func serveAssetFile(path string) http.HandlerFunc {
+func serveAssetFile(fsys fs.FS, path string) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		body, err := fs.ReadFile(websiteFS, path)
+		body, err := fs.ReadFile(fsys, path)
 		if err != nil {
 			renderNotFound(w, req)
 			return
@@ -241,6 +244,7 @@ func sectionElement(section Section, domain string) http.HandlerFunc {
 func renderNotFound(w http.ResponseWriter, req *http.Request) {
 	renderPage(w, http.StatusNotFound, PageData{
 		Title:       "Element not found",
+		Section:     sectionFromHost(req.Host),
 		Host:        req.Host,
 		Elements:    sectionElements(),
 		Description: "This element is not registered for go-webthings docs yet.",
@@ -249,8 +253,8 @@ func renderNotFound(w http.ResponseWriter, req *http.Request) {
 
 func renderPage(w http.ResponseWriter, status int, data PageData) {
 	data.SEO = mainSEO(data)
-	page := partial.NewID("content", "templates/general/page.gohtml").
-		SetFileSystem(websiteFS).
+	page := partial.NewID("content", pageTemplate(data.Section)).
+		SetFileSystem(pageFileSystem(data.Section)).
 		SetDot(data)
 	out, err := partial.Render(context.Background(), page)
 	if err != nil {
@@ -308,7 +312,7 @@ func originFromURL(rawURL string) string {
 	return "https://go-webthings.com"
 }
 
-func websiteFileSystem() fs.FS {
+func docsFileSystem() fs.FS {
 	if dir := os.Getenv("ASSET_DIR"); dir != "" {
 		return os.DirFS(dir)
 	}
@@ -317,9 +321,6 @@ func websiteFileSystem() fs.FS {
 	}
 	if _, err := os.Stat("docs/templates"); err == nil {
 		return os.DirFS("docs")
-	}
-	if _, err := os.Stat("../docs/templates"); err == nil {
-		return os.DirFS("../docs")
 	}
 	if _, err := os.Stat("templates"); err == nil {
 		return os.DirFS(".")
@@ -332,6 +333,55 @@ func websiteFileSystem() fs.FS {
 		}
 	}
 	return os.DirFS(".")
+}
+
+func mainFileSystem() fs.FS {
+	if dir := os.Getenv("MAIN_ASSET_DIR"); dir != "" {
+		return os.DirFS(dir)
+	}
+	if _, err := os.Stat("deploy/website/main/templates"); err == nil {
+		return os.DirFS("deploy/website/main")
+	}
+	if _, err := os.Stat("main/templates"); err == nil {
+		return os.DirFS("main")
+	}
+	if _, err := os.Stat("templates"); err == nil {
+		return os.DirFS(".")
+	}
+	if _, file, _, ok := runtime.Caller(0); ok {
+		root := filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
+		deployDir := filepath.Join(root, "deploy", "website", "main")
+		if _, err := os.Stat(filepath.Join(deployDir, "templates")); err == nil {
+			return os.DirFS(deployDir)
+		}
+	}
+	return os.DirFS(".")
+}
+
+func pageFileSystem(section Section) fs.FS {
+	if section == SectionMain || section == "" {
+		return mainFS
+	}
+	return websiteFS
+}
+
+func pageTemplate(section Section) string {
+	if section == SectionMain || section == "" {
+		return "templates/page.gohtml"
+	}
+	return "templates/general/page.gohtml"
+}
+
+func sectionFromHost(host string) Section {
+	host = hostWithoutPort(host)
+	switch {
+	case strings.HasPrefix(host, "docs."):
+		return SectionDocs
+	case strings.HasPrefix(host, "showcase."):
+		return SectionShowcase
+	default:
+		return SectionMain
+	}
 }
 
 func mustSubFS(fsys fs.FS, dir string) fs.FS {
