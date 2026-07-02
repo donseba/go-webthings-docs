@@ -232,18 +232,28 @@ func (app *goRouterApp) render(w http.ResponseWriter, r *http.Request, page goDo
 			return r.URL.Path == path
 		},
 		"goRouterPath": GoRouterPath,
-	}).ParseFS(
-		app.fs,
-		"templates/layout.gohtml",
-		"templates/sidebar.gohtml",
-		"templates/header.gohtml",
-		page.Template,
-	)
+		"oobAttr":      func() template.HTML { return "" },
+	}).ParseFS(siteFS, "templates/docs_header.gohtml", "templates/docs_sidebar.gohtml", "templates/docs_layout.gohtml")
+	if err == nil {
+		tmpl, err = tmpl.ParseFS(
+			app.fs,
+			page.Template,
+		)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	header := DocsHeaderPage{
+		AppName:   "go-router",
+		BasePath:  "/go-router",
+		Logo:      "gr",
+		Title:     "go-router",
+		Subtitle:  "host-aware routing for Go websites",
+		GitHubURL: "https://github.com/donseba/go-router",
+	}
+	sidebar := docsNavPage(app.nav, "/go-router", r.URL.Path, false)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := tmpl.ExecuteTemplate(w, "layout.gohtml", GoDocsPageData{
 		Title:       page.Title,
@@ -252,6 +262,8 @@ func (app *goRouterApp) render(w http.ResponseWriter, r *http.Request, page goDo
 		AppName:     "go-router",
 		Path:        r.URL.Path,
 		BasePath:    "/go-router",
+		Header:      header,
+		Sidebar:     sidebar,
 		Nav:         app.nav,
 	}); err != nil {
 		log.Printf("render go-router docs error: %v", err)

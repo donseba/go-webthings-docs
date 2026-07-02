@@ -31,6 +31,8 @@ type GoDocsPageData struct {
 	AppName     string
 	Path        string
 	BasePath    string
+	Header      DocsHeaderPage
+	Sidebar     DocsNavPage
 	Nav         []NavItem
 }
 
@@ -144,18 +146,28 @@ func (app *goDocsApp) render(w http.ResponseWriter, r *http.Request, page goDocs
 			return r.URL.Path == path
 		},
 		"goDocsPath": GoDocsPath,
-	}).ParseFS(
-		app.fs,
-		"templates/layout.gohtml",
-		"templates/sidebar.gohtml",
-		"templates/header.gohtml",
-		page.Template,
-	)
+		"oobAttr":    func() template.HTML { return "" },
+	}).ParseFS(siteFS, "templates/docs_header.gohtml", "templates/docs_sidebar.gohtml", "templates/docs_layout.gohtml")
+	if err == nil {
+		tmpl, err = tmpl.ParseFS(
+			app.fs,
+			page.Template,
+		)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	header := DocsHeaderPage{
+		AppName:   "go-docs",
+		BasePath:  "/go-docs",
+		Logo:      "gd",
+		Title:     "go-doc",
+		Subtitle:  "typed contracts for Go templates",
+		GitHubURL: "https://github.com/donseba/go-doc",
+	}
+	sidebar := docsNavPage(app.nav, "/go-docs", r.URL.Path, false)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := tmpl.ExecuteTemplate(w, "layout.gohtml", GoDocsPageData{
 		Title:       page.Title,
@@ -164,6 +176,8 @@ func (app *goDocsApp) render(w http.ResponseWriter, r *http.Request, page goDocs
 		AppName:     "go-docs",
 		Path:        r.URL.Path,
 		BasePath:    "/go-docs",
+		Header:      header,
+		Sidebar:     sidebar,
 		Nav:         app.nav,
 	}); err != nil {
 		log.Printf("render go-docs docs error: %v", err)

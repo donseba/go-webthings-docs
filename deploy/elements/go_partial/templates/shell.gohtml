@@ -28,11 +28,11 @@
         window.addEventListener("load", scrollToCurrentHash);
     </script>
 </head>
-<body class="m-0 bg-slate-950 font-sans text-slate-50 [background:linear-gradient(180deg,rgba(27,38,53,.58),transparent_360px),#0d1117]">
+<body class="docs-body">
     {{ template "header.gohtml" .Header }}
-    <div class="mx-auto grid max-w-[1480px] grid-cols-[292px_minmax(0,1fr)]">
+    <div class="shell">
         {{ template "sidebar.gohtml" .Sidebar }}
-        <main id="content" class="min-w-0 px-11 py-12 pb-28">
+        <main id="content" class="content">
             {{ content }}
         </main>
     </div>

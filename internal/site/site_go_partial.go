@@ -22,11 +22,27 @@ type partialDocsApp struct {
 
 type DocsPage struct{}
 
-type DocsHeaderPage struct{}
+type DocsHeaderPage struct {
+	AppName   string
+	BasePath  string
+	Logo      string
+	Title     string
+	Subtitle  string
+	GitHubURL string
+	UseHTMX   bool
+}
 
 type DocsNavPage struct {
-	Nav    []NavItem
-	Groups []string
+	Nav     []DocsNavLink
+	Groups  []string
+	UseHTMX bool
+}
+
+type DocsNavLink struct {
+	Path   string
+	Label  string
+	Group  string
+	Active bool
 }
 
 type DocsShellPage struct {
@@ -60,10 +76,9 @@ func registerGoPartialDocsRoutes(r *router.Router, domain string) {
 }
 
 func mustNewGoPartialDocs() *partialDocsApp {
-	docsFS := mustSubFS(siteFS, "elements/go_partial")
-	root := partial.NewID("shell", "templates/shell.gohtml").
+	root := partial.NewID("shell", "elements/go_partial/templates/shell.gohtml").
 		SetConnector(connector.NewHTMX(nil)).
-		SetFileSystem(docsFS).
+		SetFileSystem(siteFS).
 		SetBasePath("/go-partial").
 		UseTemplateCache(true).
 		Use(exterrors.Stage(exterrors.WithMode(exterrors.ModeDetailed))).
@@ -86,17 +101,17 @@ func (app *partialDocsApp) overview(w http.ResponseWriter, r *http.Request) {
 		renderNotFound(w, r)
 		return
 	}
-	app.render(w, r, "templates/docs_overview.gohtml")
+	app.render(w, r, goPartialTemplate("templates/docs_overview.gohtml"))
 }
 
 func (app *partialDocsApp) page(tmpl string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		app.render(w, r, tmpl)
+		app.render(w, r, goPartialTemplate(tmpl))
 	}
 }
 
 func (app *partialDocsApp) interactions(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "templates/docs_interactions.gohtml", func(content *partial.Partial) {
+	app.render(w, r, goPartialTemplate("templates/docs_interactions.gohtml"), func(content *partial.Partial) {
 		content.SetContract("interaction",
 			interactions.NewPoll("/notifications").As("Notifications").Every(10*time.Second),
 			interactions.NewOn("cart:changed", "/cart/summary").As("CartChanged").Target("#cart"),
@@ -113,22 +128,72 @@ func (app *partialDocsApp) render(w http.ResponseWriter, r *http.Request, tmpl s
 		}
 	}
 
-	header := DocsHeaderPage{}
+	header := DocsHeaderPage{
+		AppName:   "go-partial",
+		BasePath:  "/go-partial",
+		Logo:      "gp",
+		Title:     "go-partial",
+		Subtitle:  "server-rendered partials for Go",
+		GitHubURL: "https://github.com/donseba/go-partial",
+		UseHTMX:   true,
+	}
 	nav := goPartialNavItems()
-	sidebar := DocsNavPage{Nav: nav, Groups: navGroups(nav)}
+	sidebar := docsNavPage(nav, "/go-partial", r.URL.Path, true)
 	root := app.root.Clone().SetDot(DocsShellPage{
 		AppName: "go-partial",
 		Header:  header,
 		Sidebar: sidebar,
 	})
-	root.WithOOB(partial.NewID("header", "templates/header.gohtml").SetDot(header).SetAlwaysSwapOOB(true))
-	root.WithOOB(partial.NewID("sidebar", "templates/sidebar.gohtml").SetDot(sidebar).SetAlwaysSwapOOB(true))
+	root.WithOOB(partial.NewID("header", "templates/docs_header.gohtml").SetFileSystem(siteFS).SetDot(header).SetAlwaysSwapOOB(true))
+	root.WithOOB(partial.NewID("sidebar", "templates/docs_sidebar.gohtml").SetFileSystem(siteFS).SetDot(sidebar).SetAlwaysSwapOOB(true))
 	root.SetContent(content)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := partial.Write(r.Context(), w, r, root); err != nil {
 		log.Printf("render go-partial docs error: %v", err)
 	}
+}
+
+func goPartialTemplate(path string) string {
+	return "elements/go_partial/" + path
+}
+
+func docsNavPage(items []NavItem, basePath, currentPath string, useHTMX bool) DocsNavPage {
+	links := make([]DocsNavLink, 0, len(items))
+	groups := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	currentPath = strings.TrimSuffix(currentPath, "/")
+	if currentPath == "" {
+		currentPath = "/"
+	}
+
+	for _, item := range items {
+		if _, ok := seen[item.Group]; !ok {
+			seen[item.Group] = struct{}{}
+			groups = append(groups, item.Group)
+		}
+
+		path := docsFullPath(basePath, item.Path)
+		links = append(links, DocsNavLink{
+			Path:   path,
+			Label:  item.Label,
+			Group:  item.Group,
+			Active: strings.TrimSuffix(path, "/") == currentPath,
+		})
+	}
+
+	return DocsNavPage{
+		Nav:     links,
+		Groups:  groups,
+		UseHTMX: useHTMX,
+	}
+}
+
+func docsFullPath(basePath, path string) string {
+	if path == "" || path == "/" {
+		return basePath
+	}
+	return basePath + path
 }
 
 func goPartialNavItems() []NavItem {
