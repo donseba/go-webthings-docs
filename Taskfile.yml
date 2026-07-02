@@ -63,9 +63,29 @@ tasks:
   install-golangci-lint:
     desc: Install golangci-lint
     cmds:
-      - go version
-      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.5
-      - golangci-lint --version
+      - task: install-golangci-lint-{{OS}}
+
+  install-golangci-lint-darwin:
+    desc: Install golangci-lint on macOS
+    platforms: [darwin]
+    cmds:
+      - mkdir -p "$(go env GOPATH)/bin"
+      - TMPDIR=$(mktemp -d) && ARCH=$(uname -m); if [ "$ARCH" = "arm64" ]; then ARCH="arm64"; else ARCH="amd64"; fi; curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/v2.12.2/golangci-lint-2.12.2-darwin-${ARCH}.tar.gz" -o "$TMPDIR/golangci-lint.tar.gz" && tar -xzf "$TMPDIR/golangci-lint.tar.gz" -C "$TMPDIR" && cp "$TMPDIR/golangci-lint-2.12.2-darwin-${ARCH}/golangci-lint" "$(go env GOPATH)/bin/golangci-lint" && chmod +x "$(go env GOPATH)/bin/golangci-lint" && rm -rf "$TMPDIR"
+      - $(go env GOPATH)/bin/golangci-lint --version
+
+  install-golangci-lint-linux:
+    desc: Install golangci-lint on Linux
+    platforms: [linux]
+    cmds:
+      - mkdir -p "$(go env GOPATH)/bin"
+      - TMPDIR=$(mktemp -d) && ARCH=$(uname -m); if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then ARCH="arm64"; else ARCH="amd64"; fi; curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/v2.12.2/golangci-lint-2.12.2-linux-${ARCH}.tar.gz" -o "$TMPDIR/golangci-lint.tar.gz" && tar -xzf "$TMPDIR/golangci-lint.tar.gz" -C "$TMPDIR" && cp "$TMPDIR/golangci-lint-2.12.2-linux-${ARCH}/golangci-lint" "$(go env GOPATH)/bin/golangci-lint" && chmod +x "$(go env GOPATH)/bin/golangci-lint" && rm -rf "$TMPDIR"
+      - $(go env GOPATH)/bin/golangci-lint --version
+
+  install-golangci-lint-windows:
+    desc: Install golangci-lint on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $gopath = go env GOPATH; $bin = Join-Path $gopath 'bin'; if (!(Test-Path $bin)) { New-Item -ItemType Directory -Path $bin | Out-Null }; $arch = if ([Environment]::Is64BitOperatingSystem) { 'amd64' } else { '386' }; $tmp = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath() + [System.Guid]::NewGuid().ToString()); try { $zip = Join-Path $tmp 'golangci-lint.zip'; Invoke-WebRequest -Uri ('https://github.com/golangci/golangci-lint/releases/download/v2.12.2/golangci-lint-2.12.2-windows-' + $arch + '.zip') -OutFile $zip; Expand-Archive -Path $zip -DestinationPath $tmp -Force; Copy-Item -Force (Join-Path $tmp ('golangci-lint-2.12.2-windows-' + $arch + '\golangci-lint.exe')) (Join-Path $bin 'golangci-lint.exe'); & (Join-Path $bin 'golangci-lint.exe') --version } finally { Remove-Item -Recurse -Force $tmp }"
 
   install-goimports-reviser:
     desc: Install goimports-reviser

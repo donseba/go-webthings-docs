@@ -221,16 +221,3 @@ func goPartialNavItems() []NavItem {
 		{Path: "/connectors", Label: "Connectors", Group: "Reference"},
 	}
 }
-
-func navGroups(items []NavItem) []string {
-	seen := make(map[string]struct{}, len(items))
-	groups := make([]string, 0, len(items))
-	for _, item := range items {
-		if _, ok := seen[item.Group]; ok {
-			continue
-		}
-		seen[item.Group] = struct{}{}
-		groups = append(groups, item.Group)
-	}
-	return groups
-}
