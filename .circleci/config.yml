@@ -31,10 +31,11 @@ jobs:
       - run:
           name: Build website
           command: |
-            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ~/repo/deploy/website ~/repo/cmd/website/main.go
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ~/repo/deploy/website/website ~/repo/cmd/website/main.go
             test -d ~/repo/deploy/website/docs
             test -d ~/repo/deploy/website/main
             test -d ~/repo/deploy/website/showcase
+            test -f ~/repo/deploy/website/website
 
       - setup_remote_docker:
           version: default
@@ -45,7 +46,7 @@ jobs:
             mkdir -p ~/.docker
 
             # Move to the deploy directory
-            cd ~/repo/deploy/website
+            cd ~/repo/deploy/docs
 
             # Determine the tag based on the branch
             if [ "$CIRCLE_BRANCH" == "main" ]; then
@@ -55,12 +56,12 @@ jobs:
             fi
 
             # Build the Docker image for worker
-            docker build -t registry.digitalocean.com/savage-software/go-webthings-website:$TAG .
+            docker build -t registry.digitalocean.com/savage-software/go-webthings-docs:$TAG .
             
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD registry.digitalocean.com/your_registry
 
             # Push the worker image to the registry
-            docker push registry.digitalocean.com/savage-software/go-webthings-website:$TAG
+            docker push registry.digitalocean.com/savage-software/go-webthings-docs:$TAG
 workflows:
   version: 2
   build_and_test:
