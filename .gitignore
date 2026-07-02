@@ -35,3 +35,4 @@ main
 !deploy/website/main/
 !deploy/website/main/.gitkeep
 bin
+deploy/website/website
