@@ -1,0 +1,19 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Default behavior</h2>
+<p>Trailing slash redirects are disabled by default so applications can choose their own canonical URL policy.</p>
+<pre><code>r.RedirectTrailingSlash(true)</code></pre>
+
+<h2>Scoped policies</h2>
+<p>Groups and host routers can opt in independently.</p>
+<pre><code>r.Group("/admin", func(admin *router.Router) {
+    admin.RedirectTrailingSlash(true)
+    admin.Get("/dashboard", dashboard)
+})</code></pre>
+
+<h2>When to enable</h2>
+<p>Enable redirects when your website has a single canonical form for pages. Leave them off for APIs where explicit route shapes are part of the contract.</p>
+</article>
+

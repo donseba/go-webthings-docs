@@ -1,0 +1,23 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Method routes</h2>
+<pre><code>r.Get("/users", listUsers)
+r.Post("/users", createUser)
+r.Get("/users/{id}", showUser)
+r.Put("/users/{id}", updateUser)
+r.Patch("/users/{id}", patchUser)
+r.Delete("/users/{id}", deleteUser)</code></pre>
+
+<p>Patterns use the standard Go 1.22+ <code>http.ServeMux</code> syntax. Inside handlers, use <code>req.PathValue("id")</code> or typed helpers such as <code>router.IntParam</code>.</p>
+
+<h2>Groups</h2>
+<pre><code>r.Group("/api", func(api *router.Router) {
+    api.Get("/users", listUsers)
+    api.Post("/users", createUser)
+})</code></pre>
+
+<p>Groups share a path prefix. Middleware added inside a group only applies to routes registered through that group.</p>
+</article>
+

@@ -22,21 +22,21 @@ tasks:
     desc: Build the shared docs stylesheet on Windows
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe -i '.\\deploy\\static\\site.tailwind.css' -o '.\\deploy\\static\\site.css' --minify"
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe --cwd '.\\deploy\\website\\docs' -i '.\\tailwind\\main.css' -o '.\\assets\\css\\styles.css' --minify"
 
   build-css-darwin:
     desc: Build the shared docs stylesheet on macOS
     platforms: [darwin]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-darwin
-      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+      - ./bin/tailwindcss --cwd ./deploy/website/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   build-css-linux:
     desc: Build the shared docs stylesheet on Linux
     platforms: [linux]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-linux
-      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+      - ./bin/tailwindcss --cwd ./deploy/website/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   install-tailwind-windows:
     desc: Install tailwindcss on Windows
@@ -116,37 +116,42 @@ tasks:
   watch-docs-css-darwin-linux:
     platforms: [darwin, linux]
     cmds:
-      - ./bin/tailwindcss --cwd ./deploy/docs -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
+      - ./bin/tailwindcss --cwd ./deploy/website/docs -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
 
   watch-docs-css-windows:
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy\\docs -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
+      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy\\website\\docs -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
 
   watch-docs-css:
     desc: Watch for changes in the css files
     deps:
-      - watch-css-darwin-linux
-      - watch-css-windows
+      - watch-docs-css-darwin-linux
+      - watch-docs-css-windows
 
-  serve-docs-darwin-linux:
-    desc: Run the server on macOS/Linux
+  serve-website-darwin-linux:
+    desc: Run the website server on macOS/Linux
     platforms: [darwin, linux]
     cmds:
-      - go build -o ./deploy/docs/main ./cmd/docs/main.go
-      - cd ./deploy/docs && ./main
+      - go build -o ./deploy/website/main/website ./cmd/website/main.go
+      - cd ./deploy/website/main && ./website
 
-  serve-docs-windows:
-    desc: Run the server on Windows
+  serve-website-windows:
+    desc: Run the website server on Windows
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -Command "go build -o .\\deploy\\docs\\main.exe .\\cmd\\docs\\main.go"
-      - powershell -NoProfile -Command "Set-Location .\\deploy\docs; .\\main.exe"
+      - powershell -NoProfile -Command "go build -o .\\deploy\\website\\main\\website.exe .\\cmd\\website\\main.go"
+      - powershell -NoProfile -Command "Set-Location .\\deploy\\website\\main; .\\website.exe"
+
+  serve-website:
+    desc: Run the website server
+    cmds:
+      - cmd: task serve-website-windows
+        platforms: [windows]
+      - cmd: task serve-website-darwin-linux
+        platforms: [darwin, linux]
 
   serve-docs:
-    desc: Run the server
+    desc: Alias for serve-website
     cmds:
-      - cmd: task serve-docs-windows
-        platforms: [windows]
-      - cmd: task serve-docs-darwin-linux
-        platforms: [darwin, linux]
+      - task: serve-website

@@ -1,0 +1,29 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Decode requests</h2>
+<p><code>DecodeJSON</code> wraps <code>json.NewDecoder(req.Body).Decode</code> for the common case.</p>
+<pre><code>type CreateUser struct {
+    Name string `json:"name"`
+}
+
+var input CreateUser
+if err := router.DecodeJSON(req, &input); err != nil {
+    _ = router.BadRequest(w, err)
+    return
+}</code></pre>
+
+<h2>Write responses</h2>
+<p><code>JSON</code> sets <code>Content-Type: application/json; charset=utf-8</code>, writes the status code, and encodes the value.</p>
+<pre><code>_ = router.JSON(w, http.StatusCreated, input)</code></pre>
+
+<h2>Error helpers</h2>
+<ul>
+    <li><code>Error</code></li>
+    <li><code>BadRequest</code></li>
+    <li><code>InternalServerError</code></li>
+    <li><code>MessageError</code></li>
+</ul>
+</article>
+

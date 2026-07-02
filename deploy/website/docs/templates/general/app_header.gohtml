@@ -1,0 +1,29 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/website.DocsHeaderPage
+*/}}
+{{ define "header.gohtml" }}
+<header id="app-header" class="app-header"{{ oobAttr }}>
+    <a class="brand" href="{{ .BasePath }}" hx-get="{{ .BasePath }}" hx-target="#content" hx-push-url="true">
+        <span class="brand-mark">
+            {{ if .LogoImage }}
+                <img src="{{ .LogoImage }}" alt="" height="40">
+            {{ else }}
+                {{ .Logo }}
+            {{ end }}
+        </span>
+        <span>
+            <strong>{{ .Title }}</strong>
+            <small>{{ .Subtitle }}</small>
+        </span>
+    </a>
+    <nav class="top-nav family-nav" aria-label="Website sections">
+        <a class="nav-main" href="{{ .MainURL }}">webthings</a>
+        <span class="nav-divider" aria-hidden="true"></span>
+        <a href="/go-partial" hx-get="/go-partial" hx-target="#content" hx-push-url="true"{{ if eq .AppName "go-partial" }} class="active" aria-current="page"{{ end }}>go-partial</a>
+        <a href="/go-docs" hx-get="/go-docs" hx-target="#content" hx-push-url="true"{{ if eq .AppName "go-docs" }} class="active" aria-current="page"{{ end }}>go-docs</a>
+        <a href="/go-router" hx-get="/go-router" hx-target="#content" hx-push-url="true"{{ if eq .AppName "go-router" }} class="active" aria-current="page"{{ end }}>go-router</a>
+        <a href="{{ .GitHubURL }}" target="_blank">github</a>
+    </nav>
+</header>
+{{ end }}
+{{ template "header.gohtml" . }}

@@ -6,7 +6,7 @@ Go Webthings Documentation
 Run the docs server:
 
 ```bash
-go run ./cmd/docs
+go run ./cmd/website
 ```
 
 Routes are selected by host:
@@ -41,13 +41,20 @@ Build the shared docs stylesheet from its Tailwind source with:
 task build-css
 ```
 
-The deployable templates and assets live under `deploy` and are loaded from the
-filesystem at runtime. When running from the repository root, the app uses
-`deploy`; when running the built binary from inside `deploy`, it uses the current
-directory. Set `ASSET_DIR` to override this.
+The deployable website lives under `deploy/website` and is split into deploy sections:
 
-The go-partial documentation is copied from `donseba/go-partial/examples/docs`
-into `deploy/elements/go_partial` and rendered with `go-partial` itself.
-The shared docs-family stylesheet source lives at `deploy/static/site.tailwind.css`;
-the generated output is `deploy/static/site.css` and is served as
-`/assets/site.css` for each docs/showcase host.
+- `deploy/website/docs`
+- `deploy/website/main`
+- `deploy/website/showcase`
+
+The app loads deploy files from the filesystem at runtime. When running from the repository
+root, it uses `deploy/website/docs`; when running the built binary from
+`deploy/website/main`, it uses the sibling `../docs` directory. Set `ASSET_DIR` to override
+this.
+
+The element documentation templates live under `deploy/website/docs/templates/go_partial`,
+`deploy/website/docs/templates/go_doc`, and `deploy/website/docs/templates/go_router`;
+shared shell templates live under `deploy/website/docs/templates/general`.
+The shared docs-family stylesheet source lives at `deploy/website/docs/tailwind/main.css`;
+the generated output is `deploy/website/docs/assets/css/styles.css` and is served as
+`/assets/css/styles.css` for each docs/showcase host.

@@ -1,0 +1,140 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<div class="callout">
+    <strong>Contract first, runtime second.</strong>
+    <p>A contract describes what the template expects. Runtime rendering remains normal Go code.</p>
+</div>
+
+<h2>Model access</h2>
+<p><code>@model</code> declares a named root value for the editor. In the example below, go-doc treats <code>Page</code> as a <code>TodoPage</code>, so fields such as <code>Title</code> and <code>OpenCount</code> can be completed and checked.</p>
+<pre><code>&#123;&#123;/*
+&#64;model Page github.com/example/app.TodoPage
+*/&#125;&#125;
+
+&lt;h1&gt;&#123;&#123; Page.Title &#125;&#125;&lt;/h1&gt;
+&lt;p&gt;&#123;&#123; Page.OpenCount &#125;&#125; open&lt;/p&gt;</code></pre>
+
+<p>At runtime, <code>html/template</code> does not know anything about <code>@model</code>. The name <code>Page</code> must also exist as a template function before the file is parsed. The renderer connects those two sides by registering a function named <code>Page</code> that returns the Go value you pass in.</p>
+
+<pre><code>{{`tmpl := template.New("main.gohtml")
+_ = contractRenderer.Register(tmpl, page)
+_, _ = tmpl.ParseFiles("templates/main.gohtml")`}}</code></pre>
+
+<p>Without that registration, plain <code>html/template</code> cannot resolve <code>Page</code>. For direct <code>tmpl.Execute(w, page)</code>, use <code>@dot</code> and <code>{{`{{ .Title }}`}}</code> instead.</p>
+
+<p>Typed root names should not reuse template function names. If <code>mul</code> is a global helper or local <code>@func</code>, <code>@model mul ...</code> or <code>@component mul ...</code> is reported as a collision because the runtime cannot safely treat the same identifier as both a value accessor and a function.</p>
+
+<h2>Dot access</h2>
+<pre><code>&#123;&#123;/*
+&#64;dot github.com/example/app.Todo
+*/&#125;&#125;
+
+&lt;li&gt;&#123;&#123; .Title &#125;&#125; - &#123;&#123; .Status &#125;&#125;&lt;/li&gt;</code></pre>
+
+<p><code>@dot</code> matches normal template execution where the data is passed as dot, for example <code>tmpl.Execute(w, todo)</code>. It is especially useful for row templates, card templates, and fragments rendered from a parent loop.</p>
+
+<h2>Function access</h2>
+<pre><code>&#123;&#123;/*
+&#64;model Page github.com/example/app.TodoPage
+&#64;func userByID github.com/example/app.UserByID
+*/&#125;&#125;
+
+&#123;&#123; with userByID 42 &#125;&#125;
+    &lt;h2&gt;&#123;&#123; .Name &#125;&#125;&lt;/h2&gt;
+&#123;&#123; end &#125;&#125;
+
+&lt;p&gt;&#123;&#123; (userByID 42).Email &#125;&#125;&lt;/p&gt;</code></pre>
+
+<p><code>@func</code> lets go-doc understand custom template functions, including argument checks and return types. If a function returns a struct, completion continues through <code>with</code> blocks and parenthesized calls.</p>
+
+<h2>Typed roots</h2>
+<p>Any non-special annotation with a name and type is a typed root. Typed roots complete, hover, navigate, and diagnose through the same engine. Use <code>@model</code> as the convention for page or fragment data. Use project vocabulary such as <code>@interaction</code>, <code>@component</code>, or <code>@struct</code> for names supplied by a renderer, framework, component system, or other runtime helper layer.</p>
+<pre><code>&#123;&#123;/*
+&#64;symbol LikesPoll github.com/example/app.Interaction
+*/&#125;&#125;
+
+&#123;&#123; LikesPoll.ID &#125;&#125;</code></pre>
+
+<p>A custom annotation declares a typed runtime-provided name. It is useful for framework concepts that behave like values in the template but are not ordinary page data. The editor can complete fields and navigate to the declared type, but runtime code still has to register the real value or function.</p>
+
+<pre><code>{
+  "symbolAnnotations": [
+    {
+      "name": "interaction",
+      "type": "github.com/donseba/go-partial.Interaction"
+    },
+    {
+      "name": "component"
+    }
+  ]
+}</code></pre>
+
+<pre><code>&#123;&#123;/*
+&#64;interaction LikesPoll
+&#64;component Button github.com/example/ui.Button
+*/&#125;&#125;</code></pre>
+
+<p>Custom annotation names are open by default when the declaration includes an explicit type, so <code>@component Button github.com/example/ui.Button</code> works even without config. Configured aliases let a project introduce known vocabulary. If the alias has a default type, the template only needs a name. If it has no default type, each declaration must include an explicit type. After parsing, aliases behave like normal typed roots.</p>
+<p>Set <code>symbolStrictMode: true</code> when you want typo protection for annotation names. In strict mode, <code>@jimmy Button github.com/example/ui.Button</code> warns unless <code>jimmy</code> is listed in <code>symbolAnnotations</code>. Use <code>@func</code> instead when the name is callable and you want arity, argument, pipeline, and return-type checks.</p>
+
+<h2>The tunnel</h2>
+<p>Every contract has two sides. The template comment is the entrance: it documents what the template expects. The runtime registration is the exit: it makes that name or function actually available to <code>html/template</code>. go-doc can explain the tunnel, but your application still has to connect both ends.</p>
+
+<h2>Template inclusion</h2>
+<pre><code>&#123;&#123;/* parent.gohtml */&#125;&#125;
+&#123;&#123; range Page.Users &#125;&#125;
+    &#123;&#123; template "user_row.gohtml" . &#125;&#125;
+&#123;&#123; end &#125;&#125;
+
+&#123;&#123;/* user_row.gohtml */&#125;&#125;
+&#123;&#123;/*
+&#64;dot github.com/example/app.User
+*/&#125;&#125;
+&lt;tr&gt;&lt;td&gt;&#123;&#123; .Name &#125;&#125;&lt;/td&gt;&lt;/tr&gt;</code></pre>
+
+<p>When a child template declares <code>@dot</code>, go-doc can validate parent calls such as <code>{{`{{ template "user_row.gohtml" . }}`}}</code>. Passing <code>Page.Users</code> directly to a row template warns because the child expects one <code>User</code>, not <code>[]User</code>.</p>
+<p>If the parent calls a child with no data, go-doc warns as well. That catches accidental <code>{{`{{ template "user_row.gohtml" }}`}}</code> calls before runtime.</p>
+
+<h2>Single-line annotations</h2>
+<p>If a template or define only needs one declaration, the compact form is valid and often easier to scan.</p>
+<pre><code>&#123;&#123;/* &#64;dot github.com/example/app.User */&#125;&#125;
+
+&lt;tr&gt;
+    &lt;td&gt;&#123;&#123; .Name &#125;&#125;&lt;/td&gt;
+&lt;/tr&gt;</code></pre>
+
+<h2>Named blocks</h2>
+<pre><code>&#123;&#123;/* parent.gohtml */&#125;&#125;
+&#123;&#123; range Page.Users &#125;&#125;
+    &#123;&#123; block "table_row" . &#125;&#125;&#123;&#123; end &#125;&#125;
+&#123;&#123; end &#125;&#125;
+
+&#123;&#123;/* rows.gohtml */&#125;&#125;
+&#123;&#123; define "table_row" &#125;&#125;
+&#123;&#123;/*
+&#64;dot github.com/example/app.User
+*/&#125;&#125;
+    &lt;tr&gt;&lt;td&gt;&#123;&#123; .Name &#125;&#125;&lt;/td&gt;&lt;/tr&gt;
+&#123;&#123; end &#125;&#125;</code></pre>
+
+<p>Contracts can live on named <code>define</code> blocks too. Put the annotation inside the block so it clearly belongs to that section. A leading annotation directly before <code>define</code> still works as a fallback, but go-doc warns and offers to move it inside. A <code>block</code> call is checked like a <code>template</code> call, so the parent value must match the child dot contract.</p>
+<p>When duplicate define names exist, the current document wins first, then the current file, then the wider template set. That keeps live edits predictable while the index catches up.</p>
+
+<h2>Scoped function checks</h2>
+<p>Function arguments are validated against the active scope. Inside a range, dot is the row type, so custom functions and pipelines can use <code>.</code> naturally.</p>
+<pre><code>&#123;&#123;/*
+&#64;model Page github.com/example/app.UserPage
+&#64;func userLabel github.com/example/app.UserLabel
+&#64;func div github.com/example/app.Div
+*/&#125;&#125;
+
+&#123;&#123; range Page.Users &#125;&#125;
+    &#123;&#123; userLabel . &#125;&#125;
+    &#123;&#123; .ID | div 2 &#125;&#125;
+    &#123;&#123; len .Permissions &#125;&#125;
+&#123;&#123; end &#125;&#125;</code></pre>
+<p>Nested calls are checked too, so <code>{{`{{ add (div Page.Total 2) 1 }}`}}</code> can report the bad inner argument instead of only looking at the outer function.</p>
+</article>
+
