@@ -1,0 +1,73 @@
+#file: noinspection YAMLSchemaValidation
+version: 2.1
+
+executors:
+  docker-publisher:
+    docker:
+      - image: cimg/go:1.26 # Or whatever base image you prefer
+
+jobs:
+  golangci:
+    executor: docker-publisher
+    docker:
+      - image: cimg/go:1.26
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - run:
+          name: Run golangci
+          command: |
+            golangci-lint run ./...
+
+  build_and_push_hydra:
+    executor: docker-publisher
+    docker:
+      - image: cimg/go:1.26
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - run:
+          name: Build docs
+          command: |
+            cd ~/repo/cmd/docs
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ~/repo/deploy/docs
+
+      - setup_remote_docker:
+          version: default
+          docker_layer_caching: true
+      - run:
+          name: Build and push Docker image for worker to DigitalOcean Container Registry
+          command: |
+            mkdir -p ~/.docker
+
+            # Move to the deploy directory
+            cd ~/repo/deploy/docs
+
+            # Determine the tag based on the branch
+            if [ "$CIRCLE_BRANCH" == "main" ]; then
+              TAG="latest"
+            else
+              TAG=$CIRCLE_TAG
+            fi
+
+            # Build the Docker image for worker
+            docker build -t registry.digitalocean.com/savage-software/go-webthings-docs:$TAG .
+            
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD registry.digitalocean.com/your_registry
+
+            # Push the worker image to the registry
+            docker push registry.digitalocean.com/savage-software/go-webthings-docs:$TAG
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - golangci
+      - build_and_push_hydra:
+          filters:
+            branches:
+              only:
+                - main
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/

@@ -93,40 +93,40 @@ tasks:
       - golangci-lint run
 
 
-  watch-css-darwin-linux:
+  watch-docs-css-darwin-linux:
     platforms: [darwin, linux]
     cmds:
-      - ./bin/tailwindcss --cwd ./deploy -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
+      - ./bin/tailwindcss --cwd ./deploy/docs -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
 
-  watch-css-windows:
+  watch-docs-css-windows:
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
+      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy\\docs -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
 
-  watch-css:
+  watch-docs-css:
     desc: Watch for changes in the css files
     deps:
       - watch-css-darwin-linux
       - watch-css-windows
 
-  serve-darwin-linux:
+  serve-docs-darwin-linux:
     desc: Run the server on macOS/Linux
     platforms: [darwin, linux]
     cmds:
-      - go build -o ./deploy/main ./cmd/docs/main.go
-      - cd ./deploy && ./main
+      - go build -o ./deploy/docs/main ./cmd/docs/main.go
+      - cd ./deploy/docs && ./main
 
-  serve-windows:
+  serve-docs-windows:
     desc: Run the server on Windows
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -Command "go build -o .\\deploy\\main.exe .\\cmd\\docs\\main.go"
-      - powershell -NoProfile -Command "Set-Location .\\deploy; .\\main.exe"
+      - powershell -NoProfile -Command "go build -o .\\deploy\\docs\\main.exe .\\cmd\\docs\\main.go"
+      - powershell -NoProfile -Command "Set-Location .\\deploy\docs; .\\main.exe"
 
-  serve:
+  serve-docs:
     desc: Run the server
     cmds:
-      - cmd: task serve-windows
+      - cmd: task serve-docs-windows
         platforms: [windows]
-      - cmd: task serve-darwin-linux
+      - cmd: task serve-docs-darwin-linux
         platforms: [darwin, linux]
