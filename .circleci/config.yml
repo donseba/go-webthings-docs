@@ -46,7 +46,7 @@ jobs:
             mkdir -p ~/.docker
 
             # Move to the deploy directory
-            cd ~/repo/deploy/docs
+            cd ~/repo/deploy/website
 
             # Determine the tag based on the branch
             if [ "$CIRCLE_BRANCH" == "main" ]; then
