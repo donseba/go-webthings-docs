@@ -1,0 +1,20 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Middleware shape</h2>
+<pre><code>type Middleware func(http.Handler) http.Handler</code></pre>
+
+<h2>Common stack</h2>
+<pre><code>r.Use(middleware.RequestID)
+r.Use(middleware.RealIPWithOptions(middleware.RealIPOptions{
+    TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
+}))
+r.Use(middleware.Logger())
+r.Use(middleware.Recover)
+r.Use(middleware.Timeout(10 * time.Second))
+r.Use(middleware.SecurityHeaders())</code></pre>
+
+<p>The bundled middleware package includes request IDs, logging, recovery, timeouts, security headers, CORS, real IP, content length, and timing helpers.</p>
+</article>
+

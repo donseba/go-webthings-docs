@@ -1,0 +1,21 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Exact host</h2>
+<pre><code>r.Host("admin.example.com", func(admin *router.Router) {
+    admin.Get("/", adminHome)
+})</code></pre>
+
+<h2>Subdomains</h2>
+<pre><code>r.Subdomain("docs", "go-webthings.com", func(docs *router.Router) {
+    docs.Get("/{element}", elementDocs)
+})
+
+r.Subdomain("*", "example.com", func(tenant *router.Router) {
+    tenant.Get("/dashboard", tenantDashboard).As("tenant.dashboard")
+})</code></pre>
+
+<p>Exact hosts win over wildcard hosts. The apex domain does not match a wildcard subdomain. Unknown hosts fall back to the default router.</p>
+</article>
+

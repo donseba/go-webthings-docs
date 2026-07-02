@@ -1,0 +1,15 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Use</h2>
+<p><code>Timeout</code> wraps handlers with <code>http.TimeoutHandler</code>.</p>
+<pre><code>r.Use(middleware.Timeout(10 * time.Second))</code></pre>
+
+<h2>Response</h2>
+<p>When the timeout fires, the client receives <code>503 Service Unavailable</code> with the standard status text.</p>
+
+<h2>Notes</h2>
+<p>The timeout middleware is useful as a broad guardrail. Handlers should still respect request contexts for database queries, outbound HTTP calls, and longer workflows.</p>
+</article>
+

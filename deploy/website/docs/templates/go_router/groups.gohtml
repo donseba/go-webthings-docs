@@ -1,0 +1,38 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Path groups</h2>
+<p>Use <code>Group</code> when a set of routes shares a path prefix. The child router keeps the same registration API, but every route is registered below the group path.</p>
+<pre><code>r.Group("/api", func(api *router.Router) {
+    api.Get("/users", listUsers)
+    api.Post("/users", createUser)
+})</code></pre>
+
+<h2>Group middleware</h2>
+<p>Middleware registered inside a group only applies to routes registered through that group.</p>
+<pre><code>r.Group("/admin", func(admin *router.Router) {
+    admin.Use(requireAdmin)
+    admin.Get("/dashboard", dashboard)
+})</code></pre>
+
+<h2>Middleware-only groups</h2>
+<p>Use <code>With</code> when you want to share middleware without adding a path prefix.</p>
+<pre><code>r.With(func(private *router.Router) {
+    private.Use(requireLogin)
+    private.Get("/account", account)
+})</code></pre>
+
+<h2>Inherited docs</h2>
+<p>Group-level OpenAPI metadata is inherited by child routes, which keeps tags and security requirements close to the area they describe.</p>
+<pre><code>r.Group("/api", func(api *router.Router) {
+    api.UseDocs(router.Docs{
+        Tags: []string{"api"},
+    })
+
+    api.Get("/users", listUsers, router.Docs{
+        Summary: "List users",
+    })
+})</code></pre>
+</article>
+

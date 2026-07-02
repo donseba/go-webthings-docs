@@ -1,0 +1,22 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Defaults</h2>
+<p><code>SecurityHeaders</code> applies pragmatic defaults for common browser hardening.</p>
+<pre><code>r.Use(middleware.SecurityHeaders())</code></pre>
+
+<h2>Default headers</h2>
+<ul>
+    <li><code>X-Content-Type-Options: nosniff</code></li>
+    <li><code>X-Frame-Options: DENY</code></li>
+    <li><code>Referrer-Policy: no-referrer</code></li>
+</ul>
+
+<h2>Options</h2>
+<pre><code>r.Use(middleware.SecurityHeaders(middleware.SecurityHeadersOptions{
+    ContentSecurityPolicy: "default-src 'self'",
+    FrameOptions:          "SAMEORIGIN",
+}))</code></pre>
+</article>
+
