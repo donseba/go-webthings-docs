@@ -1,6 +1,7 @@
 package site
 
 import (
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,12 +22,25 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			path:       "/go-partial",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"go-partial documentation",
 				"Server-rendered partials that stay useful with HTMX",
 				"href=\"/go-partial/installation\"",
 				"aria-current=\"page\"",
 				"href=\"/go-docs\"",
 				"href=\"/go-router\"",
+			},
+		},
+		{
+			name:       "docs root index",
+			host:       "docs.go-webthings.com",
+			path:       "/",
+			wantStatus: http.StatusOK,
+			wantBody: []string{
+				"Docs for go-webthings",
+				"src=\"/assets/img/go-webthings-400.png\"",
+				"src=\"/assets/img/go-partial-300.png\"",
+				"src=\"/assets/img/go-doc-300.png\"",
+				"src=\"/assets/img/go-router-300.png\"",
+				"class=\"root-card\"",
 			},
 		},
 		{
@@ -48,9 +62,12 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"Typed contracts for Go templates",
 				"href=\"/go-docs/install\"",
-				"href=\"/assets/site.css\"",
+				"href=\"/assets/css/styles.css\"",
+				"src=\"/assets/js/code-highlight.js\"",
 				"href=\"/go-partial\"",
-				"href=\"/go-docs\" class=\"active\" aria-current=\"page\"",
+				"href=\"/go-docs\" hx-get=\"/go-docs\"",
+				"class=\"active\" aria-current=\"page\"",
+				"hx-get=\"/go-docs/install\"",
 				"href=\"/go-router\"",
 			},
 		},
@@ -63,6 +80,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"Template contracts",
 				"Contract first, runtime second.",
 				"href=\"/go-docs/install\"",
+				"hx-get=\"/go-docs/install\"",
 			},
 		},
 		{
@@ -75,7 +93,9 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"href=\"/go-router/routing\"",
 				"href=\"/go-partial\"",
 				"href=\"/go-docs\"",
-				"href=\"/go-router\" class=\"active\" aria-current=\"page\"",
+				"href=\"/go-router\" hx-get=\"/go-router\"",
+				"class=\"active\" aria-current=\"page\"",
+				"hx-get=\"/go-router/routing\"",
 			},
 		},
 		{
@@ -134,6 +154,17 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			},
 		},
 		{
+			name:       "go partial interactions docs page",
+			host:       "docs.go-webthings.com",
+			path:       "/go-partial/interactions",
+			wantStatus: http.StatusOK,
+			wantBody: []string{
+				"Interaction helpers",
+				"poll-notifications",
+				"hx-trigger=\"every 10s\"",
+			},
+		},
+		{
 			name:       "old nested docs path is not canonical",
 			host:       "docs.go-webthings.com",
 			path:       "/go-partial/docs/rendering",
@@ -188,7 +219,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 }
 
 func TestSharedStylesheet(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/assets/site.css", nil)
+	req := httptest.NewRequest(http.MethodGet, "/assets/css/styles.css", nil)
 	req.Host = "docs.go-webthings.com"
 	rec := httptest.NewRecorder()
 
@@ -199,6 +230,226 @@ func TestSharedStylesheet(t *testing.T) {
 	}
 	if body := rec.Body.String(); !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "slate-950") {
 		t.Fatalf("expected shared docs stylesheet, got:\n%s", body)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, "syntax-keyword") || !strings.Contains(body, "display:table") {
+		t.Fatalf("expected docs code and table styles, got:\n%s", body)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, ".root-hub") || !strings.Contains(body, ".root-card") {
+		t.Fatalf("expected root hub styles, got:\n%s", body)
+	}
+}
+
+func TestDocsCodeHighlightAsset(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/assets/js/code-highlight.js", nil)
+	req.Host = "docs.go-webthings.com"
+	rec := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, "highlightAll") || !strings.Contains(body, "htmx:afterSwap") || !strings.Contains(body, "highlightGoDocComment") {
+		t.Fatalf("expected docs highlighter asset, got:\n%s", body)
+	}
+}
+
+func TestDocsElementTemplatesUseSharedArticleShape(t *testing.T) {
+	err := fs.WalkDir(siteFS, "templates", func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(path, ".gohtml") {
+			return nil
+		}
+		if !strings.HasPrefix(path, "templates/go_partial/") && !strings.HasPrefix(path, "templates/go_doc/") && !strings.HasPrefix(path, "templates/go_router/") {
+			return nil
+		}
+
+		bodyBytes, err := fs.ReadFile(siteFS, path)
+		if err != nil {
+			return err
+		}
+		body := strings.TrimSpace(string(bodyBytes))
+		if !strings.HasPrefix(body, "{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}") {
+			t.Fatalf("%s should start with the DocsArticleData @dot contract", path)
+		}
+		if count := strings.Count(body, "<article"); count != 1 {
+			t.Fatalf("%s should contain one article wrapper, got %d", path, count)
+		}
+		if count := strings.Count(body, `{{ template "hero.gohtml" . }}`); count != 1 {
+			t.Fatalf("%s should render the shared hero once, got %d", path, count)
+		}
+		if strings.Contains(body, "text-5xl") || strings.Contains(body, "text-emerald-300") {
+			t.Fatalf("%s should not duplicate shared hero styling", path)
+		}
+		if !strings.HasSuffix(body, "</article>") {
+			t.Fatalf("%s should close with </article>", path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDocsTemplatesUseDeployLayout(t *testing.T) {
+	for _, dir := range []string{
+		"templates/general",
+		"templates/go_partial",
+		"templates/go_doc",
+		"templates/go_router",
+	} {
+		if _, err := fs.Stat(siteFS, dir); err != nil {
+			t.Fatalf("expected %s to exist: %v", dir, err)
+		}
+	}
+
+	if _, err := fs.Stat(siteFS, "elements"); err == nil {
+		t.Fatal("old deploy/docs/elements template tree should not exist")
+	}
+}
+
+func TestDocsPageTemplatesUseElementDirectories(t *testing.T) {
+	for name, test := range map[string]struct {
+		pages map[string]docsPage
+		dir   string
+	}{
+		"go-partial": {pages: goPartialDocs.pages, dir: "templates/go_partial/"},
+		"go-docs":    {pages: goDocsDocs.pages, dir: "templates/go_doc/"},
+		"go-router":  {pages: goRouterDocs.pages, dir: "templates/go_router/"},
+	} {
+		for route, page := range test.pages {
+			if !strings.HasPrefix(page.Template, test.dir) {
+				t.Fatalf("%s route %s should use %s, got %q", name, route, test.dir, page.Template)
+			}
+			if strings.Contains(strings.TrimPrefix(page.Template, test.dir), "/") || strings.Contains(page.Template, `\`) {
+				t.Fatalf("%s route %s should keep templates flat inside the element directory, got %q", name, route, page.Template)
+			}
+			if !strings.HasSuffix(page.Template, ".gohtml") {
+				t.Fatalf("%s route %s should point to a gohtml template, got %q", name, route, page.Template)
+			}
+		}
+	}
+}
+
+func TestDocsInternalLinksUseHTMX(t *testing.T) {
+	err := fs.WalkDir(siteFS, "templates", func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(path, ".gohtml") {
+			return nil
+		}
+		if !strings.HasPrefix(path, "templates/go_partial/") && !strings.HasPrefix(path, "templates/go_doc/") && !strings.HasPrefix(path, "templates/go_router/") {
+			return nil
+		}
+
+		bodyBytes, err := fs.ReadFile(siteFS, path)
+		if err != nil {
+			return err
+		}
+		for i, line := range strings.Split(string(bodyBytes), "\n") {
+			if !strings.Contains(line, "<a ") || !strings.Contains(line, "href=") {
+				continue
+			}
+			internal := strings.Contains(line, `href="{{ basePath }}`) ||
+				strings.Contains(line, `href="{{ goDocsPath`) ||
+				strings.Contains(line, `href="{{ goRouterPath`)
+			if internal && (!strings.Contains(line, "hx-get=") || !strings.Contains(line, `hx-target="#content"`) || !strings.Contains(line, `hx-push-url="true"`)) {
+				t.Fatalf("%s:%d internal docs link should use HTMX navigation: %s", path, i+1, strings.TrimSpace(line))
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDocsPromptFaces(t *testing.T) {
+	if len(docsPromptFaces) < 20 {
+		t.Fatalf("expected at least 20 prompt faces, got %d", len(docsPromptFaces))
+	}
+	for _, want := range []string{"#_>", "-_-", "^-^", "#_#"} {
+		found := false
+		for _, face := range docsPromptFaces {
+			if face == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("expected prompt face list to contain %q", want)
+		}
+	}
+}
+
+func TestHTMXDocsRequestsReturnFragments(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want []string
+	}{
+		{
+			name: "go partial",
+			path: "/go-partial/rendering",
+			want: []string{
+				`hx-swap-oob="true"`,
+				`id="app-header"`,
+				`id="docs-sidebar"`,
+				"Rendering model",
+				"Wrapper plus content",
+			},
+		},
+		{
+			name: "go docs",
+			path: "/go-docs/annotations",
+			want: []string{
+				`hx-swap-oob="true"`,
+				`id="app-header"`,
+				`id="docs-sidebar"`,
+				"Annotations",
+				"Model, dot, function, and symbol annotations",
+			},
+		},
+		{
+			name: "go router",
+			path: "/go-router/middleware/timeout",
+			want: []string{
+				`hx-swap-oob="true"`,
+				`id="app-header"`,
+				`id="docs-sidebar"`,
+				"Timeout middleware",
+				"Wrap handlers with http.TimeoutHandler",
+			},
+		},
+	}
+
+	handler := NewRouter()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req.Host = "docs.go-webthings.com"
+			req.Header.Set("HX-Request", "true")
+			req.Header.Set("HX-Target", "content")
+			rec := httptest.NewRecorder()
+
+			handler.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+			}
+			body := rec.Body.String()
+			if strings.Contains(body, "<!doctype html>") || strings.Contains(body, "<body") {
+				t.Fatalf("expected HTMX fragment without full shell, got:\n%s", body)
+			}
+			for _, want := range tt.want {
+				if !strings.Contains(body, want) {
+					t.Fatalf("expected body to contain %q\nbody:\n%s", want, body)
+				}
+			}
+		})
 	}
 }
 

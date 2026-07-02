@@ -41,13 +41,14 @@ Build the shared docs stylesheet from its Tailwind source with:
 task build-css
 ```
 
-The deployable templates and assets live under `deploy` and are loaded from the
+The deployable docs templates and assets live under `deploy/docs` and are loaded from the
 filesystem at runtime. When running from the repository root, the app uses
-`deploy`; when running the built binary from inside `deploy`, it uses the current
+`deploy/docs`; when running the built binary from inside `deploy/docs`, it uses the current
 directory. Set `ASSET_DIR` to override this.
 
-The go-partial documentation is copied from `donseba/go-partial/examples/docs`
-into `deploy/elements/go_partial` and rendered with `go-partial` itself.
-The shared docs-family stylesheet source lives at `deploy/static/site.tailwind.css`;
-the generated output is `deploy/static/site.css` and is served as
-`/assets/site.css` for each docs/showcase host.
+The element documentation templates live under `deploy/docs/templates/go_partial`,
+`deploy/docs/templates/go_doc`, and `deploy/docs/templates/go_router`; shared shell
+templates live under `deploy/docs/templates/general`.
+The shared docs-family stylesheet source lives at `deploy/docs/tailwind/main.css`;
+the generated output is `deploy/docs/assets/css/styles.css` and is served as
+`/assets/css/styles.css` for each docs/showcase host.

@@ -1,0 +1,18 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Custom router statuses</h2>
+<p><code>HandleStatus</code> replaces status responses emitted by the underlying routing layer, such as 404 and 405.</p>
+<pre><code>r.HandleStatus(http.StatusNotFound, notFound)
+r.HandleStatus(http.StatusMethodNotAllowed, methodNotAllowed)</code></pre>
+
+<h2>Inline handlers</h2>
+<pre><code>r.HandleStatus(http.StatusInternalServerError, func(w http.ResponseWriter, req *http.Request) {
+    http.Error(w, "Custom 500 - Internal Server Error", http.StatusInternalServerError)
+})</code></pre>
+
+<h2>How it works</h2>
+<p>Custom status handling uses an intercepting response writer. When no custom handler is registered, the router keeps the hot path direct.</p>
+</article>
+

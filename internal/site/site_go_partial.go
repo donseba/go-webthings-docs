@@ -1,92 +1,48 @@
 package site
 
 import (
-	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	partial "github.com/donseba/go-partial"
-	"github.com/donseba/go-partial/connector"
 	"github.com/donseba/go-partial/exp/interactions"
-	"github.com/donseba/go-partial/exp/templatehelpers"
-	exterrors "github.com/donseba/go-partial/ext/errors"
 	router "github.com/donseba/go-router"
 )
 
 type partialDocsApp struct {
-	root *partial.Partial
-}
-
-type DocsPage struct{}
-
-type DocsHeaderPage struct {
-	AppName   string
-	BasePath  string
-	Logo      string
-	Title     string
-	Subtitle  string
-	GitHubURL string
-	UseHTMX   bool
-}
-
-type DocsNavPage struct {
-	Nav     []DocsNavLink
-	Groups  []string
-	UseHTMX bool
-}
-
-type DocsNavLink struct {
-	Path   string
-	Label  string
-	Group  string
-	Active bool
-}
-
-type DocsShellPage struct {
-	AppName string
-	Header  DocsHeaderPage
-	Sidebar DocsNavPage
+	docs  *docsRenderer
+	pages map[string]docsPage
 }
 
 func registerGoPartialDocsRoutes(r *router.Router, domain string) {
-	r.Get("/go-partial/installation", goPartialDocs.page("templates/docs_installation.gohtml")).As(fmt.Sprintf("%s.go-partial.installation", domain))
-	r.Get("/go-partial/rendering", goPartialDocs.page("templates/docs_rendering.gohtml")).As(fmt.Sprintf("%s.go-partial.rendering", domain))
-	r.Get("/go-partial/data-context", goPartialDocs.page("templates/docs_data_context.gohtml")).As(fmt.Sprintf("%s.go-partial.data-context", domain))
-	r.Get("/go-partial/selection-action", goPartialDocs.page("templates/docs_selection_action.gohtml")).As(fmt.Sprintf("%s.go-partial.selection-action", domain))
-	r.Get("/go-partial/interactions", goPartialDocs.interactions).As(fmt.Sprintf("%s.go-partial.interactions", domain))
-	r.Get("/go-partial/deferred", goPartialDocs.page("templates/docs_deferred.gohtml")).As(fmt.Sprintf("%s.go-partial.deferred", domain))
-	r.Get("/go-partial/flash", goPartialDocs.page("templates/docs_flash.gohtml")).As(fmt.Sprintf("%s.go-partial.flash", domain))
-	r.Get("/go-partial/flow", goPartialDocs.page("templates/docs_flow.gohtml")).As(fmt.Sprintf("%s.go-partial.flow", domain))
-	r.Get("/go-partial/localization", goPartialDocs.page("templates/docs_localization.gohtml")).As(fmt.Sprintf("%s.go-partial.localization", domain))
-	r.Get("/go-partial/integrations", goPartialDocs.page("templates/docs_integrations.gohtml")).As(fmt.Sprintf("%s.go-partial.integrations", domain))
-	r.Get("/go-partial/integrations/htmx", goPartialDocs.page("templates/docs_htmx.gohtml")).As(fmt.Sprintf("%s.go-partial.htmx", domain))
-	r.Get("/go-partial/integrations/sse", goPartialDocs.page("templates/docs_sse.gohtml")).As(fmt.Sprintf("%s.go-partial.sse", domain))
-	r.Get("/go-partial/integrations/custom-clients", goPartialDocs.page("templates/docs_custom_clients.gohtml")).As(fmt.Sprintf("%s.go-partial.custom-clients", domain))
-	r.Get("/go-partial/api", goPartialDocs.page("templates/docs_api.gohtml")).As(fmt.Sprintf("%s.go-partial.api", domain))
-	r.Get("/go-partial/api/pageflow", goPartialDocs.page("templates/docs_pageflow_api.gohtml")).As(fmt.Sprintf("%s.go-partial.pageflow-api", domain))
-	r.Get("/go-partial/target-resolver", goPartialDocs.page("templates/docs_target_resolver.gohtml")).As(fmt.Sprintf("%s.go-partial.target-resolver", domain))
-	r.Get("/go-partial/connectors", goPartialDocs.page("templates/docs_connectors.gohtml")).As(fmt.Sprintf("%s.go-partial.connectors", domain))
-	r.Get("/go-partial/template-functions", goPartialDocs.page("templates/docs_template_functions.gohtml")).As(fmt.Sprintf("%s.go-partial.template-functions", domain))
-	r.Get("/go-partial/htmx", goPartialDocs.page("templates/docs_htmx.gohtml")).As(fmt.Sprintf("%s.go-partial.htmx.alias", domain))
-	r.Get("/go-partial/error-boundaries", goPartialDocs.page("templates/docs_error_boundaries.gohtml")).As(fmt.Sprintf("%s.go-partial.error-boundaries", domain))
-	r.Get("/go-partial/observability", goPartialDocs.page("templates/docs_observability.gohtml")).As(fmt.Sprintf("%s.go-partial.observability", domain))
+	registerDocsPageRoutes(r, domain, "go-partial", goPartialDocs.pages, DocsPath, goPartialDocs.page)
+	r.Get("/go-partial/htmx", goPartialDocs.page(goPartialDocs.pages["/integrations/htmx"])).As(domain + ".go-partial.htmx.alias")
 }
 
 func mustNewGoPartialDocs() *partialDocsApp {
-	root := partial.NewID("shell", "elements/go_partial/templates/shell.gohtml").
-		SetConnector(connector.NewHTMX(nil)).
-		SetFileSystem(siteFS).
-		SetBasePath("/go-partial").
-		UseTemplateCache(true).
-		Use(exterrors.Stage(exterrors.WithMode(exterrors.ModeDetailed))).
-		SetFunc(interactions.FuncMap(), templatehelpers.FuncMap(), template.FuncMap{
-			"docsPath": DocsPath,
-		})
+	docs := newDocsRenderer(docsRendererConfig{
+		BasePath:  "/go-partial",
+		AppName:   "go-partial",
+		LogName:   "go-partial",
+		Logo:      "gp",
+		Title:     "go-partial",
+		Subtitle:  "server-rendered partials for Go",
+		GitHubURL: "https://github.com/donseba/go-partial",
+		Nav:       goPartialNavItems(),
+		Funcs: []template.FuncMap{
+			interactions.FuncMap(),
+			{
+				"docsPath": DocsPath,
+			},
+		},
+	})
 
-	return &partialDocsApp{root: root}
+	return &partialDocsApp{
+		docs:  docs,
+		pages: docsPages("templates/go_partial", goPartialPages()),
+	}
 }
 
 func DocsPath(path string) string {
@@ -101,99 +57,51 @@ func (app *partialDocsApp) overview(w http.ResponseWriter, r *http.Request) {
 		renderNotFound(w, r)
 		return
 	}
-	app.render(w, r, goPartialTemplate("templates/docs_overview.gohtml"))
+	app.render(w, r, app.pages["/"])
 }
 
-func (app *partialDocsApp) page(tmpl string) http.HandlerFunc {
+func (app *partialDocsApp) page(page docsPage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		app.render(w, r, goPartialTemplate(tmpl))
+		app.render(w, r, page)
 	}
 }
 
-func (app *partialDocsApp) interactions(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, goPartialTemplate("templates/docs_interactions.gohtml"), func(content *partial.Partial) {
-		content.SetContract("interaction",
-			interactions.NewPoll("/notifications").As("Notifications").Every(10*time.Second),
-			interactions.NewOn("cart:changed", "/cart/summary").As("CartChanged").Target("#cart"),
-			interactions.NewRefresh("/cart/summary").As("CartRefresh").Target("#cart").Swap(interactions.SwapOuterHTML),
-		)
-	})
+func (app *partialDocsApp) render(w http.ResponseWriter, r *http.Request, page docsPage, configure ...func(*partial.Partial)) {
+	app.docs.render(w, r, page, nil, configure...)
 }
 
-func (app *partialDocsApp) render(w http.ResponseWriter, r *http.Request, tmpl string, configure ...func(*partial.Partial)) {
-	content := partial.NewID("content", tmpl).SetDot(DocsPage{})
-	for _, fn := range configure {
-		if fn != nil {
-			fn(content)
-		}
-	}
-
-	header := DocsHeaderPage{
-		AppName:   "go-partial",
-		BasePath:  "/go-partial",
-		Logo:      "gp",
-		Title:     "go-partial",
-		Subtitle:  "server-rendered partials for Go",
-		GitHubURL: "https://github.com/donseba/go-partial",
-		UseHTMX:   true,
-	}
-	nav := goPartialNavItems()
-	sidebar := docsNavPage(nav, "/go-partial", r.URL.Path, true)
-	root := app.root.Clone().SetDot(DocsShellPage{
-		AppName: "go-partial",
-		Header:  header,
-		Sidebar: sidebar,
-	})
-	root.WithOOB(partial.NewID("header", "templates/docs_header.gohtml").SetFileSystem(siteFS).SetDot(header).SetAlwaysSwapOOB(true))
-	root.WithOOB(partial.NewID("sidebar", "templates/docs_sidebar.gohtml").SetFileSystem(siteFS).SetDot(sidebar).SetAlwaysSwapOOB(true))
-	root.SetContent(content)
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := partial.Write(r.Context(), w, r, root); err != nil {
-		log.Printf("render go-partial docs error: %v", err)
-	}
+func configureInteractions(content *partial.Partial) {
+	content.SetContract("interaction",
+		interactions.NewPoll("/notifications").As("Notifications").Every(10*time.Second),
+		interactions.NewOn("cart:changed", "/cart/summary").As("CartChanged").Target("#cart"),
+		interactions.NewRefresh("/cart/summary").As("CartRefresh").Target("#cart").Swap(interactions.SwapOuterHTML),
+	)
 }
 
-func goPartialTemplate(path string) string {
-	return "elements/go_partial/" + path
-}
-
-func docsNavPage(items []NavItem, basePath, currentPath string, useHTMX bool) DocsNavPage {
-	links := make([]DocsNavLink, 0, len(items))
-	groups := make([]string, 0, len(items))
-	seen := make(map[string]struct{}, len(items))
-	currentPath = strings.TrimSuffix(currentPath, "/")
-	if currentPath == "" {
-		currentPath = "/"
+func goPartialPages() map[string]docsPage {
+	return map[string]docsPage{
+		"/":                            {Template: "overview.gohtml", Title: "Server-rendered partials that stay useful with HTMX", Description: "go-partial is a small rendering layer for Go applications that want reusable template regions, targeted updates, out-of-band swaps, and predictable server-side behavior.", Section: "Documentation"},
+		"/installation":                {Template: "installation.gohtml", Title: "Installation", Description: "Install the package, choose a connector, and point go-partial at your template filesystem.", Section: "Guide"},
+		"/rendering":                   {Template: "rendering.gohtml", Title: "Rendering model", Description: "A page is a partial tree. A wrapper partial can render a content child, registered regions keep stable IDs, and HTMX can request one target without losing the surrounding model.", Section: "Guide"},
+		"/data-context":                {Template: "data_context.gohtml", Title: "Data and context", Description: "Prefer typed app models. go-partial adds request-aware helpers around normal Go templates; it should not become a second application state container.", Section: "Guide"},
+		"/selection-action":            {Template: "selection_action.gohtml", Title: "Selection and action", Description: "Selection and action both read request intent from the configured connector, but they solve different problems. Selection chooses one registered partial. Action lets Go code decide what to render.", Section: "Guide"},
+		"/interactions":                {Template: "interactions.gohtml", Title: "Interaction helpers", Description: "Interaction helpers describe how a server-rendered partial should reach the browser. They are delivery hints; your page data can stay on dot.", Section: "Guide", Configure: configureInteractions},
+		"/deferred":                    {Template: "deferred.gohtml", Title: "Deferred partials", Description: "async renders a connector-aware placeholder that loads another endpoint after the current page has rendered. It is useful for slow panels, optional sections, and row fragments that should not block the first response.", Section: "Guide"},
+		"/flash":                       {Template: "flash.gohtml", Title: "Flash messages", Description: "exp/flash renders request-scoped messages for SSR and HTMX responses. It stays deliberately small: your app owns persistence, while the package owns message shape, helpers, and default markup.", Section: "exp"},
+		"/flow":                        {Template: "flow.gohtml", Title: "Page flows", Description: "PageFlow is a small coordinator for multi-step server-rendered screens. It knows the ordered steps, current step, validation callbacks, and collected step data; your application still owns routing and storage.", Section: "Guide"},
+		"/localization":                {Template: "localization.gohtml", Title: "Localization", Description: "Localization is intentionally split in two: localizer carries the active locale, while translation functions such as tl, tn, ctl, and ctn are user-provided template functions.", Section: "Guide"},
+		"/integrations":                {Template: "integrations.gohtml", Title: "Integration overview", Description: "go-partial sits on the server side. Integrations decide how a browser request names a target, selection, or action, and how server response intent is written back to the client.", Section: "Integration"},
+		"/integrations/htmx":           {Template: "htmx.gohtml", Title: "HTMX integration", Description: "The HTMX connector reads request headers and lets go-partial render the requested target instead of the full page.", Section: "Integration"},
+		"/integrations/sse":            {Template: "sse.gohtml", Title: "Server-sent events", Description: "SSE is a streaming writer layer. It does not replace connectors; it sends events after your handler decides what changed.", Section: "Integration"},
+		"/integrations/custom-clients": {Template: "custom_clients.gohtml", Title: "Custom clients", Description: "Use the neutral connector when your frontend is plain fetch, a small controller, tests, or another client that can send predictable headers.", Section: "Integration"},
+		"/api":                         {Template: "api.gohtml", Title: "Core API", Description: "The public surface is small: build partials, register relationships, choose a connector, then render through request-aware writer APIs.", Section: "Reference"},
+		"/api/pageflow":                {Template: "pageflow_api.gohtml", Title: "PageFlow API", Description: "PageFlow defines the flow. pageflow.SessionData carries per-user state. That split lets a single flow definition be reused safely across requests, tabs, and users.", Section: "Reference"},
+		"/target-resolver":             {Template: "target_resolver.gohtml", Title: "Target resolver", Description: "target.WithResolver handles DOM targets that are not fixed partial IDs. It is the tool for tables, feeds, cards, and repeated rows.", Section: "Guide"},
+		"/connectors":                  {Template: "connectors.gohtml", Title: "Connectors", Description: "Connectors let go-partial understand request headers from a frontend library or a custom fetch client.", Section: "Reference"},
+		"/template-functions":          {Template: "template_functions.gohtml", Title: "Template functions", Description: "go-partial adds rendering helpers, connector helpers, URL helpers, OOB helpers, and small utility functions to normal html/template files.", Section: "Reference"},
+		"/error-boundaries":            {Template: "error_boundaries.gohtml", Title: "Error boundaries", Description: "A failing registered partial renders a section-level fallback. The page shell survives, which is useful for development and production.", Section: "Guide"},
+		"/observability":               {Template: "observability.gohtml", Title: "Observability", Description: "go-partial emits small diagnostic events, but it does not own logging, metrics storage, tracing providers, queues, or exporters. Applications attach sinks and decide where events go.", Section: "ext and exp"},
 	}
-
-	for _, item := range items {
-		if _, ok := seen[item.Group]; !ok {
-			seen[item.Group] = struct{}{}
-			groups = append(groups, item.Group)
-		}
-
-		path := docsFullPath(basePath, item.Path)
-		links = append(links, DocsNavLink{
-			Path:   path,
-			Label:  item.Label,
-			Group:  item.Group,
-			Active: strings.TrimSuffix(path, "/") == currentPath,
-		})
-	}
-
-	return DocsNavPage{
-		Nav:     links,
-		Groups:  groups,
-		UseHTMX: useHTMX,
-	}
-}
-
-func docsFullPath(basePath, path string) string {
-	if path == "" || path == "/" {
-		return basePath
-	}
-	return basePath + path
 }
 
 func goPartialNavItems() []NavItem {

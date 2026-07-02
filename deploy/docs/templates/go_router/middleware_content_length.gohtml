@@ -1,0 +1,15 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Use</h2>
+<p><code>ContentLengthMiddleware</code> buffers a normal response so it can set <code>Content-Length</code> before writing the body.</p>
+<pre><code>r.Use(middleware.ContentLengthMiddleware)</code></pre>
+
+<h2>Special cases</h2>
+<p>It preserves correct behavior for <code>HEAD</code>, <code>204 No Content</code>, and <code>304 Not Modified</code>.</p>
+
+<h2>When to avoid it</h2>
+<p>Do not use it for streaming, server-sent events, websockets, large downloads, or reverse-proxy style handlers. Buffering those responses changes the behavior and memory profile.</p>
+</article>
+

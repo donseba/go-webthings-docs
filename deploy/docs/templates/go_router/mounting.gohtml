@@ -1,0 +1,24 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Mount any handler</h2>
+<p><code>Mount</code> places an <code>http.Handler</code> under a path prefix. This is useful for debug handlers, admin tools, and small embedded apps.</p>
+<pre><code>r.Mount("/debug", http.DefaultServeMux)</code></pre>
+
+<h2>Mount child routers</h2>
+<p>When the mounted handler is another <code>*router.Router</code>, go-router propagates route names, route walking metadata, and OpenAPI data into the parent.</p>
+<pre><code>api := router.New(http.NewServeMux(), "API", "1.0.0")
+api.Get("/users/{id}", showUser).As("api.users.show")
+
+r.Mount("/api", api)
+
+path := r.RoutePathWithParams("api.users.show", map[string]any{
+    "id": 123,
+})
+// "/api/users/123"</code></pre>
+
+<h2>Host routes inside mounted routers</h2>
+<p>Mounted routers keep their child host registrations. That lets a composed app still own its exact-host or subdomain routes.</p>
+</article>
+

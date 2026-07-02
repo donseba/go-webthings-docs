@@ -22,21 +22,21 @@ tasks:
     desc: Build the shared docs stylesheet on Windows
     platforms: [windows]
     cmds:
-      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe -i '.\\deploy\\static\\site.tailwind.css' -o '.\\deploy\\static\\site.css' --minify"
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe --cwd '.\\deploy\\docs' -i '.\\tailwind\\main.css' -o '.\\assets\\css\\styles.css' --minify"
 
   build-css-darwin:
     desc: Build the shared docs stylesheet on macOS
     platforms: [darwin]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-darwin
-      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+      - ./bin/tailwindcss --cwd ./deploy/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   build-css-linux:
     desc: Build the shared docs stylesheet on Linux
     platforms: [linux]
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-linux
-      - ./bin/tailwindcss -i ./deploy/static/site.tailwind.css -o ./deploy/static/site.css --minify
+      - ./bin/tailwindcss --cwd ./deploy/docs -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   install-tailwind-windows:
     desc: Install tailwindcss on Windows

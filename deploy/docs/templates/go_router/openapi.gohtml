@@ -1,0 +1,23 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Enable docs</h2>
+<pre><code>r.UseOpenapiDocs(true)</code></pre>
+
+<h2>Attach route metadata</h2>
+<pre><code>r.Get("/users/{id}", showUser, router.Docs{
+    Tags:    []string{"users"},
+    Summary: "Show user",
+    Out: map[string]router.DocOut{
+        "200": {
+            ApplicationType: "application/json",
+            Description:     "OK",
+            Object:          User{},
+        },
+    },
+})</code></pre>
+
+<p>The OpenAPI helpers are intentionally lightweight. They are useful for route-level documentation and schema generation without pulling the router away from <code>net/http</code>.</p>
+</article>
+

@@ -40,6 +40,7 @@ type Element struct {
 	Slug        string
 	Name        string
 	Description string
+	Image       string
 }
 
 type PageData struct {
@@ -164,7 +165,7 @@ func renderNotFound(w http.ResponseWriter, req *http.Request) {
 }
 
 func renderPage(w http.ResponseWriter, status int, data PageData) {
-	page := partial.NewID("content", "templates/page.gohtml").
+	page := partial.NewID("content", "templates/general/page.gohtml").
 		SetFileSystem(siteFS).
 		SetDot(data)
 	out, err := partial.Render(context.Background(), page)
@@ -182,15 +183,15 @@ func siteFileSystem() fs.FS {
 	if dir := os.Getenv("ASSET_DIR"); dir != "" {
 		return os.DirFS(dir)
 	}
-	if _, err := os.Stat("deploy/templates"); err == nil {
-		return os.DirFS("deploy")
+	if _, err := os.Stat("deploy/docs/templates"); err == nil {
+		return os.DirFS("deploy/docs")
 	}
 	if _, err := os.Stat("templates"); err == nil {
 		return os.DirFS(".")
 	}
 	if _, file, _, ok := runtime.Caller(0); ok {
 		root := filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
-		deployDir := filepath.Join(root, "deploy")
+		deployDir := filepath.Join(root, "deploy", "docs")
 		if _, err := os.Stat(filepath.Join(deployDir, "templates")); err == nil {
 			return os.DirFS(deployDir)
 		}
@@ -223,6 +224,7 @@ func elements() []Element {
 			Slug:        slug,
 			Name:        nameFromSlug(slug),
 			Description: elementDescription(slug),
+			Image:       elementImage(slug),
 		})
 	}
 
@@ -240,6 +242,19 @@ func nameFromSlug(slug string) string {
 	}
 
 	return strings.Join(words, " ")
+}
+
+func elementImage(slug string) string {
+	switch slug {
+	case "go-partial":
+		return "/assets/img/go-partial-300.png"
+	case "go-docs":
+		return "/assets/img/go-doc-300.png"
+	case "go-router":
+		return "/assets/img/go-router-300.png"
+	default:
+		return "/assets/img/go-webthings-300.png"
+	}
 }
 
 func elementDescription(slug string) string {

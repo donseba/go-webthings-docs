@@ -1,0 +1,68 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.PageData */}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body class="docs-body">
+<main class="root-hub">
+    <header class="root-hero">
+        <div class="root-hero-copy">
+            <p class="root-eyebrow"><span class="terminal-face" aria-hidden="true">#_&gt;</span> go-webthings</p>
+            <h1>{{ .Title }}</h1>
+            <p class="root-lead">{{ .Description }}</p>
+            <nav class="root-nav" aria-label="Elements">
+                {{ range .Elements }}
+                    <a href="/{{ .Slug }}">{{ .Slug }}</a>
+                {{ end }}
+            </nav>
+        </div>
+        <img class="root-hero-img" src="/assets/img/go-webthings-400.png" alt="go-webthings">
+    </header>
+
+    {{ if .Element }}
+        <section class="root-feature">
+            <img src="{{ .Element.Image }}" alt="{{ .Element.Name }}">
+            <div>
+                <p class="root-eyebrow">{{ .Section }}</p>
+                <h2>{{ .Element.Name }}</h2>
+                <p>{{ .Element.Description }}</p>
+                <a class="root-primary" href="/{{ .Element.Slug }}">Open {{ .Element.Slug }}</a>
+            </div>
+        </section>
+    {{ else }}
+        <section class="root-card-grid" aria-label="go-webthings elements">
+            {{ range .Elements }}
+                <a class="root-card" href="/{{ .Slug }}">
+                    <img src="{{ .Image }}" alt="{{ .Name }}">
+                    <span>
+                        <strong>{{ .Slug }}</strong>
+                        <span>{{ .Description }}</span>
+                    </span>
+                </a>
+            {{ end }}
+        </section>
+    {{ end }}
+
+    {{ if .Element }}
+        <section class="root-route-panel">
+            <div>
+                <p>Request host</p>
+                <code>{{ .Host }}</code>
+            </div>
+            <div>
+                <p>Production route</p>
+                <code>{{ .Production }}</code>
+            </div>
+            <div>
+                <p>Local route</p>
+                <code>{{ .Local }}</code>
+            </div>
+        </section>
+    {{ end }}
+</main>
+</body>
+</html>

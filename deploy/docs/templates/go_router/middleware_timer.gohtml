@@ -1,0 +1,15 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Purpose</h2>
+<p><code>Timer</code> is a tiny development middleware that logs duration, method, and path after the handler returns.</p>
+<pre><code>r.Use(middleware.Timer)</code></pre>
+
+<h2>Output shape</h2>
+<pre><code>[go-router] 2.1ms      GET     /users</code></pre>
+
+<h2>Logger vs timer</h2>
+<p>Use <code>Logger</code> for application request logs. Use <code>Timer</code> when you want a quick local timing view with minimal setup.</p>
+</article>
+

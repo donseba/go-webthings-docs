@@ -1,0 +1,23 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Name routes</h2>
+<pre><code>r.Get("/users/{id}", showUser).As("users.show")</code></pre>
+
+<h2>Generate paths</h2>
+<pre><code>path := r.RoutePathWithParams("users.show", map[string]any{
+    "id": 123,
+})
+// /users/123</code></pre>
+
+<h2>Generate URLs</h2>
+<pre><code>r.Host("admin.example.com", func(admin *router.Router) {
+    admin.Get("/users/{id}", showUser).As("admin.users.show")
+})
+
+url := r.RouteURL("admin.users.show", map[string]any{"id": 123}, "https")</code></pre>
+
+<p>Template helpers are available through <code>r.FuncMap()</code>, including route path, URL, host, and active-route helpers.</p>
+</article>
+

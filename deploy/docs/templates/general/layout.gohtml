@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .Title }} - {{ .Header.Title }}</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        function scrollToCurrentHash() {
+            if (!window.location.hash) {
+                return;
+            }
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                target.scrollIntoView({ block: "start" });
+            }
+        }
+        document.addEventListener("htmx:afterSwap", function (event) {
+            if (event.detail && event.detail.target && event.detail.target.id === "content") {
+                requestAnimationFrame(scrollToCurrentHash);
+            }
+        });
+        window.addEventListener("hashchange", scrollToCurrentHash);
+        window.addEventListener("load", scrollToCurrentHash);
+    </script>
+    <script src="/assets/js/code-highlight.js" defer></script>
+</head>
+<body class="docs-body">
+    {{ template "header.gohtml" .Header }}
+    <div class="shell">
+        {{ template "sidebar.gohtml" .Sidebar }}
+        <main id="content" class="content">
+            {{ content }}
+        </main>
+    </div>
+</body>
+</html>
+

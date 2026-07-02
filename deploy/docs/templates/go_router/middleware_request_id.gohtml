@@ -1,0 +1,16 @@
+{{/* @dot donseba/go-webthings-docs/internal/site.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>What it does</h2>
+<p><code>RequestID</code> reads <code>X-Request-ID</code> from the request, or generates a 16-byte random hex value when the header is missing.</p>
+<pre><code>r.Use(middleware.RequestID)</code></pre>
+
+<h2>Response and context</h2>
+<p>The middleware writes the same value to the response header and stores it on the request context.</p>
+<pre><code>requestID := middleware.GetRequestID(req.Context())</code></pre>
+
+<h2>Recommended placement</h2>
+<p>Put <code>RequestID</code> early in the stack so logging and downstream handlers can include the same correlation value.</p>
+</article>
+
