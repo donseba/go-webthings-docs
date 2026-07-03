@@ -76,8 +76,7 @@ func renderNotFound(w http.ResponseWriter, req *http.Request) {
 	}
 	switch data.Section {
 	case SectionShowcase:
-		page := partial.NewID("content", "templates/page.gohtml").SetFileSystem(showcaseFS).SetDot(data)
-		renderStandalonePage(w, req, http.StatusNotFound, data, page)
+		http.NotFound(w, req)
 	case SectionDocs:
 		page := partial.NewID("content", "templates/general/page.gohtml").SetFileSystem(websiteFS).SetDot(data)
 		renderStandalonePage(w, req, http.StatusNotFound, data, page)

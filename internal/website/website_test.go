@@ -1,6 +1,8 @@
 package website
 
 import (
+	"bufio"
+	"context"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSubdomainElementRoutes(t *testing.T) {
@@ -109,7 +112,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"Server-side partial rendering",
 				"Host-aware HTTP routing",
 				"href=\"https://docs.gowebthings.com/go-docs\"",
-				"href=\"https://showcase.gowebthings.com/go-partial\"",
+				"href=\"https://showcase.gowebthings.com\"",
 				"href=\"https://github.com/donseba/go-router\"",
 			},
 		},
@@ -140,14 +143,15 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		{
 			name:       "local showcase",
 			host:       "showcase.rocketweb.nl:8080",
-			path:       "/go-router",
+			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"Go Router showcase coming soon",
-				`<body class="showcase-body">`,
-				"Coming soon",
-				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
-				"href=\"http://rocketweb.nl:8080\"",
+				"go-partial showcase",
+				"Server-rendered partials",
+				"This application renders normal pages and htmx requests through the same partial tree.",
+				"href=\"/rows\"",
+				"href=\"/shop\"",
+				"href=\"/metrics/live\"",
 			},
 		},
 		{
@@ -278,13 +282,14 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		{
 			name:       "production showcase",
 			host:       "showcase.gowebthings.com",
-			path:       "/go-docs",
+			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"Go Docs showcase coming soon",
-				"Coming soon",
-				"https://showcase.gowebthings.com/go-docs",
-				"https://docs.gowebthings.com/go-partial",
+				"go-partial showcase",
+				"Server-rendered partials",
+				"Webshop",
+				"Live metrics",
+				"Interaction helpers",
 			},
 		},
 		{
@@ -471,11 +476,228 @@ func TestShowcaseStylesheet(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, ".showcase-body") || !strings.Contains(body, ".showcase-card") {
+	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#f5f5f1\\]") {
 		t.Fatalf("expected showcase stylesheet, got:\n%s", body)
 	}
 	if strings.Contains(body, ".docs-body") || strings.Contains(body, ".main-body") {
 		t.Fatalf("showcase stylesheet should not be the docs or main stylesheet, got:\n%s", body)
+	}
+}
+
+func TestShowcaseHTMXFragments(t *testing.T) {
+	handler := NewRouter()
+
+	t.Run("selection returns content and oob sidebar", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/selection", nil)
+		req.Host = "showcase.gowebthings.com"
+		req.Header.Set("HX-Request", "true")
+		req.Header.Set("HX-Target", "content")
+		req.Header.Set("X-Select", "details")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		body := rec.Body.String()
+		for _, want := range []string{
+			"Selection partials",
+			"Details",
+			"alternate partial was selected",
+			`id="app-header"`,
+			`hx-swap-oob="true"`,
+		} {
+			if !strings.Contains(body, want) {
+				t.Fatalf("expected body to contain %q\nbody:\n%s", want, body)
+			}
+		}
+		if strings.Contains(body, "<!doctype html>") || strings.Contains(body, "<body") {
+			t.Fatalf("expected HTMX fragment without full shell, got:\n%s", body)
+		}
+	})
+
+	t.Run("row target resolves one row", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/rows/refresh-row?id=1", nil)
+		req.Host = "showcase.gowebthings.com"
+		req.Header.Set("HX-Request", "true")
+		req.Header.Set("HX-Target", "row-1")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		body := rec.Body.String()
+		if !strings.Contains(body, `id="row-1"`) || !strings.Contains(body, "Updated ") {
+			t.Fatalf("expected refreshed row, got:\n%s", body)
+		}
+		if strings.Contains(body, `id="row-2"`) || strings.Contains(body, "<!doctype html>") {
+			t.Fatalf("expected one row target response, got:\n%s", body)
+		}
+	})
+
+	t.Run("cart add returns popup and oob button", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/shop/cart/add?id=1", nil)
+		req.Host = "showcase.gowebthings.com"
+		req.Header.Set("HX-Request", "true")
+		req.Header.Set("HX-Target", "cart-popup")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		body := rec.Body.String()
+		for _, want := range []string{
+			`id="cart-popup"`,
+			"Canvas Tote",
+			`id="shop-cart-button"`,
+			`hx-swap-oob="true"`,
+			"1 items",
+		} {
+			if !strings.Contains(body, want) {
+				t.Fatalf("expected body to contain %q\nbody:\n%s", want, body)
+			}
+		}
+	})
+}
+
+func TestShowcaseSSEFlushesThroughRouter(t *testing.T) {
+	server := httptest.NewServer(NewRouter())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL+"/sse/stream", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "showcase.gowebthings.com"
+
+	res, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+	if got := res.Header.Get("Content-Type"); !strings.Contains(got, "text/event-stream") {
+		t.Fatalf("expected event-stream content type, got %q", got)
+	}
+
+	reader := bufio.NewReader(res.Body)
+	start := time.Now()
+	var step1, step2 time.Duration
+	for step2 == 0 {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("read SSE line: %v", err)
+		}
+		switch {
+		case strings.Contains(line, `"step":1`):
+			step1 = time.Since(start)
+		case strings.Contains(line, `"step":2`):
+			step2 = time.Since(start)
+		}
+	}
+	if step1 == 0 {
+		t.Fatal("expected first progress signal")
+	}
+	if step2-step1 < 500*time.Millisecond {
+		t.Fatalf("expected SSE progress to flush over time, got step1=%s step2=%s", step1, step2)
+	}
+}
+
+func TestShowcaseInteractionStreamFlushesThroughRouter(t *testing.T) {
+	server := httptest.NewServer(NewRouter())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL+"/interactions/stream", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "showcase.gowebthings.com"
+
+	res, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	reader := bufio.NewReader(res.Body)
+	start := time.Now()
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("read initial SSE line: %v", err)
+	}
+	if !strings.Contains(line, ": connected") {
+		t.Fatalf("expected initial stream comment, got %q", line)
+	}
+	if elapsed := time.Since(start); elapsed > 500*time.Millisecond {
+		t.Fatalf("expected initial stream comment to flush immediately, got %s", elapsed)
+	}
+
+	var dataAt time.Duration
+	for dataAt == 0 {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("read interaction stream line: %v", err)
+		}
+		if strings.HasPrefix(line, "data: ") {
+			dataAt = time.Since(start)
+		}
+	}
+	if dataAt < time.Second {
+		t.Fatalf("expected streamed data after the handler delay, got %s", dataAt)
+	}
+}
+
+func TestShowcaseLiveMetricsStreamFlushesThroughRouter(t *testing.T) {
+	server := httptest.NewServer(NewRouter())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL+"/metrics/live/stream", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "showcase.gowebthings.com"
+
+	res, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	start := time.Now()
+	line, err := bufio.NewReader(res.Body).ReadString('\n')
+	if err != nil {
+		t.Fatalf("read live metrics stream line: %v", err)
+	}
+	if !strings.Contains(line, ": go-partial live metrics") {
+		t.Fatalf("expected live metrics stream comment, got %q", line)
+	}
+	if elapsed := time.Since(start); elapsed > 500*time.Millisecond {
+		t.Fatalf("expected live metrics stream comment to flush immediately, got %s", elapsed)
 	}
 }
 
@@ -599,8 +821,27 @@ func TestDocsTemplatesUseDeployLayout(t *testing.T) {
 	if _, err := fs.Stat(mainFS, "assets/css/styles.css"); err != nil {
 		t.Fatalf("expected main website stylesheet to exist: %v", err)
 	}
-	if _, err := fs.Stat(showcaseFS, "templates/page.gohtml"); err != nil {
-		t.Fatalf("expected showcase website template to exist: %v", err)
+	for _, tmpl := range []string{
+		"templates/shell.gohtml",
+		"templates/header.gohtml",
+		"templates/home.gohtml",
+		"templates/rows.gohtml",
+		"templates/selection.gohtml",
+		"templates/tabs.gohtml",
+		"templates/action.gohtml",
+		"templates/async.gohtml",
+		"templates/interactions.gohtml",
+		"templates/shop.gohtml",
+		"templates/shop_cart_button.gohtml",
+		"templates/shop_cart_popup.gohtml",
+		"templates/metrics.gohtml",
+		"templates/live_metrics.gohtml",
+		"templates/logger.gohtml",
+		"templates/sse.gohtml",
+	} {
+		if _, err := fs.Stat(showcaseFS, tmpl); err != nil {
+			t.Fatalf("expected showcase website template %s to exist: %v", tmpl, err)
+		}
 	}
 	if _, err := fs.Stat(showcaseFS, "assets/css/styles.css"); err != nil {
 		t.Fatalf("expected showcase website stylesheet to exist: %v", err)

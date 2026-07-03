@@ -159,7 +159,7 @@ func mainComponents(req *http.Request) []Component {
 			Description: "Typed contracts and editor metadata for Go html/template files. go-doc keeps templates plain while giving editors enough structure to complete, navigate, and diagnose model access.",
 			Image:       mainElementImage("go-docs"),
 			DocsURL:     docsElementURL(req, "go-docs"),
-			ShowcaseURL: mainFamilyURL(req, "showcase", "go-docs"),
+			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
 			SourceURL:   "https://github.com/donseba/go-doc",
 		},
 		{
@@ -168,7 +168,7 @@ func mainComponents(req *http.Request) []Component {
 			Description: "Server-side partial rendering for full pages, targeted HTMX updates, out-of-band swaps, selections, actions, and reusable template regions without turning HTML into a component dialect.",
 			Image:       mainElementImage("go-partial"),
 			DocsURL:     docsElementURL(req, "go-partial"),
-			ShowcaseURL: mainFamilyURL(req, "showcase", "go-partial"),
+			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
 			SourceURL:   "https://github.com/donseba/go-partial",
 		},
 		{
@@ -177,7 +177,7 @@ func mainComponents(req *http.Request) []Component {
 			Description: "Host-aware HTTP routing on top of net/http, with exact hosts, subdomains, route groups, middleware, named routes, diagnostics, and practical helpers for docs websites.",
 			Image:       mainElementImage("go-router"),
 			DocsURL:     docsElementURL(req, "go-router"),
-			ShowcaseURL: mainFamilyURL(req, "showcase", "go-router"),
+			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
 			SourceURL:   "https://github.com/donseba/go-router",
 		},
 	}

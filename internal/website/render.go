@@ -39,7 +39,7 @@ func pageDefaults(req *http.Request, data PageData) PageData {
 		data.DocsURL = docsElementURL(linkReq, "go-partial")
 	}
 	if data.ShowcaseURL == "" {
-		data.ShowcaseURL = mainFamilyURL(linkReq, "showcase", "go-partial")
+		data.ShowcaseURL = mainFamilyURL(linkReq, "showcase", "")
 	}
 	if data.SourceURL == "" {
 		data.SourceURL = "https://github.com/donseba"
