@@ -1,5 +1,5 @@
 {{/*
-@dot github.com/donseba/go-partial/examples/showcase.InfinitePage
+@dot donseba/go-webthings-docs/internal/showcase.InfinitePage
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
@@ -8,7 +8,7 @@
         <p class="leading-7 text-stone-600">The sentinel sends the current cursor in <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">X-Action</code>, such as <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">current-25</code>. The server returns the next chunk until row 150.</p>
     </header>
 
-    <div class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4 rounded-lg border border-stone-300 bg-white p-4" id="infinite-feed">
+    <div class="showcase-infinite-feed grid gap-2" id="infinite-feed">
         {{ range .Rows }}
             {{ template "infinite_row.gohtml" . }}
         {{ end }}

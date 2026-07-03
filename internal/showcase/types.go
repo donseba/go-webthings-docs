@@ -265,6 +265,7 @@ type HeaderPage struct {
 type ShellPage struct {
 	AppName string
 	Header  HeaderPage
+	Sidebar HeaderPage
 }
 
 type App struct {

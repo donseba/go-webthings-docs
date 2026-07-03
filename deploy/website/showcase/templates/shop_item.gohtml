@@ -1,9 +1,9 @@
 {{/*
-@dot github.com/donseba/go-partial/examples/showcase.Product
+@dot donseba/go-webthings-docs/internal/showcase.Product
 */}}
 <article class="grid overflow-hidden rounded-lg border border-stone-300 bg-white" id="product-{{ .ID }}">
     <div class="flex min-h-28 items-end p-3.5" style="background: {{ .Accent }}">
-        <span class="inline-flex rounded-full border border-black/10 bg-white/80 px-2.5 py-1 text-xs font-extrabold text-teal-900">{{ .Category }}</span>
+        <span class="showcase-swatch-label inline-flex border border-black/10 bg-white/80 px-2.5 py-1 text-xs font-extrabold text-teal-900">{{ .Category }}</span>
     </div>
     <div class="grid gap-2 px-3.5 py-3">
         <h2 class="text-lg font-bold text-stone-950">{{ .Name }}</h2>

@@ -146,12 +146,13 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"go-partial showcase",
+				"go-webthings showcase",
 				"Server-rendered partials",
 				"This application renders normal pages and htmx requests through the same partial tree.",
 				"href=\"/rows\"",
 				"href=\"/shop\"",
 				"href=\"/metrics/live\"",
+				"id=\"nav-joke\"",
 			},
 		},
 		{
@@ -285,7 +286,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"go-partial showcase",
+				"go-webthings showcase",
 				"Server-rendered partials",
 				"Webshop",
 				"Live metrics",
@@ -479,6 +480,9 @@ func TestShowcaseStylesheet(t *testing.T) {
 	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#f5f5f1\\]") {
 		t.Fatalf("expected showcase stylesheet, got:\n%s", body)
 	}
+	if !strings.Contains(body, ".showcase-retro") || !strings.Contains(body, ".showcase-retro-shell") {
+		t.Fatalf("expected retro showcase theme and generated classes, got:\n%s", body)
+	}
 	if strings.Contains(body, ".docs-body") || strings.Contains(body, ".main-body") {
 		t.Fatalf("showcase stylesheet should not be the docs or main stylesheet, got:\n%s", body)
 	}
@@ -506,6 +510,8 @@ func TestShowcaseHTMXFragments(t *testing.T) {
 			"Details",
 			"alternate partial was selected",
 			`id="app-header"`,
+			`id="showcase-sidebar"`,
+			`id="nav-joke"`,
 			`hx-swap-oob="true"`,
 		} {
 			if !strings.Contains(body, want) {

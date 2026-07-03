@@ -1,0 +1,20 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.HeaderPage
+*/}}
+<aside id="showcase-sidebar" class="showcase-sidebar grid h-fit gap-5 border border-sky-900 bg-stone-950 p-4"{{ oobAttr }}>
+    <nav class="grid gap-2" aria-label="Showcase pages">
+        <span class="showcase-sidebar-label text-xs font-extrabold uppercase text-emerald-300">Jump to</span>
+        {{ range .Nav }}
+            <a href="{{ .Path }}"
+               hx-get="{{ .Path }}"
+               hx-target="#content"
+               hx-push-url="true"
+               class="showcase-sidebar-link block rounded-md px-3 py-2 text-sm text-sky-100 hover:text-emerald-300 {{ if urlIs .Path }}active font-bold text-emerald-300{{ end }}">{{ .Label }}</a>
+        {{ end }}
+    </nav>
+
+    <div id="nav-joke" class="showcase-joke grid gap-2 border border-sky-900 p-3 text-sm text-sky-100" aria-live="polite">
+        <span class="text-xs font-extrabold uppercase text-emerald-300">OOB joke</span>
+        <p class="leading-6">{{ .Joke }}</p>
+    </div>
+</aside>

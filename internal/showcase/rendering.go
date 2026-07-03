@@ -105,18 +105,22 @@ func (app *App) configureStandalone(content *partial.Partial, conn connector.Con
 func (app *App) wrapper() *partial.Partial {
 	wrapper := metrics.WithPartialLabel(app.root.Clone(), "shell")
 	header := HeaderPage{
-		AppName: "go-partial showcase",
+		AppName: "go-webthings showcase",
 		Now:     time.Now().Format("02 Jan 06 15:04 MST"),
 		Nav:     app.navItems(),
 		Joke:    app.programmerJoke(),
 	}
 	wrapper.SetDot(ShellPage{
-		AppName: "go-partial showcase",
+		AppName: "go-webthings showcase",
 		Header:  header,
+		Sidebar: header,
 	})
-	headerPartial := metrics.WithPartialLabel(partial.NewID("header", "templates/header.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "sidebar")
+	headerPartial := metrics.WithPartialLabel(partial.NewID("header", "templates/header.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "topbar")
+	sidebarPartial := metrics.WithPartialLabel(partial.NewID("sidebar", "templates/sidebar.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "sidebar")
 	slots.Set(wrapper, "header", headerPartial)
+	slots.Set(wrapper, "sidebar", sidebarPartial)
 	wrapper.WithOOB(headerPartial)
+	wrapper.WithOOB(sidebarPartial)
 	return wrapper
 }
 
