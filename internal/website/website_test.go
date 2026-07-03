@@ -26,9 +26,9 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"Server-rendered partials that stay useful with HTMX",
 				`<meta name="description" content="go-partial is a small rendering layer for Go applications that want reusable template regions, targeted updates, out-of-band swaps, and predictable server-side behavior.">`,
-				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/go-partial-400.png">`,
+				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/logo-go-partial.png">`,
 				"href=\"/go-partial/installation\"",
-				"src=\"/assets/img/go-partial-40.png\"",
+				"src=\"/assets/img/logo-go-partial.png\"",
 				"aria-current=\"page\"",
 				"href=\"/go-docs\"",
 				"href=\"/go-router\"",
@@ -42,10 +42,10 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Docs for go-webthings",
-				"src=\"/assets/img/go-webthings-400.png\"",
-				"src=\"/assets/img/go-partial-300.png\"",
-				"src=\"/assets/img/go-doc-300.png\"",
-				"src=\"/assets/img/go-router-300.png\"",
+				"src=\"/assets/img/logo-go-webthings.png\"",
+				"src=\"/assets/img/logo-go-partial.png\"",
+				"src=\"/assets/img/logo-go-doc.png\"",
+				"src=\"/assets/img/logo-go-router.png\"",
 				"class=\"root-card\"",
 			},
 		},
@@ -59,11 +59,20 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				`<body class="main-body">`,
 				"Composable Go packages",
 				`<link rel="canonical" href="https://gowebthings.com">`,
-				`<meta property="og:image" content="https://gowebthings.com/assets/img/go-webthings-400.png">`,
+				`<meta property="og:image" content="https://gowebthings.com/assets/img/logo-go-webthings.png">`,
 				`<link rel="icon" href="/assets/img/favicon.ico" sizes="any">`,
+				`href="/" hx-get="/" hx-target="#content" hx-push-url="true"`,
+				`href="/components" hx-get="/components" hx-target="#content" hx-push-url="true"`,
+				`href="/generate" hx-get="/generate" hx-target="#content" hx-push-url="true"`,
 				"href=\"https://docs.gowebthings.com/go-partial\"",
-				"href=\"https://docs.gowebthings.com/go-docs\"",
-				"href=\"https://docs.gowebthings.com/go-router\"",
+				"Small Go packages for HTML-first websites.",
+				"HTMX-friendly updates without turning the browser into the main application runtime",
+				"Three packages, one HTML response.",
+				"Requests are routed by go-router",
+				"current core",
+				"go-translator",
+				"go-form",
+				"go-importmap",
 			},
 		},
 		{
@@ -74,7 +83,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"go-webthings",
 				"href=\"https://docs.gowebthings.com/go-partial\"",
-				"src=\"/assets/img/go-webthings-400.png\"",
+				"src=\"/assets/img/logo-go-webthings.png\"",
 			},
 		},
 		{
@@ -86,6 +95,22 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"go-webthings",
 				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
 				"href=\"/assets/css/styles.css\"",
+			},
+		},
+		{
+			name:       "production main components",
+			host:       "gowebthings.com",
+			path:       "/components",
+			wantStatus: http.StatusOK,
+			wantBody: []string{
+				"go-webthings components",
+				`href="/components" hx-get="/components" hx-target="#content" hx-push-url="true" aria-current="page"`,
+				"Typed contracts and editor metadata",
+				"Server-side partial rendering",
+				"Host-aware HTTP routing",
+				"href=\"https://docs.gowebthings.com/go-docs\"",
+				"href=\"https://showcase.gowebthings.com/go-partial\"",
+				"href=\"https://github.com/donseba/go-router\"",
 			},
 		},
 		{
@@ -101,14 +126,28 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			},
 		},
 		{
+			name:       "production generator",
+			host:       "gowebthings.com",
+			path:       "/generate",
+			wantStatus: http.StatusOK,
+			wantBody: []string{
+				"Go logo generator",
+				`hx-get="/generate/preview"`,
+				`hx-target="#generator-preview"`,
+				`src="/generate/image?text=WebThings"`,
+			},
+		},
+		{
 			name:       "local showcase",
 			host:       "showcase.rocketweb.nl:8080",
 			path:       "/go-router",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Go Router showcase coming soon",
+				`<body class="showcase-body">`,
 				"Coming soon",
-				"https://docs.gowebthings.com/go-partial",
+				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
+				"href=\"http://rocketweb.nl:8080\"",
 			},
 		},
 		{
@@ -123,7 +162,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"href=\"/go-docs/install\"",
 				"href=\"/assets/css/styles.css\"",
 				"src=\"/assets/js/code-highlight.js\"",
-				"src=\"/assets/img/go-doc-40.png\"",
+				"src=\"/assets/img/logo-go-doc.png\"",
 				"href=\"/go-partial\"",
 				"href=\"/go-docs\" hx-get=\"/go-docs\"",
 				"class=\"active\" aria-current=\"page\"",
@@ -151,8 +190,8 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"HTTP routing for Go websites",
-				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/go-router-400.png">`,
-				"src=\"/assets/img/go-router-40.png\"",
+				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/logo-go-router.png">`,
+				"src=\"/assets/img/logo-go-router.png\"",
 				"href=\"/go-router/routing\"",
 				"href=\"/go-partial\"",
 				"href=\"/go-docs\"",
@@ -315,11 +354,128 @@ func TestMainStylesheet(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, ".main-body") || !strings.Contains(body, ".main-card") {
+	if !strings.Contains(body, ".main-body") || !strings.Contains(body, ".main-intro") {
 		t.Fatalf("expected main website stylesheet, got:\n%s", body)
 	}
 	if strings.Contains(body, ".docs-body") {
 		t.Fatalf("main stylesheet should not be the docs stylesheet, got:\n%s", body)
+	}
+}
+
+func TestMainBulletins(t *testing.T) {
+	if len(mainBulletins) < 30 {
+		t.Fatalf("expected at least 30 main bulletins, got %d", len(mainBulletins))
+	}
+	bulletin := randomBulletin()
+	if bulletin == "" {
+		t.Fatal("expected random bulletin")
+	}
+	if strings.Contains(bulletin, "rocketweb.nl") || strings.Contains(bulletin, "gowebthings.com") {
+		t.Fatalf("bulletin should be fake news, not environment copy: %q", bulletin)
+	}
+}
+
+func TestMainBulletinEndpoint(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/bulletin", nil)
+	req.Host = "gowebthings.com"
+	rec := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `class="main-bulletin-line"`) {
+		t.Fatalf("expected bulletin fragment, got:\n%s", body)
+	}
+	if strings.Contains(body, "<script") || strings.Contains(body, "<!doctype") {
+		t.Fatalf("expected a small HTML fragment, got:\n%s", body)
+	}
+}
+
+func TestMainGeneratorEndpoints(t *testing.T) {
+	handler := NewRouter()
+
+	t.Run("preview", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/generate/preview?text=Router", nil)
+		req.Host = "gowebthings.com"
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		body := rec.Body.String()
+		if !strings.Contains(body, `class="main-generator-image"`) || !strings.Contains(body, `/generate/image?text=Router`) {
+			t.Fatalf("expected generator preview fragment, got:\n%s", body)
+		}
+	})
+
+	t.Run("image", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/generate/image?text=Router", nil)
+		req.Host = "gowebthings.com"
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		if got := rec.Header().Get("Content-Type"); got != "image/png" {
+			t.Fatalf("expected image/png content type, got %q", got)
+		}
+		if rec.Body.Len() == 0 {
+			t.Fatal("expected PNG body")
+		}
+	})
+}
+
+func TestHTMXMainNavigationReturnsContentFragment(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/generate", nil)
+	req.Host = "gowebthings.com"
+	req.Header.Set("HX-Request", "true")
+	req.Header.Set("HX-Target", "content")
+	rec := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	body := rec.Body.String()
+	if strings.Contains(body, "<!doctype html>") || strings.Contains(body, "<body") {
+		t.Fatalf("expected HTMX fragment without full shell, got:\n%s", body)
+	}
+	for _, want := range []string{
+		`hx-get="/generate/preview"`,
+		`id="main-navbar"`,
+		`hx-swap-oob="true"`,
+		`href="/generate" hx-get="/generate" hx-target="#content" hx-push-url="true" aria-current="page"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("expected body to contain %q\nbody:\n%s", want, body)
+		}
+	}
+}
+
+func TestShowcaseStylesheet(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/assets/css/styles.css", nil)
+	req.Host = "showcase.gowebthings.com"
+	rec := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, ".showcase-body") || !strings.Contains(body, ".showcase-card") {
+		t.Fatalf("expected showcase stylesheet, got:\n%s", body)
+	}
+	if strings.Contains(body, ".docs-body") || strings.Contains(body, ".main-body") {
+		t.Fatalf("showcase stylesheet should not be the docs or main stylesheet, got:\n%s", body)
 	}
 }
 
@@ -427,8 +583,53 @@ func TestDocsTemplatesUseDeployLayout(t *testing.T) {
 	if _, err := fs.Stat(mainFS, "templates/page.gohtml"); err != nil {
 		t.Fatalf("expected main website template to exist: %v", err)
 	}
+	for _, tmpl := range []string{
+		"templates/layout.gohtml",
+		"templates/navbar.gohtml",
+		"templates/bullitin.gohtml",
+		"templates/webring.gohtml",
+	} {
+		if _, err := fs.Stat(mainFS, tmpl); err != nil {
+			t.Fatalf("expected main website shared template %s to exist: %v", tmpl, err)
+		}
+	}
+	if _, err := fs.Stat(mainFS, "templates/generate.gohtml"); err != nil {
+		t.Fatalf("expected main generator template to exist: %v", err)
+	}
 	if _, err := fs.Stat(mainFS, "assets/css/styles.css"); err != nil {
 		t.Fatalf("expected main website stylesheet to exist: %v", err)
+	}
+	if _, err := fs.Stat(showcaseFS, "templates/page.gohtml"); err != nil {
+		t.Fatalf("expected showcase website template to exist: %v", err)
+	}
+	if _, err := fs.Stat(showcaseFS, "assets/css/styles.css"); err != nil {
+		t.Fatalf("expected showcase website stylesheet to exist: %v", err)
+	}
+}
+
+func TestShowcaseAssetsAreScoped(t *testing.T) {
+	entries, err := fs.ReadDir(showcaseFS, "assets/img")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]bool{
+		"favicon.ico":           true,
+		"logo-go-doc.png":       true,
+		"logo-go-partial.png":   true,
+		"logo-go-router.png":    true,
+		"logo-go-webthings.png": true,
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if !want[entry.Name()] {
+			t.Fatalf("showcase asset %s is not used by the showcase template", entry.Name())
+		}
+		delete(want, entry.Name())
+	}
+	for name := range want {
+		t.Fatalf("expected showcase asset %s to exist", name)
 	}
 }
 

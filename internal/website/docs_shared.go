@@ -12,7 +12,6 @@ import (
 	"github.com/donseba/go-partial/connector"
 	"github.com/donseba/go-partial/exp/templatehelpers"
 	exterrors "github.com/donseba/go-partial/ext/errors"
-	router "github.com/donseba/go-router"
 )
 
 type docsRenderer struct {
@@ -122,15 +121,6 @@ var docsPromptFaces = []string{
 	"_~_",
 }
 
-func registerDocsPageRoutes(r *router.Router, domain, element string, pages map[string]docsPage, pathFor func(string) string, handler func(docsPage) http.HandlerFunc) {
-	for path, page := range pages {
-		if path == "/" {
-			continue
-		}
-		r.Get(pathFor(path), handler(page)).As(fmt.Sprintf("%s.%s.%s", domain, element, strings.TrimPrefix(path, "/")))
-	}
-}
-
 func newDocsRenderer(cfg docsRendererConfig) *docsRenderer {
 	if cfg.LogName == "" {
 		cfg.LogName = cfg.AppName
@@ -238,11 +228,11 @@ func (renderer *docsRenderer) header(r *http.Request) DocsHeaderPage {
 func docsLogoImage(appName string) string {
 	switch appName {
 	case "go-partial":
-		return "/assets/img/go-partial-40.png"
+		return "/assets/img/logo-go-partial.png"
 	case "go-docs":
-		return "/assets/img/go-doc-40.png"
+		return "/assets/img/logo-go-doc.png"
 	case "go-router":
-		return "/assets/img/go-router-40.png"
+		return "/assets/img/logo-go-router.png"
 	default:
 		return ""
 	}
@@ -266,13 +256,13 @@ func (renderer *docsRenderer) seo(r *http.Request, page docsPage) SEOData {
 func docsSEOImage(appName string) string {
 	switch appName {
 	case "go-partial":
-		return "/assets/img/go-partial-400.png"
+		return "/assets/img/logo-go-partial.png"
 	case "go-docs":
-		return "/assets/img/go-doc-400.png"
+		return "/assets/img/logo-go-doc.png"
 	case "go-router":
-		return "/assets/img/go-router-400.png"
+		return "/assets/img/logo-go-router.png"
 	default:
-		return "/assets/img/go-webthings-400.png"
+		return "/assets/img/logo-go-webthings.png"
 	}
 }
 

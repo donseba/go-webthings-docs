@@ -1,0 +1,6 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<nav id="main-navbar" class="main-navbar" aria-label="Main website"{{ oobAttr }}>
+    <a href="/" hx-get="/" hx-target="#content" hx-push-url="true"{{ if eq .CurrentPath "/" }} aria-current="page"{{ end }}>Home</a>
+    <a href="/components" hx-get="/components" hx-target="#content" hx-push-url="true"{{ if eq .CurrentPath "/components" }} aria-current="page"{{ end }}>Components</a>
+    <a href="/generate" hx-get="/generate" hx-target="#content" hx-push-url="true"{{ if eq .CurrentPath "/generate" }} aria-current="page"{{ end }}>Generator</a>
+</nav>

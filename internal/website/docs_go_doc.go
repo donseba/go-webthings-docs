@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -14,7 +15,15 @@ type goDocsApp struct {
 }
 
 func registerGoDocsDocsRoutes(r *router.Router, domain string) {
-	registerDocsPageRoutes(r, domain, "go-docs", goDocsDocs.pages, GoDocsPath, goDocsDocs.page)
+	for path, page := range goDocsDocs.pages {
+		if path == "/" {
+			continue
+		}
+		page := page
+		r.Get(GoDocsPath(path), func(w http.ResponseWriter, req *http.Request) {
+			goDocsDocs.docs.render(w, req, page, nil)
+		}).As(fmt.Sprintf("%s.go-docs.%s", domain, strings.TrimPrefix(path, "/")))
+	}
 }
 
 func mustNewGoDocsDocs() *goDocsApp {
@@ -108,22 +117,4 @@ func GoDocsPath(path string) string {
 		return "/go-docs"
 	}
 	return "/go-docs" + path
-}
-
-func (app *goDocsApp) overview(w http.ResponseWriter, r *http.Request) {
-	if strings.TrimSuffix(r.URL.Path, "/") != "/go-docs" {
-		renderNotFound(w, r)
-		return
-	}
-	app.render(w, r, app.pages["/"])
-}
-
-func (app *goDocsApp) page(page docsPage) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		app.render(w, r, page)
-	}
-}
-
-func (app *goDocsApp) render(w http.ResponseWriter, r *http.Request, page docsPage) {
-	app.docs.render(w, r, page, nil)
 }

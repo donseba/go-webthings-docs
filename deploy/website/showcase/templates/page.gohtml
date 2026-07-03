@@ -1,0 +1,82 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .SEO.Title }}</title>
+    <meta name="description" content="{{ .SEO.Description }}">
+    <link rel="canonical" href="{{ .SEO.Canonical }}">
+    <meta property="og:type" content="{{ .SEO.Type }}">
+    <meta property="og:site_name" content="{{ .SEO.SiteName }}">
+    <meta property="og:title" content="{{ .SEO.Title }}">
+    <meta property="og:description" content="{{ .SEO.Description }}">
+    <meta property="og:url" content="{{ .SEO.Canonical }}">
+    <meta property="og:image" content="{{ .SEO.Image }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ .SEO.Title }}">
+    <meta name="twitter:description" content="{{ .SEO.Description }}">
+    <meta name="twitter:image" content="{{ .SEO.Image }}">
+    <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body class="showcase-body">
+<main class="showcase-shell">
+    <header class="showcase-header">
+        <a class="showcase-brand" href="/">
+            <img src="/assets/img/logo-go-webthings.png" alt="">
+            <span>
+                <strong>go-webthings showcase</strong>
+                <small>server-rendered examples</small>
+            </span>
+        </a>
+        <nav class="showcase-nav" aria-label="Showcase sections">
+            <a href="{{ .MainURL }}">Main</a>
+            <a href="{{ .DocsURL }}">Docs</a>
+            <a href="{{ .SourceURL }}">GitHub</a>
+        </nav>
+    </header>
+
+    <section class="showcase-hero">
+        <div class="showcase-copy">
+            <p class="showcase-eyebrow">Coming soon</p>
+            <h1>{{ .Title }}</h1>
+            <p>{{ .Description }}</p>
+            <div class="showcase-actions">
+                <a class="primary" href="{{ .DocsURL }}">Read the docs</a>
+                <a href="{{ .MainURL }}">Back to main</a>
+            </div>
+        </div>
+        <div class="showcase-preview" aria-label="Preview modules">
+            <article>
+                <span>01</span>
+                <strong>HTMX partials</strong>
+                <p>Targeted updates, OOB swaps, and request-aware rendering.</p>
+            </article>
+            <article>
+                <span>02</span>
+                <strong>Typed templates</strong>
+                <p>go-doc contracts shown beside the live fragment.</p>
+            </article>
+            <article>
+                <span>03</span>
+                <strong>Router flows</strong>
+                <p>Host routing, middleware, and named routes in motion.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="showcase-card-grid" aria-label="Planned showcases">
+        {{ range .Elements }}
+            <a class="showcase-card" href="/{{ .Slug }}">
+                <img src="{{ .Image }}" alt="{{ .Name }}">
+                <span>
+                    <strong>{{ .Slug }}</strong>
+                    <span>Coming soon</span>
+                </span>
+            </a>
+        {{ end }}
+    </section>
+</main>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -17,8 +18,18 @@ type partialDocsApp struct {
 }
 
 func registerGoPartialDocsRoutes(r *router.Router, domain string) {
-	registerDocsPageRoutes(r, domain, "go-partial", goPartialDocs.pages, DocsPath, goPartialDocs.page)
-	r.Get("/go-partial/htmx", goPartialDocs.page(goPartialDocs.pages["/integrations/htmx"])).As(domain + ".go-partial.htmx.alias")
+	for path, page := range goPartialDocs.pages {
+		if path == "/" {
+			continue
+		}
+		page := page
+		r.Get(DocsPath(path), func(w http.ResponseWriter, req *http.Request) {
+			goPartialDocs.docs.render(w, req, page, nil)
+		}).As(fmt.Sprintf("%s.go-partial.%s", domain, strings.TrimPrefix(path, "/")))
+	}
+	r.Get("/go-partial/htmx", func(w http.ResponseWriter, req *http.Request) {
+		goPartialDocs.docs.render(w, req, goPartialDocs.pages["/integrations/htmx"], nil)
+	}).As(domain + ".go-partial.htmx.alias")
 }
 
 func mustNewGoPartialDocs() *partialDocsApp {
@@ -50,24 +61,6 @@ func DocsPath(path string) string {
 		return "/go-partial"
 	}
 	return "/go-partial" + path
-}
-
-func (app *partialDocsApp) overview(w http.ResponseWriter, r *http.Request) {
-	if strings.TrimSuffix(r.URL.Path, "/") != "/go-partial" {
-		renderNotFound(w, r)
-		return
-	}
-	app.render(w, r, app.pages["/"])
-}
-
-func (app *partialDocsApp) page(page docsPage) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		app.render(w, r, page)
-	}
-}
-
-func (app *partialDocsApp) render(w http.ResponseWriter, r *http.Request, page docsPage, configure ...func(*partial.Partial)) {
-	app.docs.render(w, r, page, nil, configure...)
 }
 
 func configureInteractions(content *partial.Partial) {

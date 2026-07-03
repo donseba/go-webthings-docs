@@ -1,0 +1,30 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<header class="main-hero">
+    <div class="main-hero-copy">
+        <p class="main-eyebrow"><span aria-hidden="true">{{ .PromptFace }}</span> known components</p>
+        <h1>{{ .Title }}</h1>
+        <p class="main-lead">{{ .Description }}</p>
+    </div>
+    <div class="main-visual-frame">
+        <img class="main-hero-img" src="/assets/img/logo-go-webthings.png" alt="go-webthings">
+    </div>
+</header>
+
+<section class="main-component-list" aria-label="Known go-webthings components">
+    {{ range .Components }}
+        <article class="main-component">
+            <span class="main-component-logo">
+                <img src="{{ .Image }}" alt="{{ .Name }}">
+            </span>
+            <div>
+                <h2>{{ .Name }}</h2>
+                <p>{{ .Description }}</p>
+                <nav aria-label="{{ .Name }} links">
+                    <a href="{{ .DocsURL }}">Docs</a>
+                    <a href="{{ .ShowcaseURL }}">Showcase</a>
+                    <a href="{{ .SourceURL }}">Source</a>
+                </nav>
+            </div>
+        </article>
+    {{ end }}
+</section>
