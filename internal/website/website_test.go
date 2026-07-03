@@ -26,7 +26,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"Server-rendered partials that stay useful with HTMX",
 				`<meta name="description" content="go-partial is a small rendering layer for Go applications that want reusable template regions, targeted updates, out-of-band swaps, and predictable server-side behavior.">`,
-				`<meta property="og:image" content="https://docs.go-webthings.com/assets/img/go-partial-400.png">`,
+				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/go-partial-400.png">`,
 				"href=\"/go-partial/installation\"",
 				"src=\"/assets/img/go-partial-40.png\"",
 				"aria-current=\"page\"",
@@ -37,7 +37,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "docs root index",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -51,29 +51,29 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "production main apex",
-			host:       "go-webthings.com",
+			host:       "gowebthings.com",
 			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"go-webthings",
 				`<body class="main-body">`,
 				"Composable Go packages",
-				`<link rel="canonical" href="https://go-webthings.com">`,
-				`<meta property="og:image" content="https://go-webthings.com/assets/img/go-webthings-400.png">`,
+				`<link rel="canonical" href="https://gowebthings.com">`,
+				`<meta property="og:image" content="https://gowebthings.com/assets/img/go-webthings-400.png">`,
 				`<link rel="icon" href="/assets/img/favicon.ico" sizes="any">`,
-				"href=\"https://docs.go-webthings.com/go-partial\"",
-				"href=\"https://docs.go-webthings.com/go-docs\"",
-				"href=\"https://docs.go-webthings.com/go-router\"",
+				"href=\"https://docs.gowebthings.com/go-partial\"",
+				"href=\"https://docs.gowebthings.com/go-docs\"",
+				"href=\"https://docs.gowebthings.com/go-router\"",
 			},
 		},
 		{
 			name:       "production main www",
-			host:       "www.go-webthings.com",
+			host:       "www.gowebthings.com",
 			path:       "/",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"go-webthings",
-				"href=\"https://docs.go-webthings.com/go-partial\"",
+				"href=\"https://docs.gowebthings.com/go-partial\"",
 				"src=\"/assets/img/go-webthings-400.png\"",
 			},
 		},
@@ -90,13 +90,13 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "production main element",
-			host:       "go-webthings.com",
+			host:       "gowebthings.com",
 			path:       "/go-router",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Go Router",
 				"Host-aware HTTP routing built on top of net/http.",
-				"https://go-webthings.com/go-router",
+				"https://gowebthings.com/go-router",
 				"Open go-router",
 			},
 		},
@@ -106,14 +106,14 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			path:       "/go-router",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"Go Router Showcase",
-				"https://showcase.go-webthings.com/go-router",
-				"http://showcase.rocketweb.nl:8080/go-router",
+				"Go Router showcase coming soon",
+				"Coming soon",
+				"https://docs.gowebthings.com/go-partial",
 			},
 		},
 		{
 			name:       "production docs",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-docs",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -129,12 +129,12 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"class=\"active\" aria-current=\"page\"",
 				"hx-get=\"/go-docs/install\"",
 				"href=\"/go-router\"",
-				"href=\"https://go-webthings.com\"",
+				"href=\"https://gowebthings.com\"",
 			},
 		},
 		{
 			name:       "go docs nested docs page",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-docs/contracts",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -146,12 +146,12 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go router docs",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-router",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"HTTP routing for Go websites",
-				`<meta property="og:image" content="https://docs.go-webthings.com/assets/img/go-router-400.png">`,
+				`<meta property="og:image" content="https://docs.gowebthings.com/assets/img/go-router-400.png">`,
 				"src=\"/assets/img/go-router-40.png\"",
 				"href=\"/go-router/routing\"",
 				"href=\"/go-partial\"",
@@ -163,18 +163,18 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go router host docs",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-router/hosts",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Hosts and subdomains",
-				`r.Subdomain("docs", "go-webthings.com"`,
+				`r.Subdomain("docs", "gowebthings.com"`,
 				"href=\"/go-router/routing\"",
 			},
 		},
 		{
 			name:       "go router middleware overview",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-router/middleware",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -185,7 +185,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go router cors middleware",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-router/middleware/cors",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -196,7 +196,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go router diagnostics",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-router/diagnostics",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -207,7 +207,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go partial nested docs page",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-partial/rendering",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -218,7 +218,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "go partial interactions docs page",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-partial/interactions",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
@@ -229,7 +229,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "old nested docs path is not canonical",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-partial/docs/rendering",
 			wantStatus: http.StatusNotFound,
 			wantBody: []string{
@@ -238,17 +238,19 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		},
 		{
 			name:       "production showcase",
-			host:       "showcase.go-webthings.com",
+			host:       "showcase.gowebthings.com",
 			path:       "/go-docs",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
-				"Go Docs Showcase",
-				"https://showcase.go-webthings.com/go-docs",
+				"Go Docs showcase coming soon",
+				"Coming soon",
+				"https://showcase.gowebthings.com/go-docs",
+				"https://docs.gowebthings.com/go-partial",
 			},
 		},
 		{
 			name:       "unknown element",
-			host:       "docs.go-webthings.com",
+			host:       "docs.gowebthings.com",
 			path:       "/go-webthings",
 			wantStatus: http.StatusNotFound,
 			wantBody: []string{
@@ -283,7 +285,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 
 func TestSharedStylesheet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/assets/css/styles.css", nil)
-	req.Host = "docs.go-webthings.com"
+	req.Host = "docs.gowebthings.com"
 	rec := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(rec, req)
@@ -304,7 +306,7 @@ func TestSharedStylesheet(t *testing.T) {
 
 func TestMainStylesheet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/assets/css/styles.css", nil)
-	req.Host = "go-webthings.com"
+	req.Host = "gowebthings.com"
 	rec := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(rec, req)
@@ -323,7 +325,7 @@ func TestMainStylesheet(t *testing.T) {
 
 func TestDocsCodeHighlightAsset(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/assets/js/code-highlight.js", nil)
-	req.Host = "docs.go-webthings.com"
+	req.Host = "docs.gowebthings.com"
 	rec := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(rec, req)
@@ -338,7 +340,7 @@ func TestDocsCodeHighlightAsset(t *testing.T) {
 
 func TestFaviconRoutes(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/favicon.ico", nil)
-	req.Host = "go-webthings.com"
+	req.Host = "gowebthings.com"
 	rec := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(rec, req)
@@ -572,7 +574,7 @@ func TestHTMXDocsRequestsReturnFragments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
-			req.Host = "docs.go-webthings.com"
+			req.Host = "docs.gowebthings.com"
 			req.Header.Set("HX-Request", "true")
 			req.Header.Set("HX-Target", "content")
 			rec := httptest.NewRecorder()
@@ -605,7 +607,7 @@ func TestUnknownHostFallsBackToApexRedirect(t *testing.T) {
 	if rec.Code != http.StatusTemporaryRedirect {
 		t.Fatalf("expected status %d, got %d", http.StatusTemporaryRedirect, rec.Code)
 	}
-	if got := rec.Header().Get("Location"); got != "https://docs.go-webthings.com/go-router" {
+	if got := rec.Header().Get("Location"); got != "https://docs.gowebthings.com/go-router" {
 		t.Fatalf("expected redirect to production docs, got %q", got)
 	}
 }

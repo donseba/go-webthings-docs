@@ -59,6 +59,7 @@ type PageData struct {
 	Local       string
 	Description string
 	SEO         SEOData
+	ComingSoon  bool
 }
 
 type NavItem struct {
@@ -81,10 +82,10 @@ func NewRouter() http.Handler {
 	r.HandleStatus(http.StatusNotFound, renderNotFound)
 
 	registerDomain(r, "rocketweb.nl")
-	registerDomain(r, "go-webthings.com")
+	registerDomain(r, "gowebthings.com")
 
 	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, "https://docs.go-webthings.com/go-router", http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "https://docs.gowebthings.com/go-router", http.StatusTemporaryRedirect)
 	}).As("home")
 
 	return r
@@ -158,7 +159,7 @@ func mainIndex(domain string) http.HandlerFunc {
 			Section:     SectionMain,
 			Host:        req.Host,
 			Elements:    mainElements(req),
-			Production:  "https://go-webthings.com",
+			Production:  "https://gowebthings.com",
 			Local:       fmt.Sprintf("http://%s:8080", domain),
 			Description: "Composable Go packages for server-rendered websites, docs, routing, and interactive partials.",
 		})
@@ -180,7 +181,7 @@ func mainElement(domain string) http.HandlerFunc {
 			Host:        req.Host,
 			Element:     &element,
 			Elements:    mainElements(req),
-			Production:  fmt.Sprintf("https://go-webthings.com/%s", element.Slug),
+			Production:  fmt.Sprintf("https://gowebthings.com/%s", element.Slug),
 			Local:       fmt.Sprintf("http://%s:8080/%s", domain, element.Slug),
 			Description: element.Description,
 		})
@@ -193,13 +194,17 @@ func sectionIndex(section Section, domain string) http.HandlerFunc {
 			renderNotFound(w, req)
 			return
 		}
+		if section == SectionShowcase {
+			renderShowcaseComingSoon(w, req, domain, "")
+			return
+		}
 
 		renderPage(w, http.StatusOK, PageData{
 			Title:       fmt.Sprintf("%s for go-webthings", title(section)),
 			Section:     section,
 			Host:        req.Host,
 			Elements:    sectionElements(),
-			Production:  fmt.Sprintf("https://%s.go-webthings.com/:element", section),
+			Production:  fmt.Sprintf("https://%s.gowebthings.com/:element", section),
 			Local:       fmt.Sprintf("http://%s.rocketweb.nl:8080/:element", section),
 			Description: fmt.Sprintf("Choose a go-webthings element to view its %s.", section),
 		})
@@ -209,6 +214,10 @@ func sectionIndex(section Section, domain string) http.HandlerFunc {
 func sectionElement(section Section, domain string) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		slug := req.PathValue("element")
+		if section == SectionShowcase {
+			renderShowcaseComingSoon(w, req, domain, slug)
+			return
+		}
 		if section == SectionDocs && slug == "go-partial" {
 			goPartialDocs.overview(w, req)
 			return
@@ -234,11 +243,39 @@ func sectionElement(section Section, domain string) http.HandlerFunc {
 			Host:        req.Host,
 			Element:     &element,
 			Elements:    sectionElements(),
-			Production:  fmt.Sprintf("https://%s.go-webthings.com/%s", section, element.Slug),
+			Production:  fmt.Sprintf("https://%s.gowebthings.com/%s", section, element.Slug),
 			Local:       fmt.Sprintf("http://%s.rocketweb.nl:8080/%s", section, element.Slug),
 			Description: sectionDescription(section, element),
 		})
 	}
+}
+
+func renderShowcaseComingSoon(w http.ResponseWriter, req *http.Request, domain, slug string) {
+	title := "Showcase coming soon"
+	description := "Interactive go-webthings examples are being prepared. For now, the docs are ready."
+	production := "https://showcase.gowebthings.com"
+	local := fmt.Sprintf("http://showcase.%s:8080", domain)
+	if slug != "" {
+		if _, ok := findElement(slug); !ok {
+			renderNotFound(w, req)
+			return
+		}
+		title = fmt.Sprintf("%s showcase coming soon", nameFromSlug(slug))
+		description = fmt.Sprintf("The %s showcase is coming soon. Use the docs while the live examples are being prepared.", slug)
+		production = fmt.Sprintf("%s/%s", production, slug)
+		local = fmt.Sprintf("%s/%s", local, slug)
+	}
+
+	renderPage(w, http.StatusOK, PageData{
+		Title:       title,
+		Section:     SectionShowcase,
+		Host:        req.Host,
+		Elements:    sectionElements(),
+		Production:  production,
+		Local:       local,
+		Description: description,
+		ComingSoon:  true,
+	})
 }
 
 func renderNotFound(w http.ResponseWriter, req *http.Request) {
@@ -292,7 +329,7 @@ func mainSEO(data PageData) SEOData {
 
 func productionCanonical(data PageData) string {
 	if data.Production == "" {
-		return "https://go-webthings.com"
+		return "https://gowebthings.com"
 	}
 	return strings.Replace(data.Production, ":element", "", 1)
 }
@@ -309,7 +346,7 @@ func originFromURL(rawURL string) string {
 		host, _, _ := strings.Cut(rest, "/")
 		return scheme + "://" + host
 	}
-	return "https://go-webthings.com"
+	return "https://gowebthings.com"
 }
 
 func docsFileSystem() fs.FS {
@@ -468,7 +505,7 @@ func mainFamilyURL(req *http.Request, subdomain, path string) string {
 	baseDomain = strings.TrimPrefix(baseDomain, "docs.")
 	baseDomain = strings.TrimPrefix(baseDomain, "showcase.")
 	if baseDomain == "" {
-		baseDomain = "go-webthings.com"
+		baseDomain = "gowebthings.com"
 	}
 
 	targetHost := baseDomain

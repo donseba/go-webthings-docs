@@ -36,7 +36,17 @@
         <img class="root-hero-img" src="/assets/img/go-webthings-400.png" alt="go-webthings">
     </header>
 
-    {{ if .Element }}
+    {{ if .ComingSoon }}
+        <section class="root-feature">
+            <img src="/assets/img/go-webthings-400.png" alt="go-webthings">
+            <div>
+                <p class="root-eyebrow">showcase</p>
+                <h2>Coming soon</h2>
+                <p>The showcase will host live examples for go-partial, go-doc, and go-router. The docs are available now while the interactive demos are being prepared.</p>
+                <a class="root-primary" href="https://docs.gowebthings.com/go-partial">Open the docs</a>
+            </div>
+        </section>
+    {{ else if .Element }}
         <section class="root-feature">
             <img src="{{ .Element.Image }}" alt="{{ .Element.Name }}">
             <div>
@@ -60,7 +70,7 @@
         </section>
     {{ end }}
 
-    {{ if .Element }}
+    {{ if and .Element (not .ComingSoon) }}
         <section class="root-route-panel">
             <div>
                 <p>Request host</p>

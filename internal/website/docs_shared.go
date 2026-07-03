@@ -257,7 +257,7 @@ func (renderer *docsRenderer) seo(r *http.Request, page docsPage) SEOData {
 		Title:       fmt.Sprintf("%s - %s docs", page.Title, renderer.title),
 		Description: description,
 		Canonical:   docsCanonicalURL(r),
-		Image:       absoluteAssetURL("https://docs.go-webthings.com", docsSEOImage(renderer.appName)),
+		Image:       absoluteAssetURL("https://docs.gowebthings.com", docsSEOImage(renderer.appName)),
 		SiteName:    renderer.title + " docs",
 		Type:        "article",
 	}
@@ -281,7 +281,7 @@ func docsCanonicalURL(r *http.Request) string {
 	if r.URL != nil && r.URL.Path != "" {
 		path = r.URL.Path
 	}
-	return "https://docs.go-webthings.com" + path
+	return "https://docs.gowebthings.com" + path
 }
 
 func absoluteAssetURL(origin, path string) string {

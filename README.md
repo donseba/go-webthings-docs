@@ -18,9 +18,9 @@ Routes are selected by host:
 - `http://docs.rocketweb.nl:8080/go-router`
 - `http://docs.rocketweb.nl:8080/go-router/hosts`
 - `http://showcase.rocketweb.nl:8080/go-partial`
-- `https://docs.go-webthings.com/go-partial`
-- `https://docs.go-webthings.com/go-router`
-- `https://showcase.go-webthings.com/go-partial`
+- `https://docs.gowebthings.com/go-partial`
+- `https://docs.gowebthings.com/go-router`
+- `https://showcase.gowebthings.com/go-partial`
 
 The same router currently supports:
 
