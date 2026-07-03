@@ -20,11 +20,11 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
-<body class="main-body">
-<main class="main-hub">
+<body class="main-body m-0 min-h-screen text-[#fffff0]">
+<main class="mx-auto grid w-full max-w-[1120px] gap-4 px-4 pb-[6.5rem] pt-4 max-[760px]:px-3">
     {{ partial runtime "templates/bullitin.gohtml" . }}
     {{ partial runtime "templates/navbar.gohtml" . }}
-    <section id="content" class="main-content">
+    <section id="content" class="grid gap-4">
         {{ content }}
     </section>
     {{ partial runtime "templates/webring.gohtml" . }}

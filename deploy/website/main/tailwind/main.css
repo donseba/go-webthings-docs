@@ -20,30 +20,10 @@
     text-decoration: none;
 }
 
-.main-hub {
-    width: min(1120px, 100%);
-    margin: 0 auto;
-    display: grid;
-    gap: 1rem;
-    padding: 1rem 1rem 6.5rem;
-}
-
-.main-content {
-    display: grid;
-    gap: 1rem;
-}
-
 .main-marquee {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr) 5.5rem;
-    align-items: center;
-    gap: .65rem;
-    overflow: hidden;
-    min-height: 2.5rem;
     border: 3px ridge #67e8f9;
     background: #000;
     color: #00ff99;
-    padding: .52rem .9rem .52rem 1rem;
     font-family: "Courier New", ui-monospace, monospace;
     font-size: .84rem;
     font-weight: 900;
@@ -54,7 +34,6 @@
 }
 
 .main-marquee-label {
-    flex: 0 0 auto;
     color: #ffff00;
 }
 
@@ -65,9 +44,6 @@
 }
 
 .main-bulletin-slot {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     letter-spacing: .08em;
     transform: translateY(3px);
 }
@@ -81,8 +57,6 @@
 }
 
 .main-bulletin-timer {
-    align-self: center;
-    justify-self: end;
     width: 5.5rem;
     height: .45rem;
     border: 2px inset #67e8f9;
@@ -91,12 +65,8 @@
 }
 
 .main-bulletin-timer-fill {
-    display: block;
-    width: 100%;
-    height: 100%;
     background: #ffff00;
     box-shadow: 0 0 8px #00ff99;
-    transform-origin: left center;
     animation: main-bulletin-timer 8s linear infinite;
 }
 
@@ -126,29 +96,12 @@
 }
 
 .main-navbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: .55rem;
     border: 3px ridge #67e8f9;
     background: #000080;
     padding: .55rem .65rem;
     color: #fff;
     font-family: "Courier New", ui-monospace, monospace;
     text-transform: uppercase;
-}
-
-.main-navbar-local,
-.main-navbar-family {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .55rem;
-}
-
-.main-navbar-family {
-    margin-left: auto;
 }
 
 .main-navbar a {
@@ -171,21 +124,10 @@
 }
 
 .main-hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
-    gap: 1rem;
-    align-items: start;
     border: 4px ridge #67e8f9;
     background: #020617;
     padding: 1rem;
     box-shadow: 8px 8px 0 #000;
-}
-
-.main-hero-copy {
-    display: grid;
-    align-self: start;
-    align-content: start;
-    gap: .9rem;
 }
 
 .main-eyebrow {
@@ -276,13 +218,7 @@
 }
 
 .main-visual-frame {
-    display: grid;
-    align-self: center;
-    place-items: center;
-    width: 100%;
-    max-width: 300px;
     min-height: 204px;
-    justify-self: end;
     border: 3px ridge #fff;
     background: #003b7a;
     padding: .35rem;
@@ -290,11 +226,6 @@
 }
 
 .main-hero-img {
-    width: auto;
-    max-width: 100%;
-    max-height: 170px;
-    height: auto;
-    object-fit: contain;
     filter: drop-shadow(5px 5px 0 #000);
 }
 
@@ -849,14 +780,6 @@
     .main-feature,
     .main-route-panel {
         grid-template-columns: 1fr;
-    }
-
-    .main-visual-frame {
-        justify-self: start;
-    }
-
-    .main-hub {
-        padding-inline: .75rem;
     }
 
     .main-card {

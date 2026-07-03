@@ -2,14 +2,14 @@
 @dot donseba/go-webthings-docs/internal/website.DocsNavPage
 */}}
 {{ define "sidebar.gohtml" }}
-<aside id="docs-sidebar" class="sidebar"{{ oobAttr }}>
+<aside id="docs-sidebar" class="sticky top-[4.5rem] grid h-[calc(100vh-4.5rem)] content-start gap-6 overflow-auto border-r border-slate-800 bg-[#020617]/80 px-4 py-7 max-[900px]:static max-[900px]:h-auto max-[900px]:border-r-0 max-[900px]:border-b max-[900px]:border-slate-800"{{ oobAttr }}>
     {{ range .Groups }}
         {{ $group := . }}
-        <section class="side-group">
-            <h2>{{ $group }}</h2>
+        <section class="grid gap-1.5">
+            <h2 class="mb-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">{{ $group }}</h2>
             {{ range $.Nav }}
                 {{ if eq .Group $group }}
-                    <a class="side-link{{ if .Active }} active{{ end }}"
+                    <a class="block border px-3 py-2 text-sm {{ if .Active }}border-sky-400/40 bg-sky-400/10 font-bold text-slate-50 shadow-[inset_3px_0_0_#4fb3ff]{{ else }}border-transparent text-slate-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-slate-50{{ end }}"
                        href="{{ .Path }}"
                        hx-get="{{ .Path }}" hx-target="#content" hx-push-url="true"
                        {{ if .Active }}aria-current="page"{{ end }}>{{ .Label }}</a>
