@@ -1,17 +1,18 @@
 {{/*
 @dot donseba/go-webthings-docs/internal/showcase.Product
 */}}
-<article class="grid overflow-hidden rounded-lg border border-stone-300 bg-white" id="product-{{ .ID }}">
-    <div class="flex min-h-28 items-end p-3.5" style="background: {{ .Accent }}">
-        <span class="showcase-swatch-label inline-flex border border-black/10 bg-white/80 px-2.5 py-1 text-xs font-extrabold text-teal-900">{{ .Category }}</span>
+<article class="grid min-h-[17.5rem] overflow-hidden border border-cyan-400/60 bg-[#020817] shadow-[6px_6px_0_rgba(0,0,0,0.28)] transition-colors hover:border-[#79ff8b]" id="product-{{ .ID }}">
+    <div class="relative flex min-h-28 items-end border-b border-cyan-400/45 p-3.5" style="background: {{ .Accent }}">
+        <div class="absolute inset-0 bg-[#020817]/55"></div>
+        <span class="relative inline-flex border border-cyan-400/70 bg-[#071226] px-2.5 py-1 text-xs font-extrabold text-[#79ff8b]">{{ .Category }}</span>
     </div>
-    <div class="grid gap-2 px-3.5 py-3">
-        <h2 class="text-lg font-bold text-stone-950">{{ .Name }}</h2>
-        <p class="leading-7 text-stone-600">{{ .Description }}</p>
+    <div class="grid gap-2 px-3.5 py-4">
+        <h2 class="text-lg font-black text-white">{{ .Name }}</h2>
+        <p class="leading-7 text-sky-100">{{ .Description }}</p>
     </div>
-    <footer class="flex items-center justify-between gap-2.5 border-t border-stone-300 px-3.5 py-3">
-        <strong class="text-teal-900">{{ .Price }}</strong>
-        <button class="inline-flex min-h-9 cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-950 hover:border-teal-700 hover:text-teal-900" type="button"
+    <footer class="mt-auto flex items-center justify-between gap-2.5 border-t border-cyan-400/45 bg-[#0b1f3a] px-3.5 py-3">
+        <strong class="text-white">{{ .Price }}</strong>
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/80 bg-[#020817] px-3 py-2 text-sm font-black text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="button"
                 hx-post="/shop/cart/add?id={{ .ID }}"
                 hx-target="#cart-popup"
                 hx-swap="outerHTML">

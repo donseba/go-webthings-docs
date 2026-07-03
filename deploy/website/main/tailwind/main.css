@@ -129,6 +129,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: .55rem;
     border: 3px ridge #67e8f9;
     background: #000080;
@@ -136,6 +137,18 @@
     color: #fff;
     font-family: "Courier New", ui-monospace, monospace;
     text-transform: uppercase;
+}
+
+.main-navbar-local,
+.main-navbar-family {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem;
+}
+
+.main-navbar-family {
+    margin-left: auto;
 }
 
 .main-navbar a {

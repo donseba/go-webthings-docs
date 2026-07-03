@@ -68,6 +68,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				`href="/components" hx-get="/components" hx-target="#content" hx-push-url="true"`,
 				`href="/generate" hx-get="/generate" hx-target="#content" hx-push-url="true"`,
 				"href=\"https://docs.gowebthings.com/go-partial\"",
+				"href=\"https://showcase.gowebthings.com\"",
 				"Small Go packages for HTML-first websites.",
 				"HTMX-friendly updates without turning the browser into the main application runtime",
 				"Three packages, one HTML response.",
@@ -86,6 +87,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"go-webthings",
 				"href=\"https://docs.gowebthings.com/go-partial\"",
+				"href=\"https://showcase.gowebthings.com\"",
 				"src=\"/assets/img/logo-go-webthings.png\"",
 			},
 		},
@@ -97,6 +99,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 			wantBody: []string{
 				"go-webthings",
 				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
+				"href=\"http://showcase.rocketweb.nl:8080\"",
 				"href=\"/assets/css/styles.css\"",
 			},
 		},
@@ -152,6 +155,8 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"href=\"/rows\"",
 				"href=\"/shop\"",
 				"href=\"/metrics/live\"",
+				"href=\"http://rocketweb.nl:8080\"",
+				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
 				"id=\"nav-joke\"",
 			},
 		},
@@ -174,6 +179,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"hx-get=\"/go-docs/install\"",
 				"href=\"/go-router\"",
 				"href=\"https://gowebthings.com\"",
+				"href=\"https://showcase.gowebthings.com\"",
 			},
 		},
 		{
@@ -477,11 +483,11 @@ func TestShowcaseStylesheet(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#f5f5f1\\]") {
+	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#040816\\]\\/90") {
 		t.Fatalf("expected showcase stylesheet, got:\n%s", body)
 	}
-	if !strings.Contains(body, ".showcase-retro") || !strings.Contains(body, ".showcase-retro-shell") {
-		t.Fatalf("expected retro showcase theme and generated classes, got:\n%s", body)
+	if !strings.Contains(body, ".showcase-retro") || !strings.Contains(body, "max-\\[820px\\]\\:block") {
+		t.Fatalf("expected retro showcase theme and generated responsive classes, got:\n%s", body)
 	}
 	if strings.Contains(body, ".docs-body") || strings.Contains(body, ".main-body") {
 		t.Fatalf("showcase stylesheet should not be the docs or main stylesheet, got:\n%s", body)

@@ -3,12 +3,12 @@
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
-        <span class="text-[13px] font-extrabold uppercase text-teal-900">Cursor loading</span>
-        <h1 class="text-3xl font-extrabold leading-tight text-stone-950">{{ .Title }}</h1>
-        <p class="leading-7 text-stone-600">The sentinel sends the current cursor in <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">X-Action</code>, such as <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">current-25</code>. The server returns the next chunk until row 150.</p>
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Cursor loading</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">The sentinel sends the current cursor in <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">X-Action</code>, such as <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">current-25</code>. The server returns the next chunk until row 150.</p>
     </header>
 
-    <div class="showcase-infinite-feed grid gap-2" id="infinite-feed">
+    <div class="grid gap-2" id="infinite-feed">
         {{ range .Rows }}
             {{ template "infinite_row.gohtml" . }}
         {{ end }}
@@ -17,7 +17,7 @@
             {{ template "rickroll.gohtml" . }}
         {{ else }}
             <div id="infinite-sentinel-{{ .Next }}"
-                 class="rounded-lg border border-dashed border-stone-300 p-4 text-center text-stone-600"
+                 class="border border-cyan-400/60 p-4 text-center text-sky-100"
                  hx-get="/infinite/load"
                  hx-target="#infinite-sentinel-{{ .Next }}"
                  hx-swap="outerHTML"
@@ -28,22 +28,22 @@
         {{ end }}
     </div>
 
-    <article class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">No shared server cursor</h2>
-        <p class="leading-7 text-stone-600">The client sends the current row number, and the server calculates the next chunk from that value. Opening the page in another tab starts from its own cursor.</p>
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">No shared server cursor</h2>
+        <p class="leading-7 text-sky-100">The client sends the current row number, and the server calculates the next chunk from that value. Opening the page in another tab starts from its own cursor.</p>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Server setup</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">current := parseCursor(r.Header.Get(connector.HeaderAction.String()))
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Server setup</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">current := parseCursor(r.Header.Get(connector.HeaderAction.String()))
 start := current + 1
 content := infinitePartial("infinite-chunk", start, 25)
 partial.Render(ctx, content)</code></pre>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Template usage</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">&lt;div hx-get="/infinite/load"
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Template usage</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
      hx-trigger="revealed"
      hx-headers='{"{{ .ActionHeader }}":"current-{{ "{{ .Next }}" }}"}'&gt;
 &lt;/div&gt;</code></pre>

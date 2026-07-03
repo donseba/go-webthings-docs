@@ -87,7 +87,7 @@ func (app *App) writeCartUpdate(w http.ResponseWriter, r *http.Request, sessionI
 	ctx := flash.Add(r.Context(), flash.Success(message))
 	r = r.WithContext(ctx)
 
-	wrapper := app.wrapper()
+	wrapper := app.wrapper(r)
 	wrapper.WithOOB(app.shopCartButtonPartial(sessionID))
 
 	content := app.shopCartPopupPartial(sessionID, true)

@@ -3,13 +3,13 @@
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
-        <span class="text-[13px] font-extrabold uppercase text-teal-900">Error fallback</span>
-        <h1 class="text-3xl font-extrabold leading-tight text-stone-950">{{ .Title }}</h1>
-        <p class="leading-7 text-stone-600">This page keeps the shell alive while one target intentionally fails during an HTMX request.</p>
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Error fallback</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">This page keeps the shell alive while one target intentionally fails during an HTMX request.</p>
     </header>
 
-    <div id="broken-section" class="rounded-lg border border-stone-300 bg-white p-4 grid gap-3.5">
-        <button class="inline-flex min-h-9 w-fit cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-950 hover:border-teal-700 hover:text-teal-900"
+    <div id="broken-section" class="border border-cyan-400/60 bg-[#020817] p-4 grid gap-3.5">
+        <button class="inline-flex min-h-9 w-fit cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm font-bold text-white hover:border-[#79ff8b] hover:text-[#79ff8b]"
                 hx-get="/error/section"
                 hx-target="#broken-section"
                 hx-swap="outerHTML">
@@ -17,21 +17,21 @@
         </button>
     </div>
 
-    <article class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Section-level failure</h2>
-        <p class="leading-7 text-stone-600">The broken target is requested through the normal partial render stage. When it fails, the default error stage replaces the requested section.</p>
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Section-level failure</h2>
+        <p class="leading-7 text-sky-100">The broken target is requested through the normal partial render stage. When it fails, the default error stage replaces the requested section.</p>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Server setup</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">func errorSection(w http.ResponseWriter, r *http.Request) {
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Server setup</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">func errorSection(w http.ResponseWriter, r *http.Request) {
     writeContent(w, r, partial.NewID("broken-section", "templates/broken.gohtml"))
 }</code></pre>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Template usage</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">&lt;button hx-get="/error/section"
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Template usage</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;button hx-get="/error/section"
         hx-target="#broken-section"
         hx-swap="outerHTML"&gt;
     Render broken section

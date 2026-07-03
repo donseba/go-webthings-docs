@@ -2,17 +2,17 @@
 @dot donseba/go-webthings-docs/internal/showcase.LiveMetricRow
 */}}
 <tr class="align-top">
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-700">{{ .Timestamp }}</td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-950">{{ .Kind }}</td>
-    <td class="border-b border-stone-200 px-3 py-2">
-        <div class="font-bold text-stone-950">{{ .Label }}</div>
-        {{ range .Meta }}<div class="text-xs text-stone-600">{{ . }}</div>{{ end }}
-        {{ if .Templates }}<div class="mt-2 max-w-full break-words font-mono text-xs text-stone-600">{{ .Templates }}</div>{{ end }}
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Timestamp }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Kind }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2">
+        <div class="font-bold text-white">{{ .Label }}</div>
+        {{ range .Meta }}<div class="text-xs text-sky-100">{{ . }}</div>{{ end }}
+        {{ if .Templates }}<div class="mt-2 max-w-full break-words font-mono text-xs text-sky-100">{{ .Templates }}</div>{{ end }}
         {{ if .Error }}<div class="mt-2 max-w-full break-words text-xs font-bold text-amber-900">{{ .Error }}</div>{{ end }}
     </td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-700">{{ .Swap }}</td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-700">{{ .Method }} {{ .Path }}</td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-950">{{ .Duration }}</td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-950">{{ .Size }}</td>
-    <td class="border-b border-stone-200 px-3 py-2 font-mono text-[13px] text-stone-700">{{ .Chain }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Swap }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Method }} {{ .Path }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Duration }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Size }}</td>
+    <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Chain }}</td>
 </tr>

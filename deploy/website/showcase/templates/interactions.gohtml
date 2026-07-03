@@ -13,56 +13,56 @@
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
-        <span class="text-[13px] font-extrabold uppercase text-teal-900">Client interactions</span>
-        <h1 class="text-3xl font-extrabold leading-tight text-stone-950">{{ .Title }}</h1>
-        <p class="leading-7 text-stone-600">These helpers declare client-side delivery behavior while the server still owns the rendered partials.</p>
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Client interactions</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">These helpers declare client-side delivery behavior while the server still owns the rendered partials.</p>
     </header>
 
     <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">async</h2>
-            <p class="leading-7 text-stone-600">Load immediately after the shell is visible.</p>
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">async</h2>
+            <p class="mb-4 leading-7 text-sky-100">Load immediately after the shell is visible.</p>
             {{ async runtime Async }}
         </article>
 
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">poll</h2>
-            <p class="leading-7 text-stone-600">Refresh this region every few seconds.</p>
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">poll</h2>
+            <p class="mb-4 leading-7 text-sky-100">Refresh this region every few seconds.</p>
             {{ poll runtime Poll }}
         </article>
 
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">on</h2>
-            <p class="leading-7 text-stone-600">Refresh a target when a named browser event is dispatched.</p>
-            <div class="flex flex-wrap items-center gap-2.5">
-                <button class="inline-flex min-h-9 cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-950 hover:border-teal-700 hover:text-teal-900" type="button" onclick="document.body.dispatchEvent(new CustomEvent('showcase:ping'))">Dispatch event</button>
-                <span>Event <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">showcase:ping</code></span>
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">on</h2>
+            <p class="mb-4 leading-7 text-sky-100">Refresh a target when a named browser event is dispatched.</p>
+            <div class="mb-4 flex flex-wrap items-center gap-2.5">
+                <button class="inline-flex min-h-9 w-fit cursor-pointer items-center border border-cyan-400/80 bg-[#050b18] px-3 py-2 text-sm font-black text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="button" onclick="document.body.dispatchEvent(new CustomEvent('showcase:ping'))">Dispatch event</button>
+                <span class="inline-flex min-h-9 items-center">Event <code class="bg-[#020817] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">showcase:ping</code></span>
             </div>
-            <div id="on-target" class="grid gap-1.5 rounded-lg border border-stone-300 bg-stone-50 p-3">
+            <div id="on-target" class="-mx-4 mt-auto grid gap-2 border-t border-cyan-400/50 bg-[#0b1f3a] p-4">
                 <strong>Event target</strong>
-                <p class="leading-7 text-stone-600">This panel is waiting for a custom browser event.</p>
+                <p class="leading-7 text-sky-100">This panel is waiting for a custom browser event.</p>
             </div>
             {{ on runtime On }}
         </article>
 
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">refresh</h2>
-            <p class="leading-7 text-stone-600">Click the control to update only the target region below.</p>
-            <div class="flex flex-wrap items-center gap-2.5">
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">refresh</h2>
+            <p class="mb-4 leading-7 text-sky-100">Click the control to update only the target region below.</p>
+            <div class="mb-4 flex flex-wrap items-center gap-2.5">
                 {{ refresh runtime Refresh }}
-                <span>Target <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">#refresh-panel</code></span>
+                <span class="inline-flex min-h-9 items-center">Target <code class="bg-[#020817] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#refresh-panel</code></span>
             </div>
-            <div id="refresh-panel" class="grid gap-1.5 rounded-lg border border-stone-300 bg-stone-50 p-3">
+            <div id="refresh-panel" class="-mx-4 mt-auto grid gap-2 border-t border-cyan-400/50 bg-[#0b1f3a] p-4">
                 <strong>Refresh target</strong>
-                <p class="leading-7 text-stone-600">This panel is waiting for an explicit refresh request.</p>
+                <p class="leading-7 text-sky-100">This panel is waiting for an explicit refresh request.</p>
             </div>
         </article>
     </div>
 
-    <article class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Endless scroll uses reveal</h2>
-        <p class="leading-7 text-stone-600">The infinite scroll page is the same idea in a loop: a sentinel uses reveal-style loading, swaps itself with the next chunk, and the next chunk contains a new sentinel.</p>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">&lt;div hx-get="/infinite/load"
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Endless scroll uses reveal</h2>
+        <p class="leading-7 text-sky-100">The infinite scroll page is the same idea in a loop: a sentinel uses reveal-style loading, swaps itself with the next chunk, and the next chunk contains a new sentinel.</p>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
      hx-trigger="revealed"
      hx-swap="outerHTML"&gt;
     Loading more rows...
@@ -70,55 +70,57 @@
     </article>
 
     <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">named async</h2>
-            <p class="leading-7 text-stone-600">An async region with a stable ID that can be refreshed or targeted later.</p>
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">named async</h2>
+            <p class="mb-4 leading-7 text-sky-100">An async region with a stable ID that can be refreshed or targeted later.</p>
+            <div class="mb-4 flex flex-wrap items-center gap-2.5">
+                {{ refresh runtime ProfileRefresh }}
+            </div>
             {{ async runtime Profile }}
-            {{ refresh runtime ProfileRefresh }}
         </article>
 
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">stream</h2>
-            <p class="leading-7 text-stone-600">Receive a server-rendered fragment from an SSE message.</p>
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">stream</h2>
+            <p class="mb-4 leading-7 text-sky-100">Receive a server-rendered fragment from an SSE message.</p>
             {{ stream runtime Stream }}
         </article>
 
-        <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-            <h2 class="text-lg font-bold text-stone-950">prefetch</h2>
-            <p class="leading-7 text-stone-600">Emit a browser hint without creating visible UI or a swap target.</p>
-            <dl class="grid gap-2 rounded-lg border border-stone-300 bg-stone-50 p-3">
+        <article class="flex min-h-64 flex-col overflow-hidden border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="mb-3.5 text-lg font-black leading-tight text-white">prefetch</h2>
+            <p class="mb-4 leading-7 text-sky-100">Emit a browser hint without creating visible UI or a swap target.</p>
+            <dl class="-mx-4 mt-auto grid gap-2 border-t border-cyan-400/50 bg-[#0b1f3a] p-4">
                 <div>
                     <dt>rel</dt>
-                    <dd><code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">prefetch</code></dd>
+                    <dd><code class="bg-[#020817] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">prefetch</code></dd>
                 </div>
                 <div>
                     <dt>href</dt>
-                    <dd><code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">/interactions/async</code></dd>
+                    <dd><code class="bg-[#020817] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">/interactions/async</code></dd>
                 </div>
                 <div>
                     <dt>output</dt>
-                    <dd>Invisible <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">&lt;link&gt;</code> element</dd>
+                    <dd>Invisible <code class="bg-[#020817] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">&lt;link&gt;</code> element</dd>
                 </div>
             </dl>
             {{ prefetch runtime Prefetch }}
         </article>
     </div>
 
-    <article class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">reveal</h2>
-        <p class="leading-7 text-stone-600">Scroll down to trigger this region when it enters the viewport.</p>
-        <div class="flex min-h-[900px] items-center justify-center rounded-lg border border-dashed border-stone-300 bg-stone-200/60 text-center text-stone-600">Keep scrolling. This spacer exists so reveal does not fire immediately.</div>
+    <article class="grid content-start gap-3 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">reveal</h2>
+        <p class="leading-7 text-sky-100">Scroll down to trigger this region when it enters the viewport.</p>
+        <div class="flex min-h-[900px] items-center justify-center border border-cyan-400/60 bg-[#071226] text-center text-sky-100">Keep scrolling. This spacer exists so reveal does not fire immediately.</div>
         {{ reveal runtime Reveal }}
     </article>
 
-    <article class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Renderable intent</h2>
-        <p class="leading-7 text-stone-600">The helpers produce an interaction model. The connector supplies protocol attributes, and the interaction stage owns the final HTML wrapper.</p>
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Renderable intent</h2>
+        <p class="leading-7 text-sky-100">The helpers produce an interaction model. The connector supplies protocol attributes, and the interaction stage owns the final HTML wrapper.</p>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Server setup</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">content.SetDot(InteractionPage{Title: "Interaction helpers"}).
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Server setup</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">content.SetDot(InteractionPage{Title: "Interaction helpers"}).
     SetContract("interaction",
         interactions.NewPoll("/interactions/poll").Every(3 * time.Second),
     )
@@ -129,9 +131,9 @@ func (app *App) interactionsPoll(w http.ResponseWriter, r *http.Request) {
 }</code></pre>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Template usage</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">{{ "{{ async runtime Async }}" }}
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Template usage</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">{{ "{{ async runtime Async }}" }}
 {{ "{{ reveal runtime Reveal }}" }}
 {{ "{{ poll runtime Poll }}" }}
 {{ "{{ on runtime On }}" }}
@@ -142,4 +144,3 @@ func (app *App) interactionsPoll(w http.ResponseWriter, r *http.Request) {
 {{ "{{ refresh runtime ProfileRefresh }}" }}</code></pre>
     </article>
 </section>
-

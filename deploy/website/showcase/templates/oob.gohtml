@@ -3,43 +3,37 @@
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
-        <span class="text-[13px] font-extrabold uppercase text-teal-900">Out-of-band swaps</span>
-        <h1 class="text-3xl font-extrabold leading-tight text-stone-950">{{ .Title }}</h1>
-        <p class="leading-7 text-stone-600">Every htmx navigation replaces the main page normally and also swaps the sidebar out-of-band. The cheesy programmer joke at the bottom of the navbar is the live OOB example.</p>
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Out-of-band swaps</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">Every htmx navigation replaces the main page normally and also swaps a wide joke panel out-of-band. The cheesy programmer joke above the content is the live OOB example.</p>
     </header>
 
-    <div class="grid gap-3.5 rounded-lg border border-stone-300 bg-white p-4">
-        <p class="leading-7 text-stone-600">Use the sidebar links and watch the joke panel at the bottom of the navigation. It is not part of the page content; it rides along as an out-of-band sidebar update.</p>
-        <div class="rounded-lg border border-teal-200 bg-teal-50 p-4 text-teal-950">
-            <strong class="block text-sm uppercase tracking-wide text-teal-900">Current joke source</strong>
-            <p class="mt-2 leading-7">Generated in Go during shell rendering, passed to the header partial, and swapped with the sidebar.</p>
+    <div class="grid gap-3.5 border border-cyan-400/60 bg-[#020817] p-4">
+        <p class="leading-7 text-sky-100">Use the sidebar links and watch the joke panel above the content. It is not part of the page content; it rides along as a separate out-of-band update.</p>
+        <div class="border border-cyan-400/70 bg-[#071226] p-4 text-sky-100">
+            <strong class="block text-sm uppercase tracking-wide text-[#79ff8b]">Current joke source</strong>
+            <p class="mt-2 leading-7">Generated in Go during shell rendering, passed to a dedicated joke partial, and swapped above the content.</p>
         </div>
     </div>
 
-    <article class="grid gap-2 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Two targets in one response</h2>
-        <p class="leading-7 text-stone-600">The selected page updates <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">#content</code>. The wrapper also returns <code class="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-sm text-stone-900">#app-header</code> with out-of-band markup, so navigation state and the joke stay current.</p>
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Two targets in one response</h2>
+        <p class="leading-7 text-sky-100">The selected page updates <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#content</code>. The wrapper also returns <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#app-header</code>, <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#showcase-sidebar</code>, and <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#nav-joke</code> out-of-band, so page state and the joke stay current.</p>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Server setup</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">wrapper.WithOOB(
-    partial.NewID("header", "templates/header.gohtml").
-        SetDot(HeaderPage{
-            Nav: app.navItems(),
-            Joke: app.programmerJoke(),
-        }).
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Server setup</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">wrapper.WithOOB(
+    partial.NewID("joke", "templates/joke.gohtml").
+        SetDot(HeaderPage{Joke: app.programmerJoke()}).
         SetAlwaysSwapOOB(true),
 )</code></pre>
     </article>
 
-    <article class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="text-lg font-bold text-stone-950">Template usage</h2>
-        <pre class="max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-md border border-stone-300 bg-stone-100 p-3"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-stone-950">&lt;aside id="app-header"{{ "{{ oobAttr }}" }}&gt;
-    ...
-    &lt;div id="nav-joke" aria-live="polite"&gt;
-        {{ "{{ .Joke }}" }}
-    &lt;/div&gt;
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+        <h2 class="text-lg font-bold text-white">Template usage</h2>
+        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;aside id="nav-joke"{{ "{{ oobAttr }}" }} aria-live="polite"&gt;
+    {{ "{{ .Joke }}" }}
 &lt;/aside&gt;</code></pre>
     </article>
 </section>

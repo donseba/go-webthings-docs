@@ -48,15 +48,16 @@ type DocsArticleData struct {
 }
 
 type DocsHeaderPage struct {
-	AppName   string
-	BasePath  string
-	MainURL   string
-	DocsURL   string
-	Logo      string
-	LogoImage string
-	Title     string
-	Subtitle  string
-	GitHubURL string
+	AppName     string
+	BasePath    string
+	MainURL     string
+	DocsURL     string
+	ShowcaseURL string
+	Logo        string
+	LogoImage   string
+	Title       string
+	Subtitle    string
+	GitHubURL   string
 }
 
 type DocsNavPage struct {
@@ -213,15 +214,16 @@ func docsPages(templateDir string, pages map[string]docsPage) map[string]docsPag
 
 func (renderer *docsRenderer) header(r *http.Request) DocsHeaderPage {
 	return DocsHeaderPage{
-		AppName:   renderer.appName,
-		BasePath:  renderer.basePath,
-		MainURL:   mainWebsiteURL(r),
-		DocsURL:   docsHomeURL(r),
-		Logo:      renderer.logo,
-		LogoImage: renderer.logoImage,
-		Title:     renderer.title,
-		Subtitle:  renderer.subtitle,
-		GitHubURL: renderer.gitHubURL,
+		AppName:     renderer.appName,
+		BasePath:    renderer.basePath,
+		MainURL:     mainWebsiteURL(r),
+		DocsURL:     docsHomeURL(r),
+		ShowcaseURL: mainFamilyURL(r, "showcase", ""),
+		Logo:        renderer.logo,
+		LogoImage:   renderer.logoImage,
+		Title:       renderer.title,
+		Subtitle:    renderer.subtitle,
+		GitHubURL:   renderer.gitHubURL,
 	}
 }
 

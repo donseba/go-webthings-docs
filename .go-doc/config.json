@@ -6,7 +6,9 @@
     "github.com/donseba/go-partial",
     "github.com/donseba/go-partial/exp/interactions",
     "github.com/donseba/go-partial/exp/templatehelpers",
-    "github.com/donseba/go-partial/ext/errors"
+    "github.com/donseba/go-partial/ext/errors",
+    "github.com/donseba/go-partial/exp/csrf",
+    "github.com/donseba/go-partial/exp/flash"
   ],
   "functions": {
     "docsPath": "donseba/go-webthings-docs/internal/site.DocsPath",

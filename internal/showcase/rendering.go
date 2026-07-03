@@ -38,20 +38,16 @@ func (app *App) render(w http.ResponseWriter, r *http.Request, id string, tmpl s
 }
 
 func (app *App) renderPartial(w http.ResponseWriter, r *http.Request, content *partial.Partial) {
-	root := app.wrapper().SetContent(content)
+	root := app.wrapper(r).SetContent(content)
 	app.writePartial(w, r, root)
 }
 
 func (app *App) writeContent(w http.ResponseWriter, r *http.Request, content *partial.Partial) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	content = app.configureStandalone(content, connector.NewHTMX(nil))
-	out, err := partial.RenderWithRequest(app.requestContext(r), r, content)
-	if err != nil {
+	if err := partial.Write(app.requestContext(r), w, r, content); err != nil {
 		log.Printf("render error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-	_, _ = w.Write([]byte(out))
 }
 
 func (app *App) writePartial(w http.ResponseWriter, r *http.Request, root *partial.Partial) {
@@ -102,13 +98,16 @@ func (app *App) configureStandalone(content *partial.Partial, conn connector.Con
 		)
 }
 
-func (app *App) wrapper() *partial.Partial {
+func (app *App) wrapper(r *http.Request) *partial.Partial {
 	wrapper := metrics.WithPartialLabel(app.root.Clone(), "shell")
 	header := HeaderPage{
-		AppName: "go-webthings showcase",
-		Now:     time.Now().Format("02 Jan 06 15:04 MST"),
-		Nav:     app.navItems(),
-		Joke:    app.programmerJoke(),
+		AppName:   "go-webthings showcase",
+		Now:       time.Now().Format("02 Jan 06 15:04 MST"),
+		MainURL:   showcaseMainURL(r),
+		DocsURL:   showcaseDocsURL(r),
+		SourceURL: "https://github.com/donseba/go-webthings-docs",
+		Nav:       app.navItems(),
+		Joke:      app.programmerJoke(),
 	}
 	wrapper.SetDot(ShellPage{
 		AppName: "go-webthings showcase",
@@ -117,10 +116,13 @@ func (app *App) wrapper() *partial.Partial {
 	})
 	headerPartial := metrics.WithPartialLabel(partial.NewID("header", "templates/header.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "topbar")
 	sidebarPartial := metrics.WithPartialLabel(partial.NewID("sidebar", "templates/sidebar.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "sidebar")
+	jokePartial := metrics.WithPartialLabel(partial.NewID("joke", "templates/joke.gohtml").SetDot(header).SetAlwaysSwapOOB(true), "oob-joke")
 	slots.Set(wrapper, "header", headerPartial)
 	slots.Set(wrapper, "sidebar", sidebarPartial)
+	slots.Set(wrapper, "joke", jokePartial)
 	wrapper.WithOOB(headerPartial)
 	wrapper.WithOOB(sidebarPartial)
+	wrapper.WithOOB(jokePartial)
 	return wrapper
 }
 
@@ -133,11 +135,11 @@ func showcaseInteractionRenderer() interactions.MarkupRenderer {
 		case connector.InteractionPrefetch:
 			return template.HTML(`<link ` + attrText + `>`), nil
 		case connector.InteractionRefresh:
-			return template.HTML(`<button type="button" id="` + template.HTMLEscapeString(interaction.ID) + `" class="inline-flex min-h-9 w-fit cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-950 hover:border-teal-700 hover:text-teal-900" ` + attrText + `>` + placeholder + `</button>`), nil
+			return template.HTML(`<button type="button" id="` + template.HTMLEscapeString(interaction.ID) + `" class="inline-flex min-h-9 w-fit cursor-pointer items-center border border-cyan-400/80 bg-[#050b18] px-3 py-2 text-sm font-black text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" ` + attrText + `>` + placeholder + `</button>`), nil
 		case connector.InteractionOn:
 			return template.HTML(`<div id="` + template.HTMLEscapeString(interaction.ID) + `" class="hidden" ` + attrText + `></div>`), nil
 		default:
-			return template.HTML(`<div id="` + template.HTMLEscapeString(interaction.ID) + `" class="grid min-h-24 content-center rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3 text-sm font-bold text-stone-600" ` + attrText + `>` + placeholder + `</div>`), nil
+			return template.HTML(`<div id="` + template.HTMLEscapeString(interaction.ID) + `" class="-mx-4 mt-auto grid gap-2 border-t border-cyan-400/50 p-4" ` + attrText + `>` + placeholder + `</div>`), nil
 		}
 	}
 }

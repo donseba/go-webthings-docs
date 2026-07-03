@@ -256,10 +256,13 @@ type NavItem struct {
 }
 
 type HeaderPage struct {
-	AppName string
-	Now     string
-	Nav     []NavItem
-	Joke    string
+	AppName   string
+	Now       string
+	MainURL   string
+	DocsURL   string
+	SourceURL string
+	Nav       []NavItem
+	Joke      string
 }
 
 type ShellPage struct {

@@ -1,24 +1,24 @@
 {{/*
 @dot donseba/go-webthings-docs/internal/showcase.HeaderPage
 */}}
-<header id="app-header" class="showcase-topbar sticky top-0 z-20 border-b border-sky-300 bg-stone-950 px-4 py-3"{{ oobAttr }}>
+<header id="app-header" class="sticky top-0 z-20 flex min-h-16 items-center border-b border-cyan-400/55 bg-[#040816]/90 px-4 py-3 shadow-[0_1px_0_rgba(32,194,237,0.45)]"{{ oobAttr }}>
     <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
-        <a class="showcase-brand flex min-w-0 items-center gap-3" href="/" hx-get="/" hx-target="#content" hx-push-url="true" aria-label="go-webthings showcase home">
+        <a class="flex min-w-0 items-center gap-3" href="/" hx-get="/" hx-target="#content" hx-push-url="true" aria-label="go-webthings showcase home">
             <img class="h-10 w-auto" src="/assets/img/logo-go-webthings.png" alt="go-webthings">
             <span class="grid min-w-0 gap-0.5">
-                <strong class="text-sm font-extrabold uppercase tracking-wide text-white">{{ .AppName }}</strong>
+                <strong class="text-sm font-black uppercase tracking-wide text-white">{{ .AppName }}</strong>
                 <span class="text-xs text-sky-200">one server-rendered demo</span>
             </span>
         </a>
 
         <nav class="flex flex-wrap items-center justify-end gap-2" aria-label="Showcase top links">
-            <a class="showcase-toplink inline-flex min-h-10 items-center rounded-md border border-sky-700 px-4 py-2 text-sm font-extrabold text-white hover:border-sky-300 hover:text-emerald-300"
-               href="https://gowebthings.com">Main</a>
-            <a class="showcase-toplink inline-flex min-h-10 items-center rounded-md border border-sky-700 px-4 py-2 text-sm font-extrabold text-white hover:border-sky-300 hover:text-emerald-300"
-               href="https://docs.gowebthings.com/go-partial">Docs</a>
-            <a class="showcase-toplink inline-flex min-h-10 items-center rounded-md border border-sky-700 px-4 py-2 text-sm font-extrabold text-white hover:border-sky-300 hover:text-emerald-300"
-               href="https://github.com/donseba/go-webthings-docs">Source</a>
-            <a class="showcase-toplink inline-flex min-h-10 items-center rounded-md border border-sky-700 px-4 py-2 text-sm font-extrabold text-white hover:border-sky-300 hover:text-emerald-300"
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-extrabold text-[#d7eaff] hover:border-cyan-400/80 hover:bg-[#005687]/40 hover:text-[#79ff8b]"
+               href="{{ .MainURL }}">Main</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-extrabold text-[#d7eaff] hover:border-cyan-400/80 hover:bg-[#005687]/40 hover:text-[#79ff8b]"
+               href="{{ .DocsURL }}">Docs</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-extrabold text-[#d7eaff] hover:border-cyan-400/80 hover:bg-[#005687]/40 hover:text-[#79ff8b]"
+               href="{{ .SourceURL }}">Source</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-extrabold text-[#d7eaff] hover:border-cyan-400/80 hover:bg-[#005687]/40 hover:text-[#79ff8b]"
                href="/shop"
                hx-get="/shop"
                hx-target="#content"

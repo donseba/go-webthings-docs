@@ -171,6 +171,22 @@ tasks:
       - watch-docs-css-darwin-linux
       - watch-docs-css-windows
 
+  watch-showcase-css-darwin-linux:
+    platforms: [darwin, linux]
+    cmds:
+      - ./bin/tailwindcss --cwd ./deploy/website/showcase -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
+
+  watch-showcase-css-windows:
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy\\website\\showcase -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
+
+  watch-showcase-css:
+    desc: Watch for changes in the css files
+    deps:
+      - watch-showcase-css-darwin-linux
+      - watch-showcase-css-windows
+
   serve-website-darwin-linux:
     desc: Run the website server on macOS/Linux
     platforms: [darwin, linux]
