@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .SEO.Title }}</title>
+    <meta name="description" content="{{ .SEO.Description }}">
+    <link rel="canonical" href="{{ .SEO.Canonical }}">
+    <meta property="og:type" content="{{ .SEO.Type }}">
+    <meta property="og:site_name" content="{{ .SEO.SiteName }}">
+    <meta property="og:title" content="{{ .SEO.Title }}">
+    <meta property="og:description" content="{{ .SEO.Description }}">
+    <meta property="og:url" content="{{ .SEO.Canonical }}">
+    <meta property="og:image" content="{{ .SEO.Image }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ .SEO.Title }}">
+    <meta name="twitter:description" content="{{ .SEO.Description }}">
+    <meta name="twitter:image" content="{{ .SEO.Image }}">
+    <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body class="main-body m-0 min-h-screen text-[#fffff0]">
+<main class="mx-auto grid w-full max-w-[1120px] gap-4 px-4 pb-[6.5rem] pt-4 max-[760px]:px-3">
+    {{ partial runtime "templates/bullitin.gohtml" . }}
+    {{ partial runtime "templates/navbar.gohtml" . }}
+    <section id="content" class="grid gap-4">
+        {{ content }}
+    </section>
+    {{ partial runtime "templates/webring.gohtml" . }}
+    {{ partial runtime "templates/footer.gohtml" . }}
+</main>
+</body>
+</html>

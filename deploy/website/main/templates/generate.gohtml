@@ -1,0 +1,16 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<header class="main-hero grid grid-cols-[minmax(0,1fr)_minmax(220px,300px)] items-start gap-4 max-[760px]:grid-cols-1" aria-label="Logo generator">
+    <div class="grid content-start gap-3 self-start">
+        <p class="main-eyebrow"><span aria-hidden="true">{{ .PromptFace }}</span> logo forge</p>
+        <h1>go-make your own logo</h1>
+        <form class="main-generator-form" hx-get="/generate/preview" hx-trigger="keyup changed delay:250ms from:input, load" hx-target="#generator-preview" hx-swap="innerHTML">
+            <div>
+                <span>Go-</span>
+                <input id="generator-text" name="text" type="text" value="{{ .GenerateText }}" autocomplete="off" spellcheck="false">
+            </div>
+        </form>
+    </div>
+    <div id="generator-preview" class="main-visual-frame main-generator-preview grid w-full max-w-[300px] place-items-center justify-self-end max-[760px]:justify-self-start">
+        <img class="main-generator-image" src="{{ .GenerateImageURL }}" alt="Generated Go logo preview">
+    </div>
+</header>

@@ -1,0 +1,54 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.TabsPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-sky-700 bg-[#071226] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-200">Selected partials</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">Tabs are just selected partials. Each tab click sends <code class="bg-[#050b18] px-1.5 py-0.5 font-mono text-sm text-sky-200">{{ selectionHeader }}</code>, and the server renders the selected partial into the same panel.</p>
+    </header>
+
+    <div class="mt-2 grid gap-2">
+        <div class="flex w-fit max-w-full flex-wrap items-center gap-2" role="tablist">
+            {{ range .Tabs }}
+                <button
+                    role="tab"
+                    aria-selected="{{ if selectionIs .Key }}true{{ else }}false{{ end }}"
+                    class="inline-flex min-h-9 cursor-pointer items-center border px-3 py-2 text-sm font-bold {{ if selectionIs .Key }}border-sky-400 bg-slate-800 text-sky-100{{ else }}border-sky-800 bg-[#071226] text-slate-100 hover:border-sky-500 hover:bg-slate-900{{ end }}"
+                    hx-get="/tabs"
+                    hx-target="#content"
+                    hx-headers='{"{{ selectionHeader }}":"{{ .Key }}"}'>
+                    {{ .Label }}
+                </button>
+            {{ end }}
+        </div>
+
+        <div class="mt-3 border border-sky-800 bg-[#071226] p-4" role="tabpanel">
+            {{ selection }}
+        </div>
+    </div>
+
+    <article class="grid gap-2 border border-sky-800 bg-[#071226] p-4">
+        <h2 class="text-lg font-bold text-white">Same primitive, different UI</h2>
+        <p class="leading-7 text-sky-100">The tabs use the same selection mechanism as the selection page. The active state is derived from the current request header.</p>
+    </article>
+
+    <article class="grid border border-sky-800 bg-[#071226]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#050b18] p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">selection.WithSelectMap(content, "overview", map[string]*partial.Partial{
+    "overview": overview,
+    "activity": activity,
+    "settings": settings,
+    "failing": failing,
+})</code></pre>
+    </article>
+
+    <article class="grid border border-sky-800 bg-[#071226]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#050b18] p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;button hx-get="/tabs"
+        hx-target="#content"
+        hx-headers='{"{{ selectionHeader }}":"overview"}'&gt;
+    Overview
+&lt;/button&gt;</code></pre>
+    </article>
+</section>

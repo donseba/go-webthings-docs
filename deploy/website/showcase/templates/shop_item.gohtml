@@ -1,0 +1,22 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.Product
+*/}}
+<article class="grid min-h-[17.5rem] overflow-hidden border border-sky-800 bg-[#071226] transition-colors hover:border-sky-500" id="product-{{ .ID }}">
+    <div class="relative flex min-h-28 items-end border-b border-sky-800 p-3.5" style="background: {{ .Accent }}">
+        <div class="absolute inset-0 bg-slate-950/35"></div>
+        <span class="relative inline-flex border border-sky-800 bg-[#071226] px-2.5 py-1 text-xs font-extrabold text-sky-100">{{ .Category }}</span>
+    </div>
+    <div class="grid gap-2 px-3.5 py-4">
+        <h2 class="text-lg font-black text-white">{{ .Name }}</h2>
+        <p class="leading-7 text-sky-100">{{ .Description }}</p>
+    </div>
+    <footer class="mt-auto flex items-center justify-between gap-2.5 border-t border-sky-800 bg-[#0b1f3a] px-3.5 py-3">
+        <strong class="text-white">{{ .Price }}</strong>
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-sky-700 bg-[#050b18] px-3 py-2 text-sm font-black text-white hover:border-sky-400 hover:text-sky-100" type="button"
+                hx-post="/shop/cart/add?id={{ .ID }}"
+                hx-target="#cart-popup"
+                hx-swap="outerHTML">
+            Add to cart
+        </button>
+    </footer>
+</article>

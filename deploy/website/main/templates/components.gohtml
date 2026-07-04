@@ -1,0 +1,29 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<header class="main-hero grid grid-cols-[minmax(0,1fr)_minmax(220px,300px)] items-start gap-4 max-[760px]:grid-cols-1">
+    <div class="grid content-start gap-3 self-start">
+        <p class="main-eyebrow"><span aria-hidden="true">{{ .PromptFace }}</span> known components</p>
+        <h1>{{ .Title }}</h1>
+        <p class="main-lead">{{ .Description }}</p>
+    </div>
+    <div class="main-visual-frame grid w-full max-w-[300px] place-items-center justify-self-end max-[760px]:justify-self-start">
+        <img class="main-hero-img h-auto max-h-[170px] w-auto max-w-full object-contain" src="/assets/img/logo-go-webthings.png" alt="go-webthings">
+    </div>
+</header>
+
+<section class="main-component-list" aria-label="Known go-webthings components">
+    {{ range .Components }}
+        <article class="main-component">
+            <span class="main-component-logo">
+                <img src="{{ .Image }}" alt="{{ .Name }}">
+            </span>
+            <div>
+                <h2>{{ .Name }}</h2>
+                <p>{{ .Description }}</p>
+                <nav aria-label="{{ .Name }} links">
+                    <a href="{{ .DocsURL }}">Docs</a>
+                    <a href="{{ .SourceURL }}">Source</a>
+                </nav>
+            </div>
+        </article>
+    {{ end }}
+</section>

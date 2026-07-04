@@ -1,0 +1,36 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.ActionPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Request intent</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">This page keeps the action deliberately small: a POST increments server state, then re-renders the partial.</p>
+    </header>
+
+    <div class="inline-flex w-fit items-center gap-3.5 border border-cyan-400/60 bg-[#020817] p-4">
+        <span>{{ .Counter }}</span>
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" hx-post="/action" hx-target="#content" hx-headers='{"{{ .ActionHeader }}":"increment"}'>Increment</button>
+    </div>
+
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Action header</h2>
+        <p class="leading-7 text-sky-100">The handler reads <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">{{ .ActionHeader }}</code> to decide what operation was requested before rendering the next state.</p>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">if r.Header.Get(connector.HeaderAction.String()) == "increment" {
+    counter++
+}</code></pre>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;button hx-post="/action"
+        hx-target="#content"
+        hx-headers='{"{{ actionHeader }}":"increment"}'&gt;
+    Increment
+&lt;/button&gt;</code></pre>
+    </article>
+</section>

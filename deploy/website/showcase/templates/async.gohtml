@@ -1,0 +1,48 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.AsyncPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Deferred loading</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">The <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">async</code> helper renders connector-aware loading markup. HTMX fetches each endpoint after the page shell is already visible, and each row response includes a request-scoped flash message.</p>
+    </header>
+
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
+        <article class="grid content-start gap-3 border border-cyan-400/60 bg-[#020817] p-4">
+            <h2 class="text-lg font-bold text-white">Endpoint partial</h2>
+            {{ async runtime "/async/stats" }}
+        </article>
+        <article class="grid content-start  border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+            <h2 class="text-lg font-bold text-white mb-3">Route parameter</h2>
+            {{ range .Rows }}
+                {{ async runtime "/async/row/:row" "row" .ID }}
+            {{ end }}
+        </article>
+    </div>
+
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Deferred, not blocking</h2>
+        <p class="leading-7 text-sky-100">This is not server-side await. The initial template renders immediately, then the connector turns each deferred region into client-side loading markup.</p>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">mux.HandleFunc("/async", app.asyncPage)
+mux.HandleFunc("/async/stats", app.asyncStats)
+mux.HandleFunc("/async/row/", app.asyncRow)
+
+func (app *App) asyncRow(w http.ResponseWriter, r *http.Request) {
+    ctx := flash.Add(r.Context(), flash.Success("Row 1 loaded after 2s"))
+    r = r.WithContext(ctx)
+    content := partial.NewID("async-row", "templates/async_row.gohtml")
+    app.writeStandalone(w, r, content)
+}</code></pre>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">{{ "{{ async runtime \"/async/stats\" }}" }}
+{{ "{{ async runtime \"/async/row/:row\" \"row\" .ID }}" }}</code></pre>
+    </article>
+</section>

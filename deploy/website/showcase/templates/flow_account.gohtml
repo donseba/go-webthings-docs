@@ -1,0 +1,18 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.FlowAccountPage
+*/}}
+<form class="grid gap-4" method="post" hx-post="/flow" hx-target="#content" hx-swap="innerHTML">
+    <div>
+        <h2 class="text-lg font-bold text-white">Account</h2>
+        <p class="leading-7 text-sky-100">Start with an email address. Validation runs on the server before the next partial is rendered.</p>
+    </div>
+    {{ if .Error }}<p class="leading-7 text-sky-100 border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900">{{ .Error }}</p>{{ end }}
+    <label class="grid gap-1.5 font-bold text-sky-100">
+        Email
+        <input class="min-h-9 border border-cyan-400/60 bg-[#020817] px-3 py-2 font-inherit text-white" name="email" type="email" value="{{ .Email }}" placeholder="ada@example.com">
+    </label>
+    <div class="flex flex-wrap gap-2">
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="submit">Continue</button>
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="submit" name="direction" value="reset">Reset</button>
+    </div>
+</form>

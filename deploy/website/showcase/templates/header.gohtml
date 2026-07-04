@@ -1,0 +1,30 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.HeaderPage
+*/}}
+<header id="app-header" class="sticky top-0 z-20 flex min-h-16 items-center border-b border-slate-800 bg-[#060b16]/95 px-4 py-3 shadow-sm"{{ oobAttr }}>
+    <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
+        <a class="flex min-w-0 items-center gap-3" href="/" hx-get="/" hx-target="#content" hx-push-url="true" aria-label="go-webthings showcase home">
+            <img class="h-10 w-auto" src="/assets/img/logo-go-webthings.png" alt="go-webthings">
+            <span class="grid min-w-0 gap-0.5">
+                <strong class="text-sm font-extrabold uppercase tracking-wide text-white">{{ .AppName }}</strong>
+                <span class="text-xs text-slate-400">one server-rendered demo</span>
+            </span>
+        </a>
+
+        <nav class="flex flex-wrap items-center justify-end gap-2" aria-label="Showcase top links">
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-bold text-slate-300 hover:border-slate-600 hover:bg-slate-900 hover:text-slate-50"
+               href="{{ .MainURL }}">Main</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-bold text-slate-300 hover:border-slate-600 hover:bg-slate-900 hover:text-slate-50"
+               href="{{ .DocsURL }}">Docs</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-bold text-slate-300 hover:border-slate-600 hover:bg-slate-900 hover:text-slate-50"
+               href="{{ .SourceURL }}">Source</a>
+            <a class="inline-flex min-h-10 items-center border border-transparent px-4 py-2 text-sm font-bold text-slate-300 hover:border-slate-600 hover:bg-slate-900 hover:text-slate-50"
+               href="/shop"
+               hx-get="/shop"
+               hx-target="#content"
+               hx-push-url="true">
+                Cart
+            </a>
+        </nav>
+    </div>
+</header>

@@ -18,6 +18,7 @@ tasks:
     cmds:
       - task: build-docs-css-{{OS}}
       - task: build-main-css-{{OS}}
+      - task: build-showcase-css-{{OS}}
 
   build-docs-css-windows:
     desc: Build the shared docs stylesheet on Windows
@@ -58,6 +59,26 @@ tasks:
     cmds:
       - test -x ./bin/tailwindcss || task install-tailwind-linux
       - ./bin/tailwindcss --cwd ./deploy/website/main -i ./tailwind/main.css -o ./assets/css/styles.css --minify
+
+  build-showcase-css-windows:
+    desc: Build the showcase website stylesheet on Windows
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -Command "if (!(Test-Path '.\\bin\\tailwindcss.exe')) { task install-tailwind-windows }; .\\bin\\tailwindcss.exe --cwd '.\\deploy\\website\\showcase' -i '.\\tailwind\\main.css' -o '.\\assets\\css\\styles.css' --minify"
+
+  build-showcase-css-darwin:
+    desc: Build the showcase website stylesheet on macOS
+    platforms: [darwin]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-darwin
+      - ./bin/tailwindcss --cwd ./deploy/website/showcase -i ./tailwind/main.css -o ./assets/css/styles.css --minify
+
+  build-showcase-css-linux:
+    desc: Build the showcase website stylesheet on Linux
+    platforms: [linux]
+    cmds:
+      - test -x ./bin/tailwindcss || task install-tailwind-linux
+      - ./bin/tailwindcss --cwd ./deploy/website/showcase -i ./tailwind/main.css -o ./assets/css/styles.css --minify
 
   install-tailwind-windows:
     desc: Install tailwindcss on Windows
@@ -149,6 +170,22 @@ tasks:
     deps:
       - watch-docs-css-darwin-linux
       - watch-docs-css-windows
+
+  watch-showcase-css-darwin-linux:
+    platforms: [darwin, linux]
+    cmds:
+      - ./bin/tailwindcss --cwd ./deploy/website/showcase -i ./tailwind/main.css -o ./assets/css/styles.css -w -m
+
+  watch-showcase-css-windows:
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -Command ".\\bin\\tailwindcss.exe --cwd .\\deploy\\website\\showcase -i .\\tailwind\\main.css -o .\\assets\\css\\styles.css -w -m"
+
+  watch-showcase-css:
+    desc: Watch for changes in the css files
+    deps:
+      - watch-showcase-css-darwin-linux
+      - watch-showcase-css-windows
 
   serve-website-darwin-linux:
     desc: Run the website server on macOS/Linux

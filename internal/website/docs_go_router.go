@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -14,7 +15,15 @@ type goRouterApp struct {
 }
 
 func registerGoRouterDocsRoutes(r *router.Router, domain string) {
-	registerDocsPageRoutes(r, domain, "go-router", goRouterDocs.pages, GoRouterPath, goRouterDocs.page)
+	for path, page := range goRouterDocs.pages {
+		if path == "/" {
+			continue
+		}
+		page := page
+		r.Get(GoRouterPath(path), func(w http.ResponseWriter, req *http.Request) {
+			goRouterDocs.docs.render(w, req, page, nil)
+		}).As(fmt.Sprintf("%s.go-router.%s", domain, strings.TrimPrefix(path, "/")))
+	}
 }
 
 func mustNewGoRouterDocs() *goRouterApp {
@@ -213,22 +222,4 @@ func GoRouterPath(path string) string {
 		return "/go-router"
 	}
 	return "/go-router" + path
-}
-
-func (app *goRouterApp) overview(w http.ResponseWriter, r *http.Request) {
-	if strings.TrimSuffix(r.URL.Path, "/") != "/go-router" {
-		renderNotFound(w, r)
-		return
-	}
-	app.render(w, r, app.pages["/"])
-}
-
-func (app *goRouterApp) page(page docsPage) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		app.render(w, r, page)
-	}
-}
-
-func (app *goRouterApp) render(w http.ResponseWriter, r *http.Request, page docsPage) {
-	app.docs.render(w, r, page, nil)
 }

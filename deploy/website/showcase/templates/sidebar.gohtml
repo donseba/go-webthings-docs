@@ -1,0 +1,14 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.HeaderPage
+*/}}
+<aside id="showcase-sidebar" class="sticky top-[calc(4rem+1.5rem)] grid h-fit self-start border border-slate-800 bg-[#070d19]/92 p-4 shadow-sm max-[820px]:static max-[820px]:mb-4 max-[820px]:overflow-x-auto max-[820px]:p-3"{{ oobAttr }}>
+    <nav class="grid gap-1.5 max-[820px]:flex max-[820px]:w-max max-[820px]:gap-2" aria-label="Showcase pages">
+        {{ range .Nav }}
+            <a href="{{ .Path }}"
+               hx-get="{{ .Path }}"
+               hx-target="#content"
+               hx-push-url="true"
+               class="block whitespace-nowrap border-l-2 border-y-0 border-r-0 border-l-transparent px-3 py-2 text-sm text-slate-300 hover:border-l-sky-500 hover:bg-slate-900/80 hover:text-slate-50 {{ if urlIs .Path }}border-l-sky-400 bg-slate-900 font-bold text-sky-100{{ end }}">{{ .Label }}</a>
+        {{ end }}
+    </nav>
+</aside>

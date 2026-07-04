@@ -12,7 +12,6 @@ import (
 	"github.com/donseba/go-partial/connector"
 	"github.com/donseba/go-partial/exp/templatehelpers"
 	exterrors "github.com/donseba/go-partial/ext/errors"
-	router "github.com/donseba/go-router"
 )
 
 type docsRenderer struct {
@@ -49,15 +48,16 @@ type DocsArticleData struct {
 }
 
 type DocsHeaderPage struct {
-	AppName   string
-	BasePath  string
-	MainURL   string
-	DocsURL   string
-	Logo      string
-	LogoImage string
-	Title     string
-	Subtitle  string
-	GitHubURL string
+	AppName     string
+	BasePath    string
+	MainURL     string
+	DocsURL     string
+	ShowcaseURL string
+	Logo        string
+	LogoImage   string
+	Title       string
+	Subtitle    string
+	GitHubURL   string
 }
 
 type DocsNavPage struct {
@@ -120,15 +120,6 @@ var docsPromptFaces = []string{
 	"!_!",
 	"/_/",
 	"_~_",
-}
-
-func registerDocsPageRoutes(r *router.Router, domain, element string, pages map[string]docsPage, pathFor func(string) string, handler func(docsPage) http.HandlerFunc) {
-	for path, page := range pages {
-		if path == "/" {
-			continue
-		}
-		r.Get(pathFor(path), handler(page)).As(fmt.Sprintf("%s.%s.%s", domain, element, strings.TrimPrefix(path, "/")))
-	}
 }
 
 func newDocsRenderer(cfg docsRendererConfig) *docsRenderer {
@@ -223,26 +214,27 @@ func docsPages(templateDir string, pages map[string]docsPage) map[string]docsPag
 
 func (renderer *docsRenderer) header(r *http.Request) DocsHeaderPage {
 	return DocsHeaderPage{
-		AppName:   renderer.appName,
-		BasePath:  renderer.basePath,
-		MainURL:   mainWebsiteURL(r),
-		DocsURL:   docsHomeURL(r),
-		Logo:      renderer.logo,
-		LogoImage: renderer.logoImage,
-		Title:     renderer.title,
-		Subtitle:  renderer.subtitle,
-		GitHubURL: renderer.gitHubURL,
+		AppName:     renderer.appName,
+		BasePath:    renderer.basePath,
+		MainURL:     mainWebsiteURL(r),
+		DocsURL:     docsHomeURL(r),
+		ShowcaseURL: mainFamilyURL(r, "showcase", ""),
+		Logo:        renderer.logo,
+		LogoImage:   renderer.logoImage,
+		Title:       renderer.title,
+		Subtitle:    renderer.subtitle,
+		GitHubURL:   renderer.gitHubURL,
 	}
 }
 
 func docsLogoImage(appName string) string {
 	switch appName {
 	case "go-partial":
-		return "/assets/img/go-partial-40.png"
+		return "/assets/img/logo-go-partial.png"
 	case "go-docs":
-		return "/assets/img/go-doc-40.png"
+		return "/assets/img/logo-go-doc.png"
 	case "go-router":
-		return "/assets/img/go-router-40.png"
+		return "/assets/img/logo-go-router.png"
 	default:
 		return ""
 	}
@@ -266,13 +258,13 @@ func (renderer *docsRenderer) seo(r *http.Request, page docsPage) SEOData {
 func docsSEOImage(appName string) string {
 	switch appName {
 	case "go-partial":
-		return "/assets/img/go-partial-400.png"
+		return "/assets/img/logo-go-partial.png"
 	case "go-docs":
-		return "/assets/img/go-doc-400.png"
+		return "/assets/img/logo-go-doc.png"
 	case "go-router":
-		return "/assets/img/go-router-400.png"
+		return "/assets/img/logo-go-router.png"
 	default:
-		return "/assets/img/go-webthings-400.png"
+		return "/assets/img/logo-go-webthings.png"
 	}
 }
 

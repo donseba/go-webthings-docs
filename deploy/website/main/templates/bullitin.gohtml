@@ -1,0 +1,8 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<div class="main-marquee grid min-h-10 grid-cols-[max-content_minmax(0,1fr)_5.5rem] items-center gap-2 overflow-hidden whitespace-nowrap px-4 py-2" aria-label="Site notice">
+    <span class="main-marquee-label shrink-0">LATEST NEWS</span>
+    <span id="main-bulletin" class="main-bulletin-slot min-w-0 overflow-hidden text-ellipsis" hx-get="/bulletin" hx-trigger="load delay:8s, every 8s" hx-swap="innerHTML">
+        <span class="main-bulletin-line">{{ .Bulletin }}</span>
+    </span>
+    <span class="main-bulletin-timer self-center justify-self-end" aria-hidden="true"><span class="main-bulletin-timer-fill block h-full w-full origin-left"></span></span>
+</div>

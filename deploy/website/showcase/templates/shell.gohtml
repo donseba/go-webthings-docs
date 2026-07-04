@@ -1,0 +1,70 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.ShellPage
+*/}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .AppName }}</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script src="/assets/js/code-highlight.js" defer></script>
+</head>
+<body class="showcase-retro m-0 font-sans text-slate-100">
+    <div class="min-h-screen bg-transparent text-slate-100">
+        {{ slot "header" }}
+
+        <div class="mx-auto grid w-full max-w-7xl grid-cols-[230px_minmax(0,1fr)] content-start items-start gap-6 px-6 pb-24 pt-6 max-[820px]:block max-[820px]:px-4">
+            <div class="col-span-2 max-[820px]:mb-4">
+                {{ slot "joke" }}
+            </div>
+
+            {{ slot "sidebar" }}
+
+            <div class="grid min-w-0 content-start gap-6">
+                <main id="content" class="w-full min-w-0 max-[820px]:p-0">
+                    {{ content }}
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <aside id="cart-popup" class="fixed bottom-5 right-5 z-50 hidden w-[420px] max-w-[min(420px,calc(100vw-40px))] gap-3.5 border border-sky-800 bg-slate-950 p-4 shadow-xl" aria-live="polite"></aside>
+    {{ flashTarget }}
+    <script>
+        (() => {
+            const bindFlash = (node) => {
+                if (!(node instanceof HTMLElement) || !node.matches("[data-flash-message]") || node.dataset.flashBound) {
+                    return
+                }
+                node.dataset.flashBound = "true"
+                node.style.transition = "opacity 180ms ease, transform 180ms ease"
+                const timeout = Number.parseInt(node.dataset.flashTimeout || "4200", 10)
+                window.setTimeout(() => {
+                    node.style.opacity = "0"
+                    node.style.transform = "translateY(-4px)"
+                    window.setTimeout(() => node.remove(), 220)
+                }, Number.isFinite(timeout) ? timeout : 4200)
+            }
+
+            const bindTree = (root) => {
+                bindFlash(root)
+                if (root instanceof Element) {
+                    root.querySelectorAll("[data-flash-message]").forEach(bindFlash)
+                }
+            }
+
+            const target = document.getElementById("flash-messages")
+            if (!target) {
+                return
+            }
+            bindTree(target)
+            new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => mutation.addedNodes.forEach(bindTree))
+            }).observe(target, { childList: true, subtree: true })
+        })()
+    </script>
+</body>
+</html>

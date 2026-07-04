@@ -1,0 +1,21 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.FlowConfirmPage
+*/}}
+<form class="grid gap-4" method="post" hx-post="/flow" hx-target="#content" hx-swap="innerHTML">
+    <div>
+        <h2 class="text-lg font-bold text-white">Confirm</h2>
+        <p class="leading-7 text-sky-100">The confirmation step receives the merged data from the previous steps.</p>
+    </div>
+    <dl class="grid grid-cols-[140px_minmax(0,1fr)] gap-x-4 gap-y-2.5 border border-cyan-400/60 bg-[#020817] p-4">
+        <dt>Email</dt>
+        <dd>{{ index .AllData "email" }}</dd>
+        <dt>Project</dt>
+        <dd>{{ index .AllData "name" }}</dd>
+        <dt>Plan</dt>
+        <dd>{{ index .AllData "plan" }}</dd>
+    </dl>
+    <div class="flex flex-wrap gap-2">
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="submit" name="direction" value="back">Back</button>
+        <button class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" type="submit" name="direction" value="reset">Start over</button>
+    </div>
+</form>

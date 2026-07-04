@@ -1,0 +1,19 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.ShopPage
+*/}}
+{{ range .Items }}
+    {{ template "shop_item.gohtml" . }}
+{{ end }}
+
+{{ if .Done }}
+    <div class="border border-cyan-400/60 p-4 text-center text-sky-100">All products loaded.</div>
+{{ else }}
+    <div class="border border-cyan-400/60 p-4 text-center text-sky-100"
+         hx-get="/shop/load"
+         hx-trigger="revealed"
+         hx-target="this"
+         hx-swap="outerHTML"
+         hx-headers='{"{{ .ActionHeader }}":"current-{{ .Next }}"}'>
+        Loading more products...
+    </div>
+{{ end }}

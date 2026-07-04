@@ -1,0 +1,51 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.RowsPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Template composition</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">Rows are rendered with native <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">template</code> calls and the row partial keeps an ID for HTMX target requests.</p>
+    </header>
+
+    <table class="w-full border-collapse border border-cyan-400/60 text-left">
+        <thead class="bg-[#000812]">
+            <tr>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white">ID</th>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white">Name</th>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white">Price</th>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white">Status</th>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white">Owner</th>
+                <th class="border-b border-cyan-400/60 px-3 py-2.5 text-left font-bold text-white"></th>
+            </tr>
+        </thead>
+        <tbody class="[&>tr:last-child>td]:border-b-0">
+            {{ range .Rows }}
+                {{ template "row.gohtml" . }}
+            {{ end }}
+        </tbody>
+    </table>
+
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Dot row data</h2>
+        <p class="leading-7 text-sky-100">The table owns the loop, while each row receives the row itself as dot. The same row template can render inside the table or as a standalone HTMX target.</p>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">row := partial.NewID("row", "templates/row.gohtml")
+table := partial.NewID("content", "templates/rows.gohtml").SetDot(page)
+table.With(row)
+target.WithResolver(table, func(ctx context.Context, r *http.Request, target string) (*partial.Partial, bool) {
+    row := findRow(target)
+    return partial.NewID(target, "templates/row.gohtml").SetDot(row), true
+})</code></pre>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">{{ "{{ range .Rows }}" }}
+    {{ "{{ template \"row.gohtml\" . }}" }}
+{{ "{{ end }}" }}</code></pre>
+    </article>
+</section>

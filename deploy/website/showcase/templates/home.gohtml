@@ -1,0 +1,47 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.PageTitle
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Overview</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">This application renders normal pages and htmx requests through the same partial tree.</p>
+    </header>
+
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5 border border-cyan-400/60 bg-[#020817] p-4">
+        <article>
+            <h2 class="text-lg font-bold text-white">Core render model</h2>
+            <p class="leading-7 text-sky-100">A wrapper partial renders route content. htmx requests target the content partial directly.</p>
+        </article>
+        <article>
+            <h2 class="text-lg font-bold text-white">Template helpers</h2>
+            <p class="leading-7 text-sky-100">Pages demonstrate typed templates, registered regions, selection, actions, OOB swaps, and context helpers.</p>
+        </article>
+        <article>
+            <h2 class="text-lg font-bold text-white">Error fallback</h2>
+            <p class="leading-7 text-sky-100">The error page intentionally renders a broken template so the embedded fallback can take over.</p>
+        </article>
+    </div>
+
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">How to read this showcase</h2>
+        <p class="leading-7 text-sky-100">Each page demonstrates one server-rendering capability with actual template files, HTMX requests, and the same configured root partial.</p>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">content := partial.NewID("content", "templates/home.gohtml")
+page := root.Clone().SetContent(content)
+partial.Write(ctx, w, r, page)</code></pre>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;section class="grid gap-5"&gt;
+    &lt;header class="grid max-w-3xl gap-2.5"&gt;
+        &lt;h1&gt;{{ "{{ .Title }}" }}&lt;/h1&gt;
+    &lt;/header&gt;
+&lt;/section&gt;</code></pre>
+    </article>
+</section>
+

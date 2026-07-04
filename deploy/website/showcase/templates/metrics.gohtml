@@ -1,0 +1,91 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.MetricsPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Experimental observability</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
+        <p class="leading-7 text-sky-100">This page reads records emitted by <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">exp/metrics</code>. Slot-backed children render through their own lifecycle, so parent and child partials show up as separate records under the same trace.</p>
+    </header>
+
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
+        <article class="border border-cyan-400/60 bg-[#020817] p-4">
+            <h2 class="text-sm font-extrabold uppercase text-sky-100">Stored records</h2>
+            <p class="mt-2 text-3xl font-extrabold text-white">{{ .Total }}</p>
+        </article>
+        <article class="border border-cyan-400/60 bg-[#020817] p-4">
+            <h2 class="text-sm font-extrabold uppercase text-sky-100">Chain tag</h2>
+            <p class="mt-2 text-3xl font-extrabold text-white">{{ .ChainTag }}</p>
+        </article>
+        <article class="border border-cyan-400/60 bg-[#020817] p-4">
+            <h2 class="text-sm font-extrabold uppercase text-sky-100">Trace key</h2>
+            <p class="mt-2 text-3xl font-extrabold text-white">{{ .TraceLabel }}</p>
+        </article>
+    </div>
+
+    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-bold text-white">Latest render records</h2>
+                <p class="leading-7 text-sky-100">Navigate around the showcase, then return here or refresh this panel to see parent and child render records for the same request.</p>
+            </div>
+            <button type="button" class="inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm font-bold text-white hover:border-[#79ff8b] hover:text-[#79ff8b]" hx-get="/metrics" hx-target="#content">Refresh</button>
+        </div>
+
+        <div class="overflow-x-auto border border-cyan-400/60">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-[#000812] text-[12px] uppercase text-sky-100">
+                    <tr>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Time</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Kind</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Partial</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Swap</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Request</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Duration</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Size</th>
+                        <th class="border-b border-cyan-400/60 px-3 py-2">Chain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ if .Latest }}
+                        {{ range .Latest }}
+                            <tr>
+                                <td class="border-b border-cyan-400/60 bg-[#000812] px-3 py-2 font-mono text-[13px] font-bold text-white" colspan="8">{{ .Timestamp }} request {{ .RequestID }}{{ if .TraceID }} trace {{ .TraceID }}{{ end }} {{ .Method }} {{ .Path }}</td>
+                            </tr>
+                            {{ range .Records }}
+                            <tr class="align-top">
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Timestamp }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Kind }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2">
+                                    <div class="{{ .Indent }}">
+                                        <div class="font-bold text-white">{{ if .ParentID }}- {{ end }}{{ .Label }}</div>
+                                        {{ range .Meta }}<div class="text-xs text-sky-100">{{ . }}</div>{{ end }}
+                                    </div>
+                                    {{ if .Templates }}<div class="mt-2 max-w-full break-words font-mono text-xs text-sky-100">{{ .Templates }}</div>{{ end }}
+                                    {{ if .Error }}<div class="mt-2 max-w-full break-words text-xs font-bold text-amber-900">{{ .Error }}</div>{{ end }}
+                                </td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Swap }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Method }} {{ .Path }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Duration }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-white">{{ .Size }}</td>
+                                <td class="border-b border-cyan-400/45 px-3 py-2 font-mono text-[13px] text-sky-200">{{ .Chain }}</td>
+                            </tr>
+                            {{ end }}
+                        {{ end }}
+                    {{ else }}
+                        <tr>
+                            <td class="px-3 py-5 text-sky-100" colspan="8">No render metrics recorded yet.</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">ctx := metrics.WithRequestID(r.Context(), requestID)
+sink := metrics.Fanout(app.metrics, metrics.NewWriterSink(os.Stdout))
+metrics.Stage(sink, metrics.WithTag("chain", "showcase"))</code></pre>
+    </article>
+</section>

@@ -1,0 +1,12 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.SSEStatus
+*/}}
+<article id="sse-status" class="grid min-h-56 content-center gap-4{{ if .Done }} p-4{{ else }} bg-transparent p-0{{ end }}">
+    <div class="flex flex-wrap items-center gap-2.5 text-[13px] text-sky-100">
+        <span class="inline-flex border border-cyan-400/70 px-2.5 py-1 text-[13px] font-bold text-[#79ff8b]">{{ if .Done }}Complete{{ else }}Streaming{{ end }}</span>
+        <span>{{ if .Done }}Stream finished{{ else }}Patch received{{ end }}</span>
+        <time>{{ .Time }}</time>
+    </div>
+    <h2 class="text-lg font-bold text-white">Patch {{ .Step }}</h2>
+    <p class="leading-7 text-sky-100">{{ if .Done }}The stream sent its final patch and the client closed the EventSource.{{ else }}This section was rendered on the server and patched into the page over SSE.{{ end }}</p>
+</article>

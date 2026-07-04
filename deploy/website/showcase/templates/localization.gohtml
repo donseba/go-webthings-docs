@@ -1,0 +1,59 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/showcase.LocalizationPage
+*/}}
+<section class="grid gap-5">
+    <header class="grid max-w-3xl gap-2.5">
+        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Localization</span>
+        <h1 class="text-3xl font-extrabold leading-tight text-white">{{ tl localizer "title" }}</h1>
+        <p class="leading-7 text-sky-100">{{ tl localizer "intro" }}</p>
+    </header>
+
+    <div class="border border-cyan-400/60 bg-[#020817] p-4 grid gap-4">
+        <div class="flex flex-wrap gap-2" aria-label="Locale switcher">
+            {{ range .Locales }}
+                <button
+                    type="button"
+                    class="{{ if eq $.Locale . }}inline-flex min-h-9 cursor-pointer items-center border border-[#79ff8b] bg-[#0f3a25] px-3 py-2 text-sm font-bold text-white{{ else }}inline-flex min-h-9 cursor-pointer items-center border border-cyan-400/60 bg-[#020817] px-3 py-2 text-sm text-white hover:border-[#79ff8b] hover:text-[#79ff8b]{{ end }}"
+                    hx-get="/localization?locale={{ . }}"
+                    hx-target="#content"
+                    hx-push-url="true">
+                    {{ . }}
+                </button>
+            {{ end }}
+        </div>
+
+        <article class="grid gap-3.5">
+            <span class="inline-flex border border-cyan-400/70 px-2.5 py-1 text-[13px] font-bold text-[#79ff8b]">{{ tl localizer "active" }}: {{ locale }}</span>
+            <h2 class="text-lg font-bold text-white">{{ tl localizer "checkout" }}</h2>
+            <dl class="grid grid-cols-[140px_minmax(0,1fr)] gap-x-4 gap-y-2.5 border border-cyan-400/60 bg-[#020817] p-4">
+                <dt class="font-extrabold text-[#f3ff6b]">{{ tl localizer "total" }}</dt>
+                <dd>EUR 42.75</dd>
+                <dt class="font-extrabold text-[#f3ff6b]">{{ tl localizer "delivery" }}</dt>
+                <dd>{{ tl localizer "status" }}</dd>
+                <dt class="font-extrabold text-[#f3ff6b]">tn</dt>
+                <dd>{{ tn localizer "oneMessage" "manyMessage" .Count .Count }}</dd>
+                <dt class="font-extrabold text-[#f3ff6b]">ctl</dt>
+                <dd>{{ ctl localizer "button" "save" }}</dd>
+            </dl>
+            <p class="leading-7 text-sky-100">{{ tl localizer "explanation" }}</p>
+        </article>
+    </div>
+
+    <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
+        <h2 class="text-lg font-bold text-white">Bring your own translator</h2>
+        <p class="leading-7 text-sky-100">The package only requires <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">GetLocale()</code>. Translation behavior is linked through template functions, so the localizer can stay focused on the active locale.</p>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">ctx := localization.WithLocalizer(r.Context(), localizer)
+partial.Write(ctx, w, r, content)</code></pre>
+    </article>
+
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;h1&gt;{{ "{{ tl localizer \"title\" }}" }}&lt;/h1&gt;
+&lt;p&gt;{{ "{{ tn localizer \"oneMessage\" \"manyMessage\" .Count .Count }}" }}&lt;/p&gt;
+&lt;button&gt;{{ "{{ ctl localizer \"button\" \"save\" }}" }}&lt;/button&gt;</code></pre>
+    </article>
+</section>
