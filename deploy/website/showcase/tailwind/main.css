@@ -4,20 +4,20 @@
 @source "../../../internal/showcase/*.go";
 
 .showcase-retro {
-    color: #d8edff;
+    color: #dbeafe;
     background:
-        linear-gradient(rgba(54, 188, 255, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(54, 188, 255, 0.055) 1px, transparent 1px),
-        radial-gradient(circle at 18% 0%, rgba(35, 129, 255, 0.2), transparent 34rem),
-        #080d14;
-    background-size: 24px 24px, 24px 24px, auto, auto;
+        linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+        radial-gradient(circle at 18% 0%, rgba(14, 116, 144, 0.14), transparent 34rem),
+        #070b12;
+    background-size: 32px 32px, 32px 32px, auto, auto;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     letter-spacing: 0;
     scrollbar-gutter: stable;
 }
 
 .showcase-retro .syntax-keyword {
-    color: #f3ff6b;
+    color: #facc15;
     font-weight: 800;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .showcase-retro .syntax-string {
-    color: #79ff8b;
+    color: #86efac;
 }
 
 .showcase-retro .syntax-number {
@@ -51,7 +51,7 @@
 }
 
 .showcase-retro .syntax-type {
-    color: #20c2ed;
+    color: #38bdf8;
 }
 
 .showcase-retro .syntax-field {
@@ -59,54 +59,117 @@
 }
 
 .showcase-retro .syntax-tag {
-    color: #f3ff6b;
+    color: #fde68a;
 }
 
 .showcase-retro .syntax-attr {
     color: #c7a7ff;
 }
 
+.showcase-retro h1,
+.showcase-retro h2,
+.showcase-retro h3 {
+    text-shadow: none;
+}
+
+.showcase-retro code {
+    background: #050b18;
+    color: #86efac;
+}
+
+.showcase-retro main article,
+.showcase-retro main aside,
+.showcase-retro main table,
+.showcase-retro main dl,
+.showcase-retro main div[role="tabpanel"] {
+    border-color: rgba(14, 165, 233, 0.34);
+}
+
+.showcase-retro main article,
+.showcase-retro main aside,
+.showcase-retro main dl,
+.showcase-retro main div[role="tabpanel"] {
+    background-color: rgba(7, 13, 25, 0.76);
+    box-shadow: none;
+}
+
+.showcase-retro main table,
+.showcase-retro main thead,
+.showcase-retro main tr,
+.showcase-retro main td,
+.showcase-retro main th {
+    border-color: rgba(14, 165, 233, 0.28);
+}
+
+.showcase-retro main tbody tr {
+    background-color: rgba(7, 13, 25, 0.76);
+}
+
+.showcase-retro main tbody tr:nth-child(even) {
+    background-color: rgba(10, 20, 36, 0.72);
+}
+
+.showcase-retro main button,
+.showcase-retro main [role="tab"],
+.showcase-retro main a[class*="border"] {
+    box-shadow: none;
+}
+
+.showcase-retro main button:hover,
+.showcase-retro main a[class*="border"]:hover {
+    background-color: rgba(15, 23, 42, 0.96);
+    color: #f8fafc;
+}
+
+.showcase-retro main [class*="#79ff8b"] {
+    color: #86efac;
+}
+
+.showcase-retro main [class*="#f3ff6b"] {
+    color: #fde68a;
+}
+
 .showcase-retro .go-partial-debug {
-    border: 1px solid rgba(32, 194, 237, 0.52) !important;
+    border: 1px solid rgba(14, 165, 233, 0.38) !important;
     border-radius: 0 !important;
-    background: rgba(5, 11, 24, 0.72) !important;
-    color: #d8edff !important;
+    background: rgba(7, 13, 25, 0.82) !important;
+    color: #dbeafe !important;
     box-shadow: none !important;
 }
 
 .showcase-retro .go-partial-debug pre,
 .showcase-retro .go-partial-debug code {
     border-radius: 0 !important;
-    background: rgba(0, 8, 18, 0.9) !important;
-    color: #d8edff !important;
+    background: rgba(3, 7, 18, 0.92) !important;
+    color: #dbeafe !important;
 }
 
 body.showcase-retro main .go-partial-debug,
 body.showcase-retro main section.go-partial-debug,
 body.showcase-retro main aside.go-partial-debug,
 body.showcase-retro main div.go-partial-debug {
-    border: 1px solid rgba(32, 194, 237, 0.52) !important;
+    border: 1px solid rgba(14, 165, 233, 0.38) !important;
     border-radius: 0 !important;
-    background: rgba(5, 11, 24, 0.72) !important;
-    color: #d8edff !important;
+    background: rgba(7, 13, 25, 0.82) !important;
+    color: #dbeafe !important;
     box-shadow: none !important;
 }
 
 body.showcase-retro main .go-partial-debug pre,
 body.showcase-retro main .go-partial-debug code {
     border-radius: 0 !important;
-    background: rgba(0, 8, 18, 0.9) !important;
-    color: #d8edff !important;
+    background: rgba(3, 7, 18, 0.92) !important;
+    color: #dbeafe !important;
 }
 
 body.showcase-retro main .go-partial-error,
 body.showcase-retro main section.go-partial-error {
-    border: 1px solid rgba(255, 159, 122, 0.82) !important;
+    border: 1px solid rgba(251, 146, 60, 0.68) !important;
     border-left: 4px solid #ff9f7a !important;
     border-radius: 0 !important;
-    background: #050b18 !important;
-    color: #d8edff !important;
-    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.24) !important;
+    background: #070d19 !important;
+    color: #dbeafe !important;
+    box-shadow: none !important;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
     padding: 1.25rem !important;
 }
@@ -121,7 +184,7 @@ body.showcase-retro main .go-partial-error h1 {
 
 body.showcase-retro main .go-partial-error p {
     margin: 0 0 1rem !important;
-    color: #d8edff !important;
+    color: #dbeafe !important;
     line-height: 1.7 !important;
 }
 
@@ -130,23 +193,23 @@ body.showcase-retro main .go-partial-error dl {
     grid-template-columns: 9rem minmax(0, 1fr) !important;
     gap: 0.65rem 1rem !important;
     margin: 0 !important;
-    border: 1px solid rgba(32, 194, 237, 0.48) !important;
+    border: 1px solid rgba(14, 165, 233, 0.34) !important;
     background: #071226 !important;
     padding: 1rem !important;
 }
 
 body.showcase-retro main .go-partial-error dt {
-    color: #f3ff6b !important;
+    color: #fde68a !important;
     font-weight: 900 !important;
 }
 
 body.showcase-retro main .go-partial-error dd {
     margin: 0 !important;
-    color: #d8edff !important;
+    color: #dbeafe !important;
     overflow-wrap: anywhere !important;
 }
 
 .showcase-retro ::selection {
-    background: #dfff00;
-    color: #001018;
+    background: #38bdf8;
+    color: #020617;
 }

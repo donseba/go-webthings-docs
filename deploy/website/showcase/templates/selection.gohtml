@@ -3,9 +3,9 @@
 */}}
 <section class="grid gap-5">
     <header class="grid max-w-3xl gap-2.5">
-        <span class="inline-flex w-fit border border-cyan-400/70 bg-[#020817] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-100">Selected partials</span>
+        <span class="inline-flex w-fit border border-sky-700 bg-[#071226] px-3 py-1.5 font-mono text-[0.72rem] font-black uppercase tracking-[0.02em] text-sky-200">Selected partials</span>
         <h1 class="text-3xl font-extrabold leading-tight text-white">{{ .Title }}</h1>
-        <p class="leading-7 text-sky-100">The shell stays the same while the selected partial is chosen by <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">{{ selectionHeader }}</code>.</p>
+        <p class="leading-7 text-sky-100">The shell stays the same while the selected partial is chosen by <code class="bg-[#050b18] px-1.5 py-0.5 font-mono text-sm text-sky-200">{{ selectionHeader }}</code>.</p>
     </header>
 
     <div class="mt-2 grid gap-2">
@@ -13,7 +13,7 @@
             <button
                 role="tab"
                 aria-selected="{{ if selectionIs "summary" }}true{{ else }}false{{ end }}"
-                class="inline-flex min-h-9 cursor-pointer items-center border px-3 py-2 text-sm font-bold shadow-[3px_3px_0_rgba(0,0,0,0.28)] {{ if selectionIs "summary" }}border-[#79ff8b] bg-[#0f3a25] text-[#79ff8b]{{ else }}border-cyan-400/70 bg-[#071226]/95 text-white{{ end }}"
+                class="inline-flex min-h-9 cursor-pointer items-center border px-3 py-2 text-sm font-bold {{ if selectionIs "summary" }}border-sky-400 bg-slate-800 text-sky-100{{ else }}border-sky-800 bg-[#071226] text-slate-100 hover:border-sky-500 hover:bg-slate-900{{ end }}"
                 hx-get="/selection"
                 hx-target="#content"
                 hx-headers='{"{{ selectionHeader }}":"summary"}'>
@@ -22,7 +22,7 @@
             <button
                 role="tab"
                 aria-selected="{{ if selectionIs "details" }}true{{ else }}false{{ end }}"
-                class="inline-flex min-h-9 cursor-pointer items-center border px-3 py-2 text-sm font-bold shadow-[3px_3px_0_rgba(0,0,0,0.28)] {{ if selectionIs "details" }}border-[#79ff8b] bg-[#0f3a25] text-[#79ff8b]{{ else }}border-cyan-400/70 bg-[#071226]/95 text-white{{ end }}"
+                class="inline-flex min-h-9 cursor-pointer items-center border px-3 py-2 text-sm font-bold {{ if selectionIs "details" }}border-sky-400 bg-slate-800 text-sky-100{{ else }}border-sky-800 bg-[#071226] text-slate-100 hover:border-sky-500 hover:bg-slate-900{{ end }}"
                 hx-get="/selection"
                 hx-target="#content"
                 hx-headers='{"{{ selectionHeader }}":"details"}'>
@@ -30,27 +30,27 @@
             </button>
         </div>
 
-        <div class="mt-3 border border-cyan-400/60 bg-[#020817] p-4" role="tabpanel">
+        <div class="mt-3 border border-sky-800 bg-[#071226] p-4" role="tabpanel">
             {{ selection }}
         </div>
     </div>
 
     <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
         <h2 class="text-lg font-bold text-white">Header-driven selection</h2>
-        <p class="leading-7 text-sky-100">The selected key comes from <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">{{ selectionHeader }}</code>. The server maps that key to a registered partial and renders only that choice.</p>
+        <p class="leading-7 text-sky-100">The selected key comes from <code class="bg-[#050b18] px-1.5 py-0.5 font-mono text-sm text-sky-200">{{ selectionHeader }}</code>. The server maps that key to a registered partial and renders only that choice.</p>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">selection.WithSelectMap(content, "summary", map[string]*partial.Partial{
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">selection.WithSelectMap(content, "summary", map[string]*partial.Partial{
     "summary": summary,
     "details": details,
 })</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Template usage</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;button class="{{"{{ if selectionIs \"summary\" }}active{{ end }}" }}"
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;button class="{{"{{ if selectionIs \"summary\" }}active{{ end }}" }}"
         hx-headers='{"{{ "{{ selectionHeader }}" }}":"summary"}'&gt;
     Summary
 &lt;/button&gt;

@@ -62,7 +62,7 @@
     <article class="grid gap-2 border border-cyan-400/60 bg-[#020817] p-4">
         <h2 class="text-lg font-bold text-white">Endless scroll uses reveal</h2>
         <p class="leading-7 text-sky-100">The infinite scroll page is the same idea in a loop: a sentinel uses reveal-style loading, swaps itself with the next chunk, and the next chunk contains a new sentinel.</p>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
      hx-trigger="revealed"
      hx-swap="outerHTML"&gt;
     Loading more rows...
@@ -118,9 +118,9 @@
         <p class="leading-7 text-sky-100">The helpers produce an interaction model. The connector supplies protocol attributes, and the interaction stage owns the final HTML wrapper.</p>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">content.SetDot(InteractionPage{Title: "Interaction helpers"}).
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">content.SetDot(InteractionPage{Title: "Interaction helpers"}).
     SetContract("interaction",
         interactions.NewPoll("/interactions/poll").Every(3 * time.Second),
     )
@@ -131,9 +131,9 @@ func (app *App) interactionsPoll(w http.ResponseWriter, r *http.Request) {
 }</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Template usage</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">{{ "{{ async runtime Async }}" }}
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">{{ "{{ async runtime Async }}" }}
 {{ "{{ reveal runtime Reveal }}" }}
 {{ "{{ poll runtime Poll }}" }}
 {{ "{{ on runtime On }}" }}

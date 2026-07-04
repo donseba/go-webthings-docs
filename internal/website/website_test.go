@@ -483,7 +483,7 @@ func TestShowcaseStylesheet(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#040816\\]\\/90") {
+	if !strings.Contains(body, "tailwindcss") || !strings.Contains(body, "bg-\\[\\#060b16\\]\\/95") {
 		t.Fatalf("expected showcase stylesheet, got:\n%s", body)
 	}
 	if !strings.Contains(body, ".showcase-retro") || !strings.Contains(body, "max-\\[820px\\]\\:block") {

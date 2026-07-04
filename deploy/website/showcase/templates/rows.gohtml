@@ -31,9 +31,9 @@
         <p class="leading-7 text-sky-100">The table owns the loop, while each row receives the row itself as dot. The same row template can render inside the table or as a standalone HTMX target.</p>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">row := partial.NewID("row", "templates/row.gohtml")
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">row := partial.NewID("row", "templates/row.gohtml")
 table := partial.NewID("content", "templates/rows.gohtml").SetDot(page)
 table.With(row)
 target.WithResolver(table, func(ctx context.Context, r *http.Request, target string) (*partial.Partial, bool) {
@@ -42,9 +42,9 @@ target.WithResolver(table, func(ctx context.Context, r *http.Request, target str
 })</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Template usage</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">{{ "{{ range .Rows }}" }}
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">{{ "{{ range .Rows }}" }}
     {{ "{{ template \"row.gohtml\" . }}" }}
 {{ "{{ end }}" }}</code></pre>
     </article>

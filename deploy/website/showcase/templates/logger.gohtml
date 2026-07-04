@@ -24,7 +24,7 @@
         </article>
     </div>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-lg font-bold text-white">Latest diagnostic events</h2>
@@ -76,9 +76,9 @@
         </div>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">events := partial.NewAsyncEvents(
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">events := partial.NewAsyncEvents(
     partial.EventsConfig{Buffer: 256},
     logger.Sink(slog.Default(), logger.WithMinLevel(partial.EventWarn)),
     app.logs,
@@ -88,8 +88,8 @@
 root := partial.New("shell.gohtml").SetEvents(events)</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
         <h2 class="text-lg font-bold text-white">Template logging</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">{{ "{{ logger \"logger page rendered from template\" \"template\" \"templates/logger.gohtml\" \"records\" .Total \"level\" .LevelFilter }}" }}</code></pre>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">{{ "{{ logger \"logger page rendered from template\" \"template\" \"templates/logger.gohtml\" \"records\" .Total \"level\" .LevelFilter }}" }}</code></pre>
     </article>
 </section>

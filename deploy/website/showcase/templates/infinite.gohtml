@@ -33,17 +33,17 @@
         <p class="leading-7 text-sky-100">The client sends the current row number, and the server calculates the next chunk from that value. Opening the page in another tab starts from its own cursor.</p>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">current := parseCursor(r.Header.Get(connector.HeaderAction.String()))
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">current := parseCursor(r.Header.Get(connector.HeaderAction.String()))
 start := current + 1
 content := infinitePartial("infinite-chunk", start, 25)
 partial.Render(ctx, content)</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Template usage</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;div hx-get="/infinite/load"
      hx-trigger="revealed"
      hx-headers='{"{{ .ActionHeader }}":"current-{{ "{{ .Next }}" }}"}'&gt;
 &lt;/div&gt;</code></pre>

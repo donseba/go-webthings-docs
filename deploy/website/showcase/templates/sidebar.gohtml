@@ -1,14 +1,14 @@
 {{/*
 @dot donseba/go-webthings-docs/internal/showcase.HeaderPage
 */}}
-<aside id="showcase-sidebar" class="sticky top-[calc(4rem+1.25rem)] grid h-fit self-start border border-cyan-400/55 bg-[#040816]/90 p-4 shadow-[6px_6px_0_rgba(0,0,0,0.28)] max-[820px]:static max-[820px]:mb-4 max-[820px]:overflow-x-auto max-[820px]:p-3"{{ oobAttr }}>
-    <nav class="grid gap-2 max-[820px]:flex max-[820px]:w-max max-[820px]:gap-2" aria-label="Showcase pages">
+<aside id="showcase-sidebar" class="sticky top-[calc(4rem+1.5rem)] grid h-fit self-start border border-slate-800 bg-[#070d19]/92 p-4 shadow-sm max-[820px]:static max-[820px]:mb-4 max-[820px]:overflow-x-auto max-[820px]:p-3"{{ oobAttr }}>
+    <nav class="grid gap-1.5 max-[820px]:flex max-[820px]:w-max max-[820px]:gap-2" aria-label="Showcase pages">
         {{ range .Nav }}
             <a href="{{ .Path }}"
                hx-get="{{ .Path }}"
                hx-target="#content"
                hx-push-url="true"
-               class="block whitespace-nowrap border border-transparent px-3 py-2 text-sm text-sky-100 hover:border-cyan-400/80 hover:bg-[#005687]/40 hover:text-[#79ff8b] {{ if urlIs .Path }}border-cyan-400/80 bg-[#005687]/40 font-bold text-[#79ff8b]{{ end }}">{{ .Label }}</a>
+               class="block whitespace-nowrap border-l-2 border-y-0 border-r-0 border-l-transparent px-3 py-2 text-sm text-slate-300 hover:border-l-sky-500 hover:bg-slate-900/80 hover:text-slate-50 {{ if urlIs .Path }}border-l-sky-400 bg-slate-900 font-bold text-sky-100{{ end }}">{{ .Label }}</a>
         {{ end }}
     </nav>
 </aside>

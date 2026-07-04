@@ -21,18 +21,18 @@
         <p class="leading-7 text-sky-100">The selected page updates <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#content</code>. The wrapper also returns <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#app-header</code>, <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#showcase-sidebar</code>, and <code class="bg-[#000812] px-1.5 py-0.5 font-mono text-sm text-[#79ff8b]">#nav-joke</code> out-of-band, so page state and the joke stay current.</p>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Server setup</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">wrapper.WithOOB(
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Server setup</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">wrapper.WithOOB(
     partial.NewID("joke", "templates/joke.gohtml").
         SetDot(HeaderPage{Joke: app.programmerJoke()}).
         SetAlwaysSwapOOB(true),
 )</code></pre>
     </article>
 
-    <article class="grid gap-4 border border-cyan-400/60 bg-[#020817] px-4 pt-4">
-        <h2 class="text-lg font-bold text-white">Template usage</h2>
-        <pre class="-mx-4 w-[calc(100%+2rem)] max-w-none overflow-hidden whitespace-pre-wrap break-words border border-x-0 border-b-0 border-cyan-400/60 bg-[#000812]/70 p-4"><code class="block bg-transparent p-0 font-mono text-[13px] leading-6 text-white">&lt;aside id="nav-joke"{{ "{{ oobAttr }}" }} aria-live="polite"&gt;
+    <article class="grid border border-cyan-400/60 bg-[#020817]">
+        <h2 class="border-b border-cyan-400/60 px-4 py-4 text-lg font-bold text-white">Template usage</h2>
+        <pre class="m-0 max-w-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-[#000812]/70 p-0"><code class="block bg-transparent p-4 font-mono text-[13px] leading-6 text-white">&lt;aside id="nav-joke"{{ "{{ oobAttr }}" }} aria-live="polite"&gt;
     {{ "{{ .Joke }}" }}
 &lt;/aside&gt;</code></pre>
     </article>
