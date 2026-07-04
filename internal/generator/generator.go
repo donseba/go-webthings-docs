@@ -89,7 +89,7 @@ func Image(input string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer face.Close()
+	defer func() { _ = face.Close() }()
 
 	textWidth := textInkPixels(face, prefix+suffix)
 	contentWidth := profile.TextInset + textWidth + profile.RightPad
@@ -199,7 +199,7 @@ func loadPNG(path string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	return png.Decode(file)
 }
 

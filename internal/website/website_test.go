@@ -594,7 +594,7 @@ func TestShowcaseSSEFlushesThroughRouter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
@@ -643,7 +643,7 @@ func TestShowcaseInteractionStreamFlushesThroughRouter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
@@ -694,7 +694,7 @@ func TestShowcaseLiveMetricsStreamFlushesThroughRouter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
