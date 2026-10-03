@@ -1,0 +1,28 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>forms := form.NewTranslatedForm(func(loc form.Localizer, key string, args ...any) string {
+    return tr.Tl(loc, key, args...)
+})
+forms.SetTheme("plain")
+errs := forms.ValidateFormLocalized(&amp;input, loc)</code></pre>
+<p>Here <code>tr</code> is a loaded go-translator instance and <code>loc</code> implements <code>GetLocale() string</code>. Load the PO languages before configuring the renderer; do not set a global current locale during a request.</p>
+<pre><code>{{"{{"}} form_render_localized .Loc .Form .Errors }}</code></pre>
+<h2>Catalogue keys</h2>
+<pre><code>msgid "Name"
+msgstr "Naam"
+
+msgid "Save contact"
+msgstr "Contact opslaan"
+
+msgid "form||Validation required"
+msgstr "Dit veld is verplicht."
+
+msgid "form||Value should not exceed %d characters"
+msgstr "Gebruik maximaal %d tekens."</code></pre>
+<p>The callback receives labels, placeholders, descriptions, submit/cancel text and built-in validation keys. Keep the exact built-in key and preserve its formatting placeholders. The required marker in the standard label has a separate <a href="{{ basePath }}/themes" hx-get="{{ basePath }}/themes" hx-target="#content" hx-push-url="true">theme customization</a> option.</p>
+<h2>Choices and custom messages</h2>
+<p>Use <code>translate:"true"</code> when enum values should pass through the translation callback. Custom validation messages and <code>errorMsg</code> values need an explicit application translation policy; they are not automatically converted into domain error codes.</p>
+<p>Template key extraction does not scan struct tags or Go validation keys. Add those keys to the catalogue through your preparation/editing workflow or runtime discovery. Use the same localizer for validation and redisplay so a request does not mix languages.</p>
+</article>

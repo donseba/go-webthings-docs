@@ -1,0 +1,27 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>head, err := im.Render()
+if err != nil { return err }
+// Supply head as trusted, prepared template data.</code></pre>
+<pre><code>&lt;head&gt;
+    {{"{{"}} .AssetHead }}
+    &lt;script type="module" src="/assets/app.js"&gt;&lt;/script&gt;
+&lt;/head&gt;</code></pre>
+<p><code>Render</code> returns <code>template.HTML</code>: stylesheet links, the configured shim script when nonempty, and an <code>imports</code> map when modules are present. Keep package names, paths and configuration under application control.</p>
+<h2>The generated map</h2>
+<pre><code>&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "htmx": "/assets/htmx/htmx.esm.min.js"
+  }
+}
+&lt;/script&gt;</code></pre>
+<p>The map must appear before module scripts that rely on its names. An import map resolves names; the module script executes the import. CSS entries are emitted as stylesheet links.</p>
+<h2>Choose the output shape</h2>
+<table><thead><tr><th>Method</th><th>Output</th></tr></thead><tbody><tr><td><code>Render</code></td><td>Head markup: styles, optional shim and import map</td></tr><tr><td><code>Imports</code>, <code>ImportsIndent</code></td><td>JSON object containing <code>imports</code></td></tr><tr><td><code>Styles</code></td><td>Stylesheet link markup</td></tr><tr><td><code>Scopes</code></td><td>JSON for the scopes mapping</td></tr><tr><td><code>Marshal</code>, <code>MarshalIndent</code></td><td>Full structure JSON, including imports, scopes and styles</td></tr></tbody></table>
+<p><code>Structure.Imports</code>, <code>Structure.Scopes</code> and <code>Structure.Styles</code> expose prepared mappings. The current <code>Render</code> builds an imports-only browser map; if you need scopes, generate browser markup containing both imports and scopes from the structure. The full marshalled structure also contains styles and is not the same output shape as <code>Render</code>.</p>
+<h2>Module shims</h2>
+<p>The defaults include a remote es-module-shims script. <code>ShimPath("")</code> disables it; a nonempty value changes its URL. A self-hosted asset policy needs a local shim URL or a browser policy that can use native maps.</p>
+</article>

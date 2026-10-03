@@ -9,24 +9,34 @@ import (
 	router "github.com/donseba/go-router"
 )
 
-type goDocsApp struct {
+type goClueApp struct {
 	docs  *docsRenderer
 	pages map[string]docsPage
 }
 
-func registerGoDocsDocsRoutes(r *router.Router, domain string) {
-	for path, page := range goDocsDocs.pages {
+func registerGoClueDocsRoutes(r *router.Router, domain string) {
+	r.Get("/go-docs", redirectGoClueDocs).As(fmt.Sprintf("%s.go-clue.legacy", domain))
+	r.Get("/go-docs/{page...}", redirectGoClueDocs).As(fmt.Sprintf("%s.go-clue.legacy.page", domain))
+	for path, page := range goClueDocs.pages {
 		if path == "/" {
 			continue
 		}
 		page := page
-		r.Get(GoDocsPath(path), func(w http.ResponseWriter, req *http.Request) {
-			goDocsDocs.docs.render(w, req, page, nil)
-		}).As(fmt.Sprintf("%s.go-docs.%s", domain, strings.TrimPrefix(path, "/")))
+		r.Get(GoCluePath(path), func(w http.ResponseWriter, req *http.Request) {
+			goClueDocs.docs.render(w, req, page, nil)
+		}).As(fmt.Sprintf("%s.go-clue.%s", domain, strings.TrimPrefix(path, "/")))
 	}
 }
 
-func mustNewGoDocsDocs() *goDocsApp {
+func redirectGoClueDocs(w http.ResponseWriter, req *http.Request) {
+	target := GoCluePath(strings.TrimPrefix(req.URL.EscapedPath(), "/go-docs"))
+	if req.URL.RawQuery != "" {
+		target += "?" + req.URL.RawQuery
+	}
+	http.Redirect(w, req, target, http.StatusMovedPermanently)
+}
+
+func mustNewGoClueDocs() *goClueApp {
 	nav := []NavItem{
 		{Path: "/", Label: "Introduction", Group: "Guide"},
 		{Path: "/install", Label: "Install", Group: "Guide"},
@@ -39,25 +49,25 @@ func mustNewGoDocsDocs() *goDocsApp {
 		{Path: "/lsp", Label: "LSP behavior", Group: "Reference"},
 	}
 
-	return &goDocsApp{
+	return &goClueApp{
 		docs: newDocsRenderer(docsRendererConfig{
-			BasePath:  "/go-docs",
-			AppName:   "go-docs",
-			LogName:   "go-docs",
-			Logo:      "gd",
-			Title:     "go-doc",
+			BasePath:  "/go-clue",
+			AppName:   "go-clue",
+			LogName:   "go-clue",
+			Logo:      "gc",
+			Title:     "go-clue",
 			Subtitle:  "typed contracts for Go templates",
-			GitHubURL: "https://github.com/donseba/go-doc",
+			GitHubURL: "https://github.com/donseba/go-clue",
 			Nav:       nav,
 			Funcs: []template.FuncMap{{
-				"goDocsPath": GoDocsPath,
+				"goCluePath": GoCluePath,
 			}},
 		}),
-		pages: docsPages("templates/go_doc", map[string]docsPage{
+		pages: docsPages("templates/go_clue", map[string]docsPage{
 			"/": {
 				Template:    "overview.gohtml",
 				Title:       "Typed contracts for Go templates",
-				Description: "go-doc adds editor intelligence to normal html/template files.",
+				Description: "go-clue adds editor intelligence to normal html/template files.",
 				Section:     "Documentation",
 			},
 			"/install": {
@@ -99,7 +109,7 @@ func mustNewGoDocsDocs() *goDocsApp {
 			"/cli": {
 				Template:    "cli.gohtml",
 				Title:       "CLI and index",
-				Description: "How go-doc scans packages and produces editor metadata.",
+				Description: "How go-clue scans packages and produces editor metadata.",
 				Section:     "Reference",
 			},
 			"/lsp": {
@@ -112,9 +122,9 @@ func mustNewGoDocsDocs() *goDocsApp {
 	}
 }
 
-func GoDocsPath(path string) string {
+func GoCluePath(path string) string {
 	if path == "" || path == "/" {
-		return "/go-docs"
+		return "/go-clue"
 	}
-	return "/go-docs" + path
+	return "/go-clue" + path
 }

@@ -175,8 +175,8 @@ func elementImage(slug string) string {
 	switch slug {
 	case "go-partial":
 		return "/assets/img/logo-go-partial.png"
-	case "go-docs":
-		return "/assets/img/logo-go-doc.png"
+	case "go-clue":
+		return "/assets/img/logo-go-clue.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
 	case "go-form", "go-importmap", "go-translator":
@@ -190,7 +190,7 @@ func elementDescription(slug string) string {
 	switch slug {
 	case "go-partial":
 		return "Partial and full-page rendering for Go templates."
-	case "go-docs":
+	case "go-clue":
 		return "Typed editor tooling and diagnostics for Go templates."
 	case "go-router":
 		return "Host-aware HTTP routing built on top of net/http."

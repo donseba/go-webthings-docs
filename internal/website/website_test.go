@@ -13,6 +13,35 @@ import (
 	"time"
 )
 
+func TestGoClueLegacyDocumentationRedirects(t *testing.T) {
+	handler := NewRouter()
+	for _, host := range []string{"docs.gowebthings.com", "docs.rocketweb.nl:8080"} {
+		for _, route := range []struct{ path, target string }{
+			{"/go-docs", "/go-clue"},
+			{"/go-docs/", "/go-clue"},
+			{"/go-docs/install", "/go-clue/install"},
+			{"/go-docs/contracts?ref=readme&section=dot", "/go-clue/contracts?ref=readme&section=dot"},
+		} {
+			t.Run(host+route.path, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, route.path, nil)
+				req.Host = host
+				rec := httptest.NewRecorder()
+				handler.ServeHTTP(rec, req)
+				if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != route.target {
+					t.Fatalf("redirect = %d %q, want 301 %q", rec.Code, rec.Header().Get("Location"), route.target)
+				}
+				destination := httptest.NewRequest(http.MethodGet, route.target, nil)
+				destination.Host = host
+				result := httptest.NewRecorder()
+				handler.ServeHTTP(result, destination)
+				if result.Code != http.StatusOK {
+					t.Fatalf("redirect destination status = %d", result.Code)
+				}
+			})
+		}
+	}
+}
+
 func TestSubdomainElementRoutes(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -33,7 +62,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"href=\"/go-partial/installation\"",
 				"src=\"/assets/img/logo-go-partial.png\"",
 				"aria-current=\"page\"",
-				"href=\"/go-docs\"",
+				"href=\"/go-clue\"",
 				"href=\"/go-router\"",
 				"href=\"http://rocketweb.nl:8080\"",
 			},
@@ -47,7 +76,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"Docs for go-webthings",
 				"src=\"/assets/img/logo-go-webthings.png\"",
 				"src=\"/assets/img/logo-go-partial.png\"",
-				"src=\"/assets/img/logo-go-doc.png\"",
+				"src=\"/assets/img/logo-go-clue.png\"",
 				"src=\"/assets/img/logo-go-router.png\"",
 				"class=\"root-card\"",
 			},
@@ -114,7 +143,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"Typed contracts and editor metadata",
 				"Server-side partial rendering",
 				"Host-aware HTTP routing",
-				"href=\"https://docs.gowebthings.com/go-docs\"",
+				"href=\"https://docs.gowebthings.com/go-clue\"",
 				"href=\"https://showcase.gowebthings.com\"",
 				"href=\"https://github.com/donseba/go-router\"",
 			},
@@ -163,35 +192,35 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		{
 			name:       "production docs",
 			host:       "docs.gowebthings.com",
-			path:       "/go-docs",
+			path:       "/go-clue",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Typed contracts for Go templates",
-				`<title>Typed contracts for Go templates - go-doc docs</title>`,
+				`<title>Typed contracts for Go templates - go-clue docs</title>`,
 				`<link rel="icon" href="/assets/img/favicon.ico" sizes="any">`,
-				"href=\"/go-docs/install\"",
+				"href=\"/go-clue/install\"",
 				"href=\"/assets/css/styles.css\"",
 				"src=\"/assets/js/code-highlight.js\"",
-				"src=\"/assets/img/logo-go-doc.png\"",
+				"src=\"/assets/img/logo-go-clue.png\"",
 				"href=\"/go-partial\"",
-				"href=\"/go-docs\" hx-get=\"/go-docs\"",
-				"href=\"/go-docs\" hx-get=\"/go-docs\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"page\"",
-				"hx-get=\"/go-docs/install\"",
+				"href=\"/go-clue\" hx-get=\"/go-clue\"",
+				"href=\"/go-clue\" hx-get=\"/go-clue\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"page\"",
+				"hx-get=\"/go-clue/install\"",
 				"href=\"/go-router\"",
 				"href=\"https://gowebthings.com\"",
 				"href=\"https://showcase.gowebthings.com\"",
 			},
 		},
 		{
-			name:       "go docs nested docs page",
+			name:       "go clue nested docs page",
 			host:       "docs.gowebthings.com",
-			path:       "/go-docs/contracts",
+			path:       "/go-clue/contracts",
 			wantStatus: http.StatusOK,
 			wantBody: []string{
 				"Template contracts",
 				"Contract first, runtime second.",
-				"href=\"/go-docs/install\"",
-				"hx-get=\"/go-docs/install\"",
+				"href=\"/go-clue/install\"",
+				"hx-get=\"/go-clue/install\"",
 			},
 		},
 		{
@@ -205,7 +234,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"src=\"/assets/img/logo-go-router.png\"",
 				"href=\"/go-router/routing\"",
 				"href=\"/go-partial\"",
-				"href=\"/go-docs\"",
+				"href=\"/go-clue\"",
 				"href=\"/go-router\" hx-get=\"/go-router\"",
 				"href=\"/go-router\" hx-get=\"/go-router\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"page\"",
 				"hx-get=\"/go-router/routing\"",
@@ -723,7 +752,7 @@ func TestDocsCodeHighlightAsset(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
-	if body := rec.Body.String(); !strings.Contains(body, "highlightAll") || !strings.Contains(body, "htmx:afterSwap") || !strings.Contains(body, "highlightGoDocComment") {
+	if body := rec.Body.String(); !strings.Contains(body, "highlightAll") || !strings.Contains(body, "htmx:afterSwap") || !strings.Contains(body, "highlightGoClueComment") {
 		t.Fatalf("expected docs highlighter asset, got:\n%s", body)
 	}
 }
@@ -803,7 +832,7 @@ func TestDocsTemplatesUseDeployLayout(t *testing.T) {
 	for _, dir := range []string{
 		"templates/general",
 		"templates/go_partial",
-		"templates/go_doc",
+		"templates/go_clue",
 		"templates/go_router",
 	} {
 		if _, err := fs.Stat(websiteFS, dir); err != nil {
@@ -867,7 +896,7 @@ func TestShowcaseAssetsAreScoped(t *testing.T) {
 	}
 	want := map[string]bool{
 		"favicon.ico":           true,
-		"logo-go-doc.png":       true,
+		"logo-go-clue.png":      true,
 		"logo-go-partial.png":   true,
 		"logo-go-router.png":    true,
 		"logo-go-webthings.png": true,
@@ -914,7 +943,7 @@ func TestDocsPageTemplatesUseElementDirectories(t *testing.T) {
 		dir   string
 	}{
 		"go-partial": {pages: goPartialDocs.pages, dir: "templates/go_partial/"},
-		"go-docs":    {pages: goDocsDocs.pages, dir: "templates/go_doc/"},
+		"go-clue":    {pages: goClueDocs.pages, dir: "templates/go_clue/"},
 		"go-router":  {pages: goRouterDocs.pages, dir: "templates/go_router/"},
 	} {
 		for route, page := range test.pages {
@@ -952,7 +981,7 @@ func TestDocsInternalLinksUseHTMX(t *testing.T) {
 				continue
 			}
 			internal := strings.Contains(line, `href="{{ basePath }}`) ||
-				strings.Contains(line, `href="{{ goDocsPath`) ||
+				strings.Contains(line, `href="{{ goCluePath`) ||
 				strings.Contains(line, `href="{{ goRouterPath`)
 			if internal && (!strings.Contains(line, "hx-get=") || !strings.Contains(line, `hx-target="#content"`) || !strings.Contains(line, `hx-push-url="true"`)) {
 				t.Fatalf("%s:%d internal docs link should use HTMX navigation: %s", path, i+1, strings.TrimSpace(line))
@@ -1001,8 +1030,8 @@ func TestHTMXDocsRequestsReturnFragments(t *testing.T) {
 			},
 		},
 		{
-			name: "go docs",
-			path: "/go-docs/annotations",
+			name: "go clue",
+			path: "/go-clue/annotations",
 			want: []string{
 				`hx-swap-oob="true"`,
 				`id="app-header"`,

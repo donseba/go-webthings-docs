@@ -1,0 +1,45 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p>The handler below uses the <code>Contact</code> input and the parsed template from <a href="{{ basePath }}/installation" hx-get="{{ basePath }}/installation" hx-target="#content" hx-push-url="true">the rendering example</a>. It accepts an injected save function and wraps GET and POST with the same renderer’s CSRF middleware.</p>
+<pre><code>func contactHandler(renderer *form.Form, page *template.Template,
+    save func(context.Context, Contact) error) http.Handler {
+    return renderer.CSRFMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        var input Contact
+        var errs form.FieldErrors
+        if r.Method == http.MethodPost {
+            if err := r.ParseForm(); err != nil {
+                http.Error(w, "Invalid form", http.StatusBadRequest)
+                return
+            }
+            if err := form.MapForm(r, &amp;input); err != nil {
+                http.Error(w, "Invalid input", http.StatusBadRequest)
+                return
+            }
+            errs = renderer.ValidateForm(&amp;input)
+            if len(errs) == 0 {
+                if err := save(r.Context(), input); err != nil {
+                    http.Error(w, "Could not save", http.StatusInternalServerError)
+                    return
+                }
+                http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+                return
+            }
+        }
+        model := form.WithRequestInfo(r, input, form.Info{
+            Target: "/contacts", Method: http.MethodPost, SubmitText: "Save contact",
+        })
+        w.Header().Set("Content-Type", "text/html; charset=utf-8")
+        if len(errs) != 0 { w.WriteHeader(http.StatusUnprocessableEntity) }
+        if err := page.Execute(w, map[string]any{"Form": model, "Errors": errs}); err != nil {
+            log.Printf("render contact: %v", err)
+        }
+    }))
+}</code></pre>
+<h2>What mapping guarantees</h2>
+<p><code>MapForm</code> requires a non-nil pointer to a struct. It maps exported fields by <code>name</code>, recurses into nested structs, and supports primitive values plus specialized key setters. Parse the request explicitly first, especially for checkbox handling and request parsing errors.</p>
+<p>Mapping and validation are distinct. Several primitive conversions leave the existing value unchanged when parsing fails, and empty submitted values are skipped. Start with a fresh input value for a create command; for strict numeric parsing or partial updates, define the conversion and omission policy in the application.</p>
+<h2>Request boundaries</h2>
+<p>Register this handler only for the methods you support. Limit the request body before the CSRF middleware parses it, normalize application-specific values, and save only after validation and authorization succeed. A successful ordinary form should redirect with 303 so refreshing the page does not repeat the command.</p>
+</article>

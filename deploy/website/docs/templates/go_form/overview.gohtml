@@ -2,48 +2,14 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-<p>Define input data as ordinary Go structs. Struct tags describe the controls, while <code>form.Info</code> supplies action, method, submit text, and optional attributes. <code>WithInfo</code> and <code>WithRequestInfo</code> keep that metadata outside your application model.</p>
-<h2>Installation</h2>
-<pre><code>go get github.com/donseba/go-form/v2</code></pre>
-<h2>Render a form</h2>
-<p>This complete program prints a form to standard output:</p>
-<pre><code>package main
-
-import (
-	&quot;html/template&quot;
-	&quot;log&quot;
-	&quot;os&quot;
-
-	&quot;github.com/donseba/go-form/v2&quot;
-)
-
-type Contact struct {
-	Name  string `form:&quot;input,text&quot; label:&quot;Name&quot; required:&quot;true&quot;`
-	Email string `form:&quot;input,email&quot; label:&quot;Email&quot; required:&quot;true&quot;`
-}
-
-func main() {
-	renderer := form.NewForm()
-	renderer.SetTheme(&quot;plain&quot;)
-
-	page := template.Must(template.New(&quot;contact&quot;).Funcs(renderer.FuncMap()).Parse(
-		`{{"{{"}} form_render .Form .Errors }}`,
-	))
-	model := form.WithInfo(Contact{}, form.Info{
-		Target: &quot;/contacts&quot;, Method: &quot;post&quot;, SubmitText: &quot;Save contact&quot;,
-	})
-	if err := page.Execute(os.Stdout, map[string]any{
-		&quot;Form&quot;: model, &quot;Errors&quot;: form.FieldErrors(nil),
-	}); err != nil {
-		log.Fatal(err)
-	}
+<p>Describe the inputs with struct tags, render them through <code>html/template</code>, and map a submitted request back into typed data. Your application owns routing, business rules and persistence.</p>
+<h2>The form workflow</h2>
+<ol><li>Create and configure one form renderer.</li><li>Wrap the web handlers with its CSRF middleware.</li><li>Render input data with request-specific form metadata.</li><li>Parse and map a submission, then validate it.</li><li>Redisplay field errors or save through the application service.</li></ol>
+<pre><code>type Contact struct {
+    Name string `name:"name" form:"input,text" label:"Name" required:"true"`
+    Email string `name:"email" form:"input,email" label:"Email" required:"true"`
 }</code></pre>
-<h2>Handle a submission</h2>
-<p>Create and configure one renderer before serving requests. Wrap your form handlers with <code>renderer.CSRFMiddleware()</code>. Within the handler, use <code>form.WithRequestInfo(r, input, info)</code> to include the token when rendering. On POST, call <code>form.MapForm(r, &amp;input)</code>, handle mapping errors, then call <code>renderer.ValidateForm(&amp;input)</code>. Pass the resulting <code>form.FieldErrors</code> to <code>form_render</code> when redisplaying the form, and save through your application service only when validation succeeds.</p>
-<p>CSRF protection is supplied by middleware; validation of input fields is a separate step. Tokens are session-bound and independently stored, so multiple open forms remain usable. The default CSRF store belongs to one renderer in one process. Applications with multiple instances need a shared store, with atomic token consumption for concurrent replay protection.</p>
-<h2>Themes and translations</h2>
-<p><code>SetTheme</code> accepts <code>plain</code>, <code>bootstrap</code> (default), <code>tailwind</code>, or <code>tailwindv4</code>. Load the corresponding stylesheet for class-based themes. <code>NewTranslatedForm(translationFunc)</code> accepts a translation callback; provide a request-local <code>GetLocale()</code> implementation when rendering or validating localized forms.</p>
-<h2>Composition</h2>
-<p>Register the renderer's <code>FuncMap()</code> with your templates or go-partial tree. Routing and persistence remain application choices. Tags, nested structs, enumerators, sorted select values, and custom validators support larger forms without requiring a different model system.</p>
-<p><a href="https://github.com/donseba/go-form/blob/main/README.md">Full reference and CSRF store examples</a></p>
+<h2>Explore the guide</h2>
+<ul><li><a href="{{ basePath }}/installation" hx-get="{{ basePath }}/installation" hx-target="#content" hx-push-url="true">Installation and first render</a></li><li><a href="{{ basePath }}/fields" hx-get="{{ basePath }}/fields" hx-target="#content" hx-push-url="true">Input types, tags and choices</a></li><li><a href="{{ basePath }}/metadata" hx-get="{{ basePath }}/metadata" hx-target="#content" hx-push-url="true">Form metadata and request tokens</a></li><li><a href="{{ basePath }}/submissions" hx-get="{{ basePath }}/submissions" hx-target="#content" hx-push-url="true">Mapping and handling submissions</a></li><li><a href="{{ basePath }}/validation" hx-get="{{ basePath }}/validation" hx-target="#content" hx-push-url="true">Built-in and custom validation</a></li><li><a href="{{ basePath }}/csrf" hx-get="{{ basePath }}/csrf" hx-target="#content" hx-push-url="true">CSRF tokens and shared stores</a></li><li><a href="{{ basePath }}/themes" hx-get="{{ basePath }}/themes" hx-target="#content" hx-push-url="true">Themes and custom templates</a></li><li><a href="{{ basePath }}/translations" hx-get="{{ basePath }}/translations" hx-target="#content" hx-push-url="true">Localized forms and errors</a></li></ul>
+<p>The <a href="{{ basePath }}/integrations" hx-get="{{ basePath }}/integrations" hx-target="#content" hx-push-url="true">component integration guide</a> covers go-partial and HTMX. The <a href="{{ basePath }}/api" hx-get="{{ basePath }}/api" hx-target="#content" hx-push-url="true">API reference</a> collects the renderer, metadata and error types.</p>
 </article>

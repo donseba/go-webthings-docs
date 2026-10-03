@@ -1,5 +1,5 @@
-github.com/donseba/go-doc v0.13.3 h1:uCoIv3KOuIuvq7YTht6LdxOCrGq3q5CP8bQ5eQvJCYA=
-github.com/donseba/go-doc v0.13.3/go.mod h1:Muwn2AOF/9fpmRcnMd+QTIe+kMkZjkYEj90WCAlFFms=
+github.com/donseba/go-clue v0.13.6-0.20261003092711-0d401074bc21 h1:Y5RwSX2S5aogztmFvIJG0LtFbBfScEGuYvgPyBFvPiY=
+github.com/donseba/go-clue v0.13.6-0.20261003092711-0d401074bc21/go.mod h1:LP0DkGlsfshhbVIrdJVGaIpfiwxUHPqwUzzbvbU3njM=
 github.com/donseba/go-partial v0.9.0 h1:xMqVgKEZ25eNq+HVl7hxjNRRJxyDxtezeaj3KlXgX7o=
 github.com/donseba/go-partial v0.9.0/go.mod h1:+cSPTFl0hsZJdsh0COYNLmvugr3ZDLjUum9PuGAkjIM=
 github.com/donseba/go-router v0.9.0 h1:gMAxc5CEMQf8/wkXuk/VAKfETOk8+GtBSX32UbRFzPM=

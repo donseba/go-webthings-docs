@@ -1,0 +1,15 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<table><thead><tr><th>Symptom</th><th>Check</th></tr></thead><tbody><tr><td>Browser returns 404</td><td>Does the generated URL match the file-server mount and published filename?</td></tr><tr><td>Bare module name cannot resolve</td><td>Is the import map present before the module script, with the expected alias?</td></tr><tr><td>No expected JavaScript behavior</td><td>Did browser code actually import and initialize the module?</td></tr><tr><td>Missing default export or module syntax error</td><td>Is the selected file ESM, classic JavaScript, or CommonJS?</td></tr><tr><td>Styles are absent</td><td>Was a CSS file selected and its stylesheet link included?</td></tr><tr><td>Runtime still requests a CDN</td><td>Check the shim URL and remote imports inside selected module files.</td></tr><tr><td>A different working directory breaks assets</td><td>Use an explicit RootDir for preparation and an absolute file-server directory.</td></tr></tbody></table>
+<h2>Inspect the prepared outputs</h2>
+<pre><code>data, err := im.MarshalIndent()
+if err != nil { return err }
+fmt.Println(string(data))</code></pre>
+<p>Compare the structure with the public asset tree and the HTML head. Provider file paths may differ from the path used in an example for another provider. A matching alias does not make incompatible JavaScript formats interchangeable.</p>
+<h2>Cache recovery</h2>
+<p>If published files are missing but the selected cache files are complete, <code>CacheOrFetch</code> can rebuild them locally. A missing cache file may require network access. Avoid indiscriminate cleaning when the assets directory also holds your own files.</p>
+<h2>Concurrent use</h2>
+<p>Treat an import map as preparation-time configuration. Fetching mutates its mappings and files; configure, prepare and render the head before sharing the result with HTTP handlers. The package is not a hot-reload coordinator.</p>
+</article>

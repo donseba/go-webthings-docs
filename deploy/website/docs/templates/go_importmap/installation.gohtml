@@ -1,0 +1,40 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>go get github.com/donseba/go-importmap@v1.4.0</code></pre>
+<p>These examples target v1.4.0. They pin asset versions explicitly; the HTMX version below is an example dependency, not an instruction to resolve “latest”.</p>
+<h2>A complete preparation command</h2>
+<pre><code>package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/donseba/go-importmap"
+	"github.com/donseba/go-importmap/library"
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	im := importmap.NewDefaults().ShimPath("").WithPackages([]library.Package{{"{{"}}
+		Name: "htmx", Version: "2.0.4",
+		Require: library.Includes{{"{{"}}File: "htmx.esm.min.js", As: "htmx"}},
+	}})
+	if err := im.CacheOrFetch(ctx); err != nil {
+		log.Fatal(err)
+	}
+	head, err := im.Render()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(head)
+}</code></pre>
+<p>Run it in the application’s asset preparation directory. It creates cache and asset files and prints an import map pointing to <code>/assets/htmx/htmx.esm.min.js</code>.</p>
+<h2>Native module support</h2>
+<p><code>ShimPath("")</code> disables the default remote module-shim script. This example relies on browsers with native import-map support. If your browser policy needs a shim, configure its URL explicitly and publish it according to that policy.</p>
+<p>Next, <a href="{{ basePath }}/serving" hx-get="{{ basePath }}/serving" hx-target="#content" hx-push-url="true">serve the generated directory and import the module</a>. Keep fetching out of the page-request path.</p>
+</article>

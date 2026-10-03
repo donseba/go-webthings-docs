@@ -1,0 +1,20 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] "%d bericht"
+msgstr[1] "%d berichten"</code></pre>
+<p>For English and Dutch, <code>Plural-Forms: nplurals=2; plural=(n != 1);</code> selects the singular form for one and the plural form otherwise. Other languages can use more forms; use that language’s header and supply all required plural translations.</p>
+<h2>Selection and formatting are separate arguments</h2>
+<pre><code>{{"{{"}} tn .Loc "%d message" "%d messages" .Count .Count }}</code></pre>
+<p>The first <code>.Count</code> selects a form. The second supplies the <code>%d</code> value. Counts 0, 1, and 2 should render “0 berichten”, “1 bericht”, and “2 berichten” with the Dutch catalogue above.</p>
+<h2>Go calls use count-only plural methods</h2>
+<pre><code>word := tr.Tn(loc, "message", "messages", count)
+text := fmt.Sprintf(tr.Tn(loc, "%d message", "%d messages", count), count)</code></pre>
+<p>Public <code>Tn</code> and <code>Ctn</code> do not accept extra formatting values. For the second line, PO entries must retain a valid <code>%d</code> placeholder. The template helpers accept those values directly.</p>
+<h2>Contextual plurals</h2>
+<pre><code>{{"{{"}} ctn .Loc "inbox" "%d message" "%d messages" .Count .Count }}</code></pre>
+<p>This key belongs to the <code>inbox</code> context. Its PO entry needs both <code>msgctxt</code> and <code>msgid_plural</code>; see <a href="{{ basePath }}/contexts" hx-get="{{ basePath }}/contexts" hx-target="#content" hx-push-url="true">contexts</a>. Include zero, singular, plural and any language-specific boundaries in rendering checks.</p>
+</article>

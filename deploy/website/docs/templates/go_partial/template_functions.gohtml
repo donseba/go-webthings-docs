@@ -3,7 +3,7 @@
     {{ template "hero.gohtml" . }}
 
     <h2 class="text-xl font-bold text-slate-50">Composition helpers</h2>
-    <p class="leading-7 text-slate-400">These helpers render template paths, declare client interactions, or choose output from the partial tree. For row and component composition, prefer Go's native <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">template</code> action so go-doc can type the dot value.</p>
+    <p class="leading-7 text-slate-400">These helpers render template paths, declare client interactions, or choose output from the partial tree. For row and component composition, prefer Go's native <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">template</code> action so go-clue can type the dot value.</p>
 
     <table class="w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-800/90 text-left">
         <thead class="bg-slate-900"><tr><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Function</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Use</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Example</th></tr></thead>
@@ -29,7 +29,7 @@
     <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">{{ "{{ dict \"Name\" \"Ada\" \"Count\" 3 }}" }}</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">Rows with native templates</h2>
-    <p class="leading-7 text-slate-400">For repeated rows, prefer Go's own <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">template</code> action. The parent owns the loop and passes each row as dot, which keeps the row template useful for go-doc and standalone HTMX replacement.</p>
+    <p class="leading-7 text-slate-400">For repeated rows, prefer Go's own <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">template</code> action. The parent owns the loop and passes each row as dot, which keeps the row template useful for go-clue and standalone HTMX replacement.</p>
     <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">{{ "{{ range .Rows }}" }}
     {{ "{{ template \"row.gohtml\" . }}" }}
 {{ "{{ end }}" }}</code></pre>
@@ -113,7 +113,7 @@
     <p class="leading-7 text-slate-400">The attribute name is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">hx-swap-oob</code>, which is HTMX's out-of-band swap attribute. It is not read from the request; go-partial knows whether the partial is currently being rendered as OOB output. The optional value controls the HTMX swap mode and defaults to <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">true</code>.</p>
 
     <h2 class="text-xl font-bold text-slate-50">Registered regions versus native templates</h2>
-    <p class="leading-7 text-slate-400">Registered partials give go-partial stable target IDs, OOB output, selection maps, and target resolvers. Native templates give Go and go-doc the clearest data flow. Use the native action when the caller owns the value.</p>
+    <p class="leading-7 text-slate-400">Registered partials give go-partial stable target IDs, OOB output, selection maps, and target resolvers. Native templates give Go and go-clue the clearest data flow. Use the native action when the caller owns the value.</p>
     <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">{{ "{{ range .Rows }}" }}
     {{ "{{ template \"row.gohtml\" . }}" }}
 {{ "{{ end }}" }}</code></pre>

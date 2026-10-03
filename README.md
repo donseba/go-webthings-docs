@@ -13,10 +13,13 @@ Routes are selected by host:
 
 - `http://docs.rocketweb.nl:8080/go-partial`
 - `http://docs.rocketweb.nl:8080/go-partial/rendering`
-- `http://docs.rocketweb.nl:8080/go-docs`
-- `http://docs.rocketweb.nl:8080/go-docs/install`
+- `http://docs.rocketweb.nl:8080/go-clue`
+- `http://docs.rocketweb.nl:8080/go-clue/install`
 - `http://docs.rocketweb.nl:8080/go-router`
 - `http://docs.rocketweb.nl:8080/go-router/hosts`
+- `http://docs.rocketweb.nl:8080/go-form/submissions`
+- `http://docs.rocketweb.nl:8080/go-importmap/serving`
+- `http://docs.rocketweb.nl:8080/go-translator/extraction`
 - `http://showcase.rocketweb.nl:8080/go-partial`
 - `https://docs.gowebthings.com/go-partial`
 - `https://docs.gowebthings.com/go-router`
@@ -25,14 +28,23 @@ Routes are selected by host:
 The same router currently supports:
 
 - `go-partial`
-- `go-docs`
+- `go-clue`
 - `go-router`
+- `go-form` — fields, metadata, submissions, validation, CSRF, themes, and translations
+- `go-importmap` — packages, providers, storage, rendering, serving, and deployment
+- `go-translator` — catalogues, locales, template helpers, plurals, contexts, extraction, and editing
+
+Each component has an overview, topic pages, an API reference, and sidebar navigation.
+The form, importmap, and translator examples use released versions v2.3.0, v1.4.0, and
+v1.4.0 respectively. Full-page and HTMX section requests are covered by the route tests.
 
 Check the route behavior with:
 
 ```bash
 go test ./...
-go tool go-doc templates .
+go vet ./...
+golangci-lint run
+go tool go-clue templates .
 ```
 
 Build the shared docs stylesheet from its Tailwind source with:
@@ -52,7 +64,7 @@ root, it uses `deploy/website/docs`; when running the built binary from `deploy/
 it uses the `docs` directory next to the executable. Set `ASSET_DIR` to override this.
 
 The element documentation templates live under `deploy/website/docs/templates/go_partial`,
-`deploy/website/docs/templates/go_doc`, and `deploy/website/docs/templates/go_router`;
+`go_clue`, `go_router`, `go_form`, `go_importmap`, and `go_translator`;
 shared shell templates live under `deploy/website/docs/templates/general`.
 The shared docs-family stylesheet source lives at `deploy/website/docs/tailwind/main.css`;
 the generated output is `deploy/website/docs/assets/css/styles.css` and is served as

@@ -1,0 +1,23 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>loc := Locale("nl_NL")
+if err := tr.SetLanguage(loc.GetLocale()); err != nil { return err }
+if err := tr.SetTL(loc, "Welcome", "Welkom"); err != nil { return err }
+if err := tr.SetCTL(loc, "Home", "navigation", "Startpagina"); err != nil { return err }
+if err := tr.Write(loc); err != nil { return err }</code></pre>
+<p>Setters require a loaded or newly created language. They change the in-memory catalogue; <code>Write</code> persists it to <code>&lt;locale&gt;.po</code>. Editing while requests read the same catalogue is outside the concurrency guarantees.</p>
+<h2>Create a catalogue in memory</h2>
+<pre><code>if err := tr.NewLanguage(Locale("fr"), map[string]string{
+    "Plural-Forms": "nplurals=2; plural=(n &gt; 1);",
+}); err != nil { return err }
+if err := tr.SetTL(Locale("fr"), "Welcome", "Bienvenue"); err != nil { return err }
+if err := tr.Write(Locale("fr")); err != nil { return err }</code></pre>
+<p><code>NewLanguage</code> does not write a file or create the directory. Calling it for an existing loaded language returns <code>ErrorLanguageAlreadyExists</code>. <code>EnsureLanguage</code> is the convenience method for creating a missing file and loading it.</p>
+<h2>Plural and contextual setters</h2>
+<table><thead><tr><th>Method</th><th>Argument order</th></tr></thead><tbody><tr><td><code>SetTLN</code></td><td>localizer, key, plural key, n, value</td></tr><tr><td><code>SetCTL</code></td><td>localizer, key, context, value</td></tr><tr><td><code>SetCTN</code></td><td>localizer, key, plural key, context, n, value</td></tr></tbody></table>
+<p>The contextual setters put the key before the context. Lookup helpers put the context before the key. With plural setters, <code>n</code> is the count used by the catalogue’s plural rule, not an array index.</p>
+<h2>Headers and references</h2>
+<p><code>Details</code> reads catalogue headers; <code>SetDetails</code> replaces a header and <code>AddDetails</code> appends a value. <code>SetRefs</code> records source references for a key. <code>Write</code> adds a revision date if absent. Keep catalogue editing in tooling or controlled startup code.</p>
+</article>

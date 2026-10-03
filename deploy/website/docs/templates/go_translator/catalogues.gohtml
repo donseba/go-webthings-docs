@@ -1,0 +1,31 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>translations/
+    translations.pot
+    en_US.po
+    nl_NL.po
+templates/
+    welcome.gohtml</code></pre>
+<p>A POT file is the source-key catalogue. A PO file adds the translations and language metadata for one locale. Extraction discovers keys; a translator or your editing workflow supplies their translated values.</p>
+<h2>A Dutch catalogue</h2>
+<pre><code>msgid ""
+msgstr ""
+"Language: nl_NL\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Hello, World!"
+msgstr "Hallo, wereld!"</code></pre>
+<h2>Load existing languages</h2>
+<pre><code>tr := translator.NewTranslator("translations", "templates")
+for _, language := range []string{"en_US", "nl_NL"} {
+    if err := tr.SetLanguage(language); err != nil { return err }
+}</code></pre>
+<p><code>SetLanguage</code> loads a PO file into the translator. It does not select the language for later requests. Configure and load all languages before sharing the translator.</p>
+<h2>Create a missing language</h2>
+<pre><code>if err := tr.EnsureLanguage("fr"); err != nil { return err }</code></pre>
+<p><code>EnsureLanguage</code> creates a missing <code>fr.po</code> with generated language and plural headers, then loads it. It preserves existing files and requires the translations directory to exist. It does not populate the file with translated POT entries.</p>
+<p><code>NewLanguage</code> creates an in-memory catalogue instead; use it with explicit headers and <a href="{{ basePath }}/editing" hx-get="{{ basePath }}/editing" hx-target="#content" hx-push-url="true">Write</a> when building a catalogue editor. <code>AddLanguage</code> is deprecated.</p>
+</article>

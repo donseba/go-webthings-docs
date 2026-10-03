@@ -1,0 +1,23 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<ol><li>Pin versions in a preparation command.</li><li>Fetch or restore the package cache.</li><li>Generate published files and the dependency head.</li><li>Build or package the application with those assets.</li><li>Serve the local files without fetching during page requests.</li></ol>
+<pre><code>head, err := im.Render()
+if err != nil { return err }
+if err := os.WriteFile("assets/imports.html", []byte(head), 0o644); err != nil {
+    return err
+}</code></pre>
+<p>The example writes markup for later inclusion. It is not a complete HTML page. Your layout can read this prepared file or embed it into the binary alongside the asset tree.</p>
+<h2>Offline serving</h2>
+<p>A complete public asset tree and generated head are enough to serve the application. The provider and package cache belong to preparation; they need not be present in the deployed runtime. Check the head for a remote shim if all runtime assets must be local.</p>
+<h2>Reproducibility and updates</h2>
+<p>Keep package pins in source and rebuild when they change. Coordinate any versioned public prefix with the HTTP mount and generated head. Default public paths do not contain the package version, so application cache headers and deployment strategy determine how browsers receive replacements.</p>
+<h2>Context and diagnostics</h2>
+<pre><code>ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+defer cancel()
+im.WithLogger(slog.Default())
+if err := im.CacheOrFetch(ctx); err != nil { return err }</code></pre>
+<p>A timeout bounds metadata requests and downloads. Return preparation failures to the build or startup command. Do not continue serving a newly prepared version after a failed preparation step.</p>
+<p>There is no package-owned CLI required: a small Go command using these APIs makes the build inputs, paths and error handling explicit.</p>
+</article>

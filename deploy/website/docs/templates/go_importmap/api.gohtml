@@ -1,0 +1,13 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<table><thead><tr><th>Operation</th><th>Public methods</th></tr></thead><tbody><tr><td>Construction</td><td><code>New()</code>, <code>NewDefaults()</code>, <code>WithDefaults()</code></td></tr><tr><td>Packages</td><td><code>WithPackages</code>, <code>WithPackage</code></td></tr><tr><td>Provider and logging</td><td><code>WithProvider</code>, <code>WithLogger</code></td></tr><tr><td>Directories</td><td><code>RootDir</code>, <code>CacheDir</code>, <code>AssetsDir</code></td></tr><tr><td>Preparation</td><td><code>CacheOrFetch(ctx)</code>, <code>Fetch(ctx)</code></td></tr><tr><td>Head and styles</td><td><code>Render</code>, <code>Styles</code></td></tr><tr><td>JSON</td><td><code>Imports</code>, <code>ImportsIndent</code>, <code>Scopes</code>, <code>Marshal</code>, <code>MarshalIndent</code></td></tr><tr><td>Shim</td><td><code>ShimPath</code>, <code>Shim</code></td></tr><tr><td>Cleanup</td><td><code>Clean</code></td></tr></tbody></table>
+<h2>Defaults</h2>
+<p><code>NewDefaults</code> configures cdnjs, <code>.importmap</code>, <code>assets</code> and a remote ES module shim. <code>New</code> creates an empty structure; configure the provider, cache and asset directories yourself before preparing packages.</p>
+<h2>Package and provider types</h2>
+<p><code>library.Package</code> declares name, version, required files and an optional provider. <code>library.Includes</code> contains <code>library.Include</code> selections. A <code>library.Provider</code> returns <code>library.Files</code> and the resolved version for a package request.</p>
+<h2>Error handling</h2>
+<p>Preparation and output methods return errors; most configuration methods return the instance for chaining. <code>Clean</code> removes configured directories and returns the instance rather than exposing deletion errors.</p>
+<p><a href="https://github.com/donseba/go-importmap/tree/v1.4.0">Browse the v1.4.0 source and provider adapters</a> for the exact signatures.</p>
+</article>

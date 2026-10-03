@@ -1,0 +1,27 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>msgctxt "navigation"
+msgid "Home"
+msgstr "Startpagina"
+
+msgctxt "address"
+msgid "Home"
+msgstr "Thuis"</code></pre>
+<pre><code>{{"{{"}} ctl .Loc "navigation" "Home" }}
+{{"{{"}} ctl .Loc "address" "Home" }}</code></pre>
+<p>The pair of context and key identifies an entry. Choose stable contexts describing the meaning of the text. A lookup without a context uses a different entry.</p>
+<h2>Plural entries in a context</h2>
+<pre><code>msgctxt "inbox"
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] "%d bericht"
+msgstr[1] "%d berichten"</code></pre>
+<pre><code>label := tr.Ctl(loc, "navigation", "Home")
+word := tr.Ctn(loc, "inbox", "message", "messages", count)</code></pre>
+<h2>Legacy prefixes</h2>
+<p>The default prefix separator is <code>__.</code>. The translator removes everything up to the last occurrence of that separator in translated output. <code>SetPrefixSeparator</code> changes it before use. This is output processing, not a replacement for a gettext <code>msgctxt</code> entry.</p>
+<pre><code>tr.SetPrefixSeparator("__.")</code></pre>
+<p>Prefer <code>ctl</code> and <code>ctn</code> for new contextual keys. Only choose a legacy separator that cannot appear unintentionally in the text you want to display.</p>
+</article>

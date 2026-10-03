@@ -1,0 +1,30 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>errs := renderer.ValidateForm(&amp;input)
+if len(errs) != 0 {
+    // Render the same input and errs; do not save it.
+}</code></pre>
+<table><thead><tr><th>Rule</th><th>Tags or controls</th></tr></thead><tbody><tr><td>Presence</td><td><code>required:"true"</code></td></tr><tr><td>Numbers</td><td><code>min</code>, <code>max</code>, <code>step</code></td></tr><tr><td>String length</td><td><code>minLength</code>, <code>maxLength</code>, counted as Unicode characters</td></tr><tr><td>Pattern and content</td><td><code>pattern</code>, <code>prefix</code>, <code>suffix</code>, <code>contains</code></td></tr><tr><td>Choices</td><td><code>values</code>, enumerator and mapper allowed values</td></tr><tr><td>Collections</td><td><code>minItems</code>, <code>maxItems</code></td></tr><tr><td>Other checks</td><td>Email controls, <code>url:"true"</code>, <code>bool</code> and <code>zero</code> tags</td></tr></tbody></table>
+<p>Email validation checks for an <code>@</code> in the value. URL validation uses <code>url:"true"</code> explicitly; rendering an <code>input,url</code> control alone does not enable the server-side URL rule.</p>
+<p>HTML attributes improve browser feedback, but server-side validation decides whether an input is accepted. Normalize values such as whitespace before applying rules that should treat a blank string as missing.</p>
+<h2>Register a custom validator</h2>
+<pre><code>renderer.RegisterValidationMethod("availableName", func(value any, field reflect.StructField) form.FieldErrors {
+    name, ok := value.(string)
+    if !ok || strings.EqualFold(strings.TrimSpace(name), "admin") {
+        return form.FieldErrors{form.FieldValidationError{
+            Field: field.Name, Err: "Choose another name.",
+        }}
+    }
+    return nil
+})
+
+type Registration struct {
+    Name string `name:"name" form:"input,text" label:"Name" validate:"availableName"`
+}</code></pre>
+<p>The <code>validate</code> tag can contain comma-separated registered names. Return <code>FieldErrors</code> identifying the relevant field; the renderer places them beside the control. Keep custom validators configured before serving requests.</p>
+<h2>Application errors</h2>
+<p>A <code>FieldError</code> implements <code>FieldError() (field, err string)</code>. <code>FieldValidationError</code> is the provided concrete type. Services can return stable errors that the handler maps to field messages. Cross-field constraints and database uniqueness still belong in application logic.</p>
+<p><code>errorMsg</code> overrides the built-in message for a field. For localization, use <a href="{{ basePath }}/translations" hx-get="{{ basePath }}/translations" hx-target="#content" hx-push-url="true">ValidateFormLocalized</a> and a translation callback; literal custom messages need your own translation policy.</p>
+</article>

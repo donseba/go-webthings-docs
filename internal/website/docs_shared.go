@@ -233,8 +233,8 @@ func docsLogoImage(appName string) string {
 	switch appName {
 	case "go-partial":
 		return "/assets/img/logo-go-partial.png"
-	case "go-docs":
-		return "/assets/img/logo-go-doc.png"
+	case "go-clue":
+		return "/assets/img/logo-go-clue.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
 	case "go-form", "go-importmap", "go-translator":
@@ -263,8 +263,8 @@ func docsSEOImage(appName string) string {
 	switch appName {
 	case "go-partial":
 		return "/assets/img/logo-go-partial.png"
-	case "go-docs":
-		return "/assets/img/logo-go-doc.png"
+	case "go-clue":
+		return "/assets/img/logo-go-clue.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
 	case "go-form", "go-importmap", "go-translator":

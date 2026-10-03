@@ -11,9 +11,9 @@
     "github.com/donseba/go-partial/exp/flash"
   ],
   "functions": {
-    "docsPath": "donseba/go-webthings-docs/internal/site.DocsPath",
-    "goDocsPath": "donseba/go-webthings-docs/internal/site.GoDocsPath",
-    "goRouterPath": "donseba/go-webthings-docs/internal/site.GoRouterPath"
+    "docsPath": "donseba/go-webthings-docs/internal/website.DocsPath",
+    "goCluePath": "donseba/go-webthings-docs/internal/website.GoCluePath",
+    "goRouterPath": "donseba/go-webthings-docs/internal/website.GoRouterPath"
   },
   "writeIndex": false
 }

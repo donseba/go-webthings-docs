@@ -12,8 +12,9 @@ func registerDocsRoutes(r *router.Router, domain string) {
 	r.Get("/", docsIndex).As(fmt.Sprintf("%s.docs.index", domain))
 	r.Get("/{element}", docsElement).As(fmt.Sprintf("%s.docs.element", domain))
 	registerGoPartialDocsRoutes(r, domain)
-	registerGoDocsDocsRoutes(r, domain)
+	registerGoClueDocsRoutes(r, domain)
 	registerGoRouterDocsRoutes(r, domain)
+	registerComponentDocsRoutes(r, domain)
 }
 
 func docsIndex(w http.ResponseWriter, req *http.Request) {
@@ -39,8 +40,8 @@ func docsElement(w http.ResponseWriter, req *http.Request) {
 		goPartialDocs.docs.render(w, req, goPartialDocs.pages["/"], nil)
 		return
 	}
-	if slug == "go-docs" {
-		goDocsDocs.docs.render(w, req, goDocsDocs.pages["/"], nil)
+	if slug == "go-clue" {
+		goClueDocs.docs.render(w, req, goClueDocs.pages["/"], nil)
 		return
 	}
 	if slug == "go-router" {

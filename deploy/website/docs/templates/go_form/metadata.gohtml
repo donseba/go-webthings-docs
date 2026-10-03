@@ -1,0 +1,24 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>info := form.Info{
+    Target: "/contacts", Method: http.MethodPost,
+    SubmitText: "Save contact",
+    CancelTarget: "/contacts", CancelText: "Cancel",
+    Attributes: map[string]string{"class": "contact-form"},
+}
+model := form.WithRequestInfo(r, input, info)</code></pre>
+<p><code>WithRequestInfo</code> returns a <code>RenderModel</code> pairing the input with metadata. It copies the request’s CSRF token into the form info. This requires the renderer’s CSRF middleware to have handled the request first.</p>
+<table><thead><tr><th>Helper</th><th>Use</th></tr></thead><tbody><tr><td><code>WithInfo(model, info)</code></td><td>Rendering without a request; no automatic token injection</td></tr><tr><td><code>WithContextInfo(ctx, model, info)</code></td><td>Metadata plus a token present on the context</td></tr><tr><td><code>WithRequestInfo(r, model, info)</code></td><td>The usual HTTP rendering helper</td></tr></tbody></table>
+<h2>Template data</h2>
+<pre><code>type ContactPage struct {
+    Form form.RenderModel
+    Errors form.FieldErrors
+}</code></pre>
+<pre><code>{{"{{"}} form_render .Form .Errors }}</code></pre>
+<p>The wrapper is transparent to field transformation, so input fields keep their names and nesting. Embedding <code>form.Info</code> in the input is also supported, but is optional.</p>
+<h2>Explicit token helpers</h2>
+<p><code>GetCSRFToken(r)</code> reads the request token. <code>InjectCSRFToken</code> and <code>InjectCSRFTokenContext</code> fill an existing info value. Usually the <code>WithRequestInfo</code> wrapper avoids that manual step.</p>
+<p>Attribute names and form targets should come from trusted application configuration. Keep per-request metadata local rather than mutating a shared info value.</p>
+</article>
