@@ -13,8 +13,8 @@ Routes are selected by host:
 
 - `http://docs.rocketweb.nl:8080/go-partial`
 - `http://docs.rocketweb.nl:8080/go-partial/rendering`
-- `http://docs.rocketweb.nl:8080/go-docs`
-- `http://docs.rocketweb.nl:8080/go-docs/install`
+- `http://docs.rocketweb.nl:8080/go-clue`
+- `http://docs.rocketweb.nl:8080/go-clue/install`
 - `http://docs.rocketweb.nl:8080/go-router`
 - `http://docs.rocketweb.nl:8080/go-router/hosts`
 - `http://showcase.rocketweb.nl:8080/go-partial`
@@ -25,14 +25,14 @@ Routes are selected by host:
 The same router currently supports:
 
 - `go-partial`
-- `go-docs`
+- `go-clue`
 - `go-router`
 
 Check the route behavior with:
 
 ```bash
 go test ./...
-go tool go-doc templates .
+go tool go-clue templates .
 ```
 
 Build the shared docs stylesheet from its Tailwind source with:
@@ -52,7 +52,7 @@ root, it uses `deploy/website/docs`; when running the built binary from `deploy/
 it uses the `docs` directory next to the executable. Set `ASSET_DIR` to override this.
 
 The element documentation templates live under `deploy/website/docs/templates/go_partial`,
-`deploy/website/docs/templates/go_doc`, and `deploy/website/docs/templates/go_router`;
+`deploy/website/docs/templates/go_clue`, and `deploy/website/docs/templates/go_router`;
 shared shell templates live under `deploy/website/docs/templates/general`.
 The shared docs-family stylesheet source lives at `deploy/website/docs/tailwind/main.css`;
 the generated output is `deploy/website/docs/assets/css/styles.css` and is served as

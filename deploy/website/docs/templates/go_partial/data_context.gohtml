@@ -3,7 +3,7 @@
     {{ template "hero.gohtml" . }}
 
     <h2 class="text-xl font-bold text-slate-50">Two render modes</h2>
-    <p class="leading-7 text-slate-400">The preferred mode is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetDot</code>: the template root is your app model, and go-doc can understand it with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@dot</code>. The older wrapper fields exist only when a partial has no explicit dot.</p>
+    <p class="leading-7 text-slate-400">The preferred mode is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetDot</code>: the template root is your app model, and go-clue can understand it with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@dot</code>. The older wrapper fields exist only when a partial has no explicit dot.</p>
 
     <table class="w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-800/90 text-left">
         <thead class="bg-slate-900"><tr><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Field</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Lifetime</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Use</th></tr></thead>
@@ -30,7 +30,7 @@
     <h2 class="text-xl font-bold text-slate-50">Choosing a scope</h2>
     <ul class="docs-list list-disc">
         <li>Use <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetDot</code> for the current template's primary typed model.</li>
-        <li>Use <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetModel</code> plus go-doc <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@model</code> for additional typed values.</li>
+        <li>Use <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetModel</code> plus go-clue <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@model</code> for additional typed values.</li>
         <li>Put interaction declarations, app metadata, and feature flags on your own typed model when the template needs them.</li>
         <li>Use request helpers for per-request concerns such as locale, CSRF, URL, and request inspection.</li>
     </ul>

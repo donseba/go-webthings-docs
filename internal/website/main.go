@@ -154,13 +154,13 @@ func mainElements(req *http.Request) []Element {
 func mainComponents(req *http.Request) []Component {
 	return []Component{
 		{
-			Slug:        "go-docs",
-			Name:        "Go Docs",
-			Description: "Typed contracts and editor metadata for Go html/template files. go-doc keeps templates plain while giving editors enough structure to complete, navigate, and diagnose model access.",
-			Image:       mainElementImage("go-docs"),
-			DocsURL:     docsElementURL(req, "go-docs"),
+			Slug:        "go-clue",
+			Name:        "Go Clue",
+			Description: "Typed contracts and editor metadata for Go html/template files. go-clue keeps templates plain while giving editors enough structure to complete, navigate, and diagnose model access.",
+			Image:       mainElementImage("go-clue"),
+			DocsURL:     docsElementURL(req, "go-clue"),
 			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
-			SourceURL:   "https://github.com/donseba/go-doc",
+			SourceURL:   "https://github.com/donseba/go-clue",
 		},
 		{
 			Slug:        "go-partial",
@@ -211,8 +211,8 @@ func mainElementImage(slug string) string {
 	switch slug {
 	case "go-partial":
 		return "/assets/img/logo-go-partial.png"
-	case "go-docs":
-		return "/assets/img/logo-go-doc.png"
+	case "go-clue":
+		return "/assets/img/logo-go-clue.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
 	case "go-form", "go-importmap", "go-translator":
@@ -1131,7 +1131,7 @@ var mainBulletins = []string{
 	"retro web aesthetic praised for having content in source",
 	"monospace manifesto printed on transparent PNG",
 	"gopher mascot spotted near server render cell",
-	"go-doc logo demands transparent background and no white halo",
+	"go-clue logo demands transparent background and no white halo",
 	"pixelated gopher joins SSR resistance after border cleanup",
 	"transparent PNG finally transparent, morale soars",
 	"white halo around logo blamed on client-side rendering somehow",

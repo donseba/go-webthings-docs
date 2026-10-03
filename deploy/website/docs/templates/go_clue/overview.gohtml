@@ -2,26 +2,28 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
+<p>Previously published as <code>go-doc</code>. Existing <code>//go-doc:</code> annotations remain supported. Move project configuration to <code>.go-clue/config.json</code>; the old <code>.go-doc/config.json</code> is read when the new file is absent.</p>
+
 <div class="actions">
-    <a class="button primary" href="{{ goDocsPath "/install" }}" hx-get="{{ goDocsPath "/install" }}" hx-target="#content" hx-push-url="true">Get started</a>
-    <a class="button" href="{{ goDocsPath "/contracts" }}" hx-get="{{ goDocsPath "/contracts" }}" hx-target="#content" hx-push-url="true">Read contracts</a>
+    <a class="button primary" href="{{ goCluePath "/install" }}" hx-get="{{ goCluePath "/install" }}" hx-target="#content" hx-push-url="true">Get started</a>
+    <a class="button" href="{{ goCluePath "/contracts" }}" hx-get="{{ goCluePath "/contracts" }}" hx-target="#content" hx-push-url="true">Read contracts</a>
     <a class="button" href="http://localhost:8102">Open showcase</a>
 </div>
 
 <section class="grid">
-    <a class="card" href="{{ goDocsPath "/contracts" }}" hx-get="{{ goDocsPath "/contracts" }}" hx-target="#content" hx-push-url="true">
+    <a class="card" href="{{ goCluePath "/contracts" }}" hx-get="{{ goCluePath "/contracts" }}" hx-target="#content" hx-push-url="true">
         <strong>Declare template data</strong>
         <p>Use typed-root annotations, <code>@dot</code>, <code>@func</code>, and <code>@gen</code> to tell the editor what each template receives and calls.</p>
     </a>
-    <a class="card" href="{{ goDocsPath "/editor" }}" hx-get="{{ goDocsPath "/editor" }}" hx-target="#content" hx-push-url="true">
+    <a class="card" href="{{ goCluePath "/editor" }}" hx-get="{{ goCluePath "/editor" }}" hx-target="#content" hx-push-url="true">
         <strong>Upgrade the editor</strong>
         <p>Completion, diagnostics, hover, navigation, rename, and quick fixes for normal Go templates.</p>
     </a>
-    <a class="card" href="{{ goDocsPath "/renderer" }}" hx-get="{{ goDocsPath "/renderer" }}" hx-target="#content" hx-push-url="true">
+    <a class="card" href="{{ goCluePath "/renderer" }}" hx-get="{{ goCluePath "/renderer" }}" hx-target="#content" hx-push-url="true">
         <strong>Keep runtime boring</strong>
         <p>Your app still uses <code>html/template</code>. The optional renderer only registers contract values.</p>
     </a>
-    <a class="card" href="{{ goDocsPath "/" }}" hx-get="{{ goDocsPath "/" }}" hx-target="#content" hx-push-url="true">
+    <a class="card" href="{{ goCluePath "/" }}" hx-get="{{ goCluePath "/" }}" hx-target="#content" hx-push-url="true">
         <strong>Part of a stack</strong>
         <p>A companion to go-partial, go-translator, go-form, go-importmap, and the future docs hub.</p>
     </a>
@@ -50,4 +52,3 @@
     &lt;a href="/items/&#123;&#123; .ID &#125;&#125;"&gt;&#123;&#123; .Label &#125;&#125;&lt;/a&gt;
 &#123;&#123; end &#125;&#125;</code></pre>
 </article>
-

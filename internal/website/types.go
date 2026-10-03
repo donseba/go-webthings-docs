@@ -11,7 +11,7 @@ var (
 var (
 	elementNames = []string{
 		"go-partial",
-		"go-docs",
+		"go-clue",
 		"go-router",
 		"go-form",
 		"go-importmap",
@@ -19,7 +19,7 @@ var (
 	}
 
 	goPartialDocs = mustNewGoPartialDocs()
-	goDocsDocs    = mustNewGoDocsDocs()
+	goClueDocs    = mustNewGoClueDocs()
 	goRouterDocs  = mustNewGoRouterDocs()
 	componentDocs = newComponentDocs()
 )

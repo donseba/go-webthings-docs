@@ -96,7 +96,7 @@
         return html;
     };
 
-    const highlightGoDocComment = (action) => {
+    const highlightGoClueComment = (action) => {
         const body = action.slice(4, -4);
         return span("syntax-template", "{{/*")
             + body.split("\n").map(highlightAnnotationLine).join("\n")
@@ -105,7 +105,7 @@
 
     const highlightTemplateAction = (action) => {
         if (action.startsWith("{{/*") && action.endsWith("*/}}")) {
-            return highlightGoDocComment(action);
+            return highlightGoClueComment(action);
         }
 
         const tokens = [];
