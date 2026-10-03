@@ -1,0 +1,28 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<table><thead><tr><th>Theme</th><th>Styling</th></tr></thead><tbody><tr><td><code>plain</code></td><td>Minimal inline styles</td></tr><tr><td><code>bootstrap</code></td><td>Bootstrap classes; the default</td></tr><tr><td><code>tailwind</code></td><td>Tailwind CSS v3 classes</td></tr><tr><td><code>tailwindv4</code></td><td>Tailwind CSS v4 classes</td></tr></tbody></table>
+<pre><code>renderer.SetTheme("plain")</code></pre>
+<p>Class-based themes need the matching stylesheet supplied by your website. With Tailwind, make sure the generated classes used by the form templates are included in your build or safelist. Switching the Go theme does not compile a stylesheet.</p>
+<h2>Register a custom theme</h2>
+<pre><code>theme := templates.RegisterTheme("website", templates.ThemeClasses{
+    Wrapper: templates.StyleOption{Class: "form-field"},
+    Error: templates.StyleOption{Class: "field-error"},
+}, nil)
+if err := theme.LoadTemplatesFS(templates.TemplateFS, "gohtml"); err != nil {
+    return err
+}
+if _, err := theme.Templates.New("label").Parse(customLabel); err != nil {
+    return err
+}
+renderer.SetTheme("website")</code></pre>
+<p>Import <code>github.com/donseba/go-form/v2/templates</code>. This starts with the embedded field templates and replaces one named template. <code>LoadTemplates</code> loads from disk; <code>LoadTemplatesFS</code> accepts an embedded or other filesystem.</p>
+<h2>A translated required marker</h2>
+<pre><code>&lt;label for="{{"{{"}} .Field.Id }}"&gt;
+    {{"{{"}} form_print .Loc .Field.Label }}
+    {{"{{"}} if .Field.Required }}{{"{{"}} form_print .Loc "(required)" }}{{"{{"}} end }}
+&lt;/label&gt;</code></pre>
+<p>The released built-in label fixes its screen-reader required marker in English. A custom label can translate that marker through <code>form_print</code> while preserving the relationship between label and input.</p>
+<p>Register and finish custom themes at startup. Do not mutate a theme template set while requests render it. Preserve labels, error feedback, CSRF inputs and keyboard-accessible controls when changing markup.</p>
+</article>

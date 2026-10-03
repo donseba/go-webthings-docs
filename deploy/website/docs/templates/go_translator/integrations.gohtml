@@ -1,0 +1,21 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>go-partial</h2>
+<pre><code>root.SetFunc(localization.FuncMap(), tr.FuncMap()).Use(localization.Stage())
+ctx := localization.WithLocalizer(r.Context(), Locale("nl_NL"))
+page := root.Clone().SetDot(data)
+if err := partial.Write(ctx, w, r, page); err != nil { return err }</code></pre>
+<p>Import <code>github.com/donseba/go-partial/exp/localization</code>. Its stage installs request-bound <code>localizer</code> and <code>locale</code> helpers. go-translator supplies the translation functions; configure a shared root once and clone it for request data.</p>
+<pre><code>{{"{{"}} tl localizer "Welcome" }}</code></pre>
+<h2>go-form</h2>
+<pre><code>forms := form.NewTranslatedForm(func(loc form.Localizer, key string, args ...any) string {
+    return tr.Tl(loc, key, args...)
+})
+errs := forms.ValidateFormLocalized(&amp;input, loc)</code></pre>
+<pre><code>{{"{{"}} form_render_localized .Loc .Form .Errors }}</code></pre>
+<p>Register both function maps with the same template set or partial tree. The callback adapts compatible localizer interfaces without making either package depend on the other. Form labels and validation keys such as <code>form||Validation required</code> belong in the PO files.</p>
+<h2>Store meaning, translate presentation</h2>
+<p>Keep stable error codes and parameters in domain services and persistence. Render them in the active locale at the HTTP or presentation boundary. A JSON client can receive the same codes without depending on your HTML templates.</p>
+</article>

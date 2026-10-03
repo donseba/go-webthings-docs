@@ -1,36 +1,63 @@
 package website
 
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/donseba/go-router"
+)
+
 type componentDocsApp struct {
 	docs  *docsRenderer
 	pages map[string]docsPage
 }
 
 func newComponentDocs() map[string]*componentDocsApp {
-	components := []struct {
-		slug        string
-		templateDir string
-		title       string
-		description string
-	}{
-		{"go-form", "go_form", "HTML forms from Go structs", "Render, map, and validate typed forms with request metadata, CSRF protection, and configurable themes."},
-		{"go-importmap", "go_importmap", "Prepare JavaScript and CSS assets", "Fetch pinned CDN packages, reuse a local cache, and generate import maps and stylesheet tags for Go websites."},
-		{"go-translator", "go_translator", "Translate Go templates with gettext", "Use PO catalogues, request-local locales, plural forms, translation contexts, and template key extraction."},
+	return map[string]*componentDocsApp{
+		"go-form":       newGoFormDocs(),
+		"go-importmap":  newGoImportmapDocs(),
+		"go-translator": newGoTranslatorDocs(),
 	}
-	apps := make(map[string]*componentDocsApp, len(components))
-	for _, component := range components {
-		apps[component.slug] = &componentDocsApp{
-			docs: newDocsRenderer(docsRendererConfig{
-				BasePath:  "/" + component.slug,
-				AppName:   component.slug,
-				Title:     component.slug,
-				Subtitle:  component.description,
-				GitHubURL: "https://github.com/donseba/" + component.slug,
-				Nav:       []NavItem{{Path: "/", Label: "Overview and usage", Group: "Documentation"}},
-			}),
-			pages: docsPages("templates/"+component.templateDir, map[string]docsPage{
-				"/": {Template: "overview.gohtml", Title: component.title, Description: component.description, Section: "Documentation"},
-			}),
+}
+
+type componentDocPage struct {
+	Path        string
+	Label       string
+	Group       string
+	Template    string
+	Title       string
+	Description string
+}
+
+func newComponentDocsApp(slug, subtitle, templateDir string, sections []componentDocPage) *componentDocsApp {
+	nav := make([]NavItem, 0, len(sections))
+	pages := make(map[string]docsPage, len(sections))
+	for _, section := range sections {
+		nav = append(nav, NavItem{Path: section.Path, Label: section.Label, Group: section.Group})
+		pages[section.Path] = docsPage{
+			Template: section.Template, Title: section.Title,
+			Description: section.Description, Section: section.Group,
 		}
 	}
-	return apps
+	return &componentDocsApp{
+		docs: newDocsRenderer(docsRendererConfig{
+			BasePath: "/" + slug, AppName: slug, Title: slug, Subtitle: subtitle,
+			GitHubURL: "https://github.com/donseba/" + slug, Nav: nav,
+		}),
+		pages: docsPages("templates/"+templateDir, pages),
+	}
+}
+
+func registerComponentDocsRoutes(r *router.Router, domain string) {
+	for slug, app := range componentDocs {
+		for path, page := range app.pages {
+			if path == "/" {
+				continue
+			}
+			r.Get("/"+slug+path, func(w http.ResponseWriter, req *http.Request) {
+				app.docs.render(w, req, page, nil)
+			}).As(fmt.Sprintf("%s.%s.%s", domain, slug, strings.TrimPrefix(path, "/")))
+		}
+	}
 }

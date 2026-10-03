@@ -1,0 +1,34 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>type Preferences struct {
+    Name string `name:"name" form:"input,text" label:"Name" required:"true" maxLength:"40"`
+    Notes string `name:"notes" form:"textarea" label:"Notes" rows:"4" maxLength:"500"`
+    Age int `name:"age" form:"input,number" label:"Age" min:"18" max:"120"`
+    Plan string `name:"plan" form:"dropdown" label:"Plan" values:"basic:Basic;team:Team"`
+    Updates bool `name:"updates" form:"checkbox" label:"Email updates"`
+}</code></pre>
+<h2>Control types</h2>
+<table><thead><tr><th>Tag</th><th>Typical value</th></tr></thead><tbody><tr><td><code>input,text</code>, <code>input,email</code>, <code>input,password</code></td><td>String</td></tr><tr><td><code>input,number</code>, <code>input,range</code></td><td>Numeric field</td></tr><tr><td><code>textarea</code></td><td>String with rows, columns and length</td></tr><tr><td><code>checkbox</code></td><td>Boolean</td></tr><tr><td><code>dropdown</code>, <code>radios</code></td><td>A permitted option key</td></tr><tr><td><code>multicheckbox</code></td><td>Multiple options supported by the model</td></tr><tr><td><code>input,date</code>, <code>input,datetime-local</code> and other HTML input types</td><td>A type and parsing policy matching the submitted value</td></tr></tbody></table>
+<h2>Common tags</h2>
+<p><code>name</code> overrides the HTML name and mapping key; otherwise the Go field name is used. <code>label</code>, <code>placeholder</code>, <code>description</code> and <code>class</code> control presentation. Tags are case-sensitive: use <code>minLength</code> and <code>maxLength</code> for string limits.</p>
+<p><code>required</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>pattern</code> and allowed <code>values</code> participate in validation. A <code>disabled</code> browser control is not normally submitted; application permissions still belong in the handler or service.</p>
+<h2>Nested input</h2>
+<pre><code>type Address struct {
+    City string `name:"city" form:"input,text" label:"City"`
+}
+type ContactAddress struct {
+    Address Address `name:"address" legend:"Address"`
+}</code></pre>
+<p>Nested names use dots, for example <code>address.city</code>. Keep input structs separate from persistence models so unrelated writable fields cannot be mapped accidentally.</p>
+<h2>Dynamic choices</h2>
+<pre><code>type Status string
+func (Status) Enum() []any { return []any{"draft", "published"} }
+
+type ArticleInput struct {
+    Status Status `name:"status" form:"dropdown" label:"Status"`
+}</code></pre>
+<p><code>Enumerator</code>, <code>Mapper</code> and <code>SortedMapper</code> supply allowed choices. Sorted selections and multi-selections provide key setters for mapping typed values. Validate the submitted selection against its allowed values before using it.</p>
+<p>File controls render as HTML inputs, but application code must parse multipart requests, inspect <code>FormFile</code>, apply upload limits and manage storage. <code>MapForm</code> is not an upload-storage API.</p>
+</article>

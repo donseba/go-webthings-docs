@@ -1,0 +1,26 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<h2>Initialize the extraction files</h2>
+<p>Create the translations and templates directories, then create <code>translations/translations.pot</code> with a header:</p>
+<pre><code>msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"</code></pre>
+<pre><code>tr := translator.NewTranslator("translations", "templates")
+if err := tr.CheckMissingTranslations(); err != nil { return err }</code></pre>
+<p>In v1.4.0, appending keys expects the POT file to exist. Scan and parse failures return errors; append failures are printed by the package. Check the generated file as part of preparation rather than treating a nil return as proof every key was written.</p>
+<h2>Supported template syntax</h2>
+<pre><code>{{"{{"}} tl .Loc "Welcome" }}
+{{"{{"}} tl localizer "Hello, %s" .Name }}
+{{"{{"}} $loc := .Loc }}
+{{"{{"}} tn $loc "message" "messages" .Count }}
+{{"{{"}} ctl $loc "navigation" "Home" }}
+{{"{{"}} if eq (tl $loc "Ready") "Ready" }}...{{"{{"}} end }}</code></pre>
+<p>The parser walks template definitions, actions and nested expressions. It recognizes <code>tl</code>, <code>tn</code>, <code>ctl</code> and <code>ctn</code> with literal key/context arguments; the localizer can be a field, variable, or helper. Application helper functions need not be registered just to scan the files.</p>
+<h2>What static extraction skips</h2>
+<p>Comments, dynamic keys, Go source and struct tags are not extracted. For example, <code>tl .Loc .ErrorKey</code> is discovered only when the runtime lookup occurs. Malformed templates report their source filename. Escaped quotes and newlines are preserved as PO escapes.</p>
+<h2>A catalogue workflow</h2>
+<ol><li>Extract during development or asset preparation.</li><li>Merge new source entries into each PO catalogue using your gettext editor or tooling.</li><li>Translate the entries and check placeholders and plural forms.</li><li>Load the reviewed PO files at application startup.</li></ol>
+<p>Runtime lookup discovery is serialized, but each translator instance owns its lock. Use one process to update a shared POT file; for several application instances, give discovery separate writable storage or manage extraction as a build step. <code>ScanFiles(root)</code> collects keys; <code>CheckMissingTranslations()</code> also attempts to append them to the configured POT file.</p>
+</article>

@@ -1,0 +1,14 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<table><thead><tr><th>Operation</th><th>Public surface</th></tr></thead><tbody><tr><td>Construction</td><td><code>NewForm()</code>, <code>NewTranslatedForm(TranslationFunc)</code></td></tr><tr><td>Configuration</td><td><code>SetTheme</code>, <code>SetCSRFStore</code>, <code>RegisterValidationMethod</code></td></tr><tr><td>Templates</td><td><code>FuncMap</code>, <code>HasFields</code>; helpers <code>form_render</code>, <code>form_render_localized</code>, <code>form_has_fields</code></td></tr><tr><td>Metadata</td><td><code>Info</code>, <code>RenderModel</code>, <code>WithInfo</code>, <code>WithContextInfo</code>, <code>WithRequestInfo</code></td></tr><tr><td>Mapping</td><td><code>MapForm(r, &amp;input, prefixes...)</code></td></tr><tr><td>Validation</td><td><code>ValidateForm</code>, <code>ValidateFormLocalized</code>, <code>FieldErrors</code>, <code>FieldValidationError</code></td></tr><tr><td>CSRF</td><td><code>CSRFMiddleware</code>, <code>CSRFMiddlewareWithOptions</code>, <code>GetCSRFToken</code>, token injection helpers</td></tr></tbody></table>
+<h2>Extension contracts</h2>
+<pre><code>type FieldError interface { FieldError() (field, err string) }
+type Localizer interface { GetLocale() string }
+type Enumerator interface { Enum() []any }</code></pre>
+<p><code>ValidationFunc</code> receives a field value and <code>reflect.StructField</code>, returning <code>FieldErrors</code>. <code>TranslationFunc</code> receives a localizer, key and optional formatting values. <code>Mapper</code>, <code>SortedMapper</code> and key setter interfaces support richer choices.</p>
+<h2>Errors and lower-level transformation</h2>
+<p><code>MapForm</code> reports invalid destination types with <code>ErrMapFormNotPointer</code> and <code>ErrMapFormNotStruct</code>. Check returned errors and validate mapped data. <code>NewTransformer</code> provides a lower-level field representation when the normal template helpers are insufficient.</p>
+<p><a href="https://github.com/donseba/go-form/tree/v2.3.0">Browse the v2.3.0 source and examples</a> for sorted selections, custom themes and the CSRF store contracts.</p>
+</article>

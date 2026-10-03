@@ -1,0 +1,19 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>im := importmap.NewDefaults().
+    RootDir("/srv/my-site").
+    CacheDir(".importmap").
+    AssetsDir("assets")</code></pre>
+<table><thead><tr><th>Purpose</th><th>Example path</th></tr></thead><tbody><tr><td>Package cache</td><td><code>/srv/my-site/.importmap/htmx/2.0.4/htmx.esm.min.js</code></td></tr><tr><td>Published asset</td><td><code>/srv/my-site/assets/htmx/htmx.esm.min.js</code></td></tr><tr><td>Browser URL</td><td><code>/assets/htmx/htmx.esm.min.js</code></td></tr></tbody></table>
+<p><code>RootDir</code> controls reads and writes; it is not added to browser URLs. <code>AssetsDir</code> controls the published directory and URL prefix. With a relative root, paths depend on the preparation process’s working directory.</p>
+<h2>CacheOrFetch and Fetch</h2>
+<p><code>CacheOrFetch(ctx)</code> prefers available cache files and can reconstruct the public assets from them. When a required cache file is unavailable, preparation may need the provider or a download. <code>Fetch(ctx)</code> runs the provider-backed preparation path; the implementation can still reuse files already cached.</p>
+<pre><code>if err := im.CacheOrFetch(ctx); err != nil { return err }</code></pre>
+<p>Downloaded files are written through temporary files and published only after success. HTTP errors and context cancellation return errors instead of turning incomplete downloads into usable assets.</p>
+<h2>Changing versions</h2>
+<p>Cache directories include versions, while default public URLs do not. Changing a package pin prepares a new cache entry but can replace the asset at the same public URL. Coordinate browser caching with deployment; choose a versioned public prefix or another application-owned cache policy when needed.</p>
+<h2>Cleaning</h2>
+<p><code>Clean()</code> removes the entire configured cache and assets directories and returns the import map for chaining. It is intended for directories owned by this preparation step. It can remove application assets stored in the same tree; do not use it as a routine request operation.</p>
+</article>

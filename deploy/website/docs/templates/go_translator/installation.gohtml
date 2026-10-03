@@ -1,0 +1,48 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>go get github.com/donseba/go-translator@v1.4.0</code></pre>
+<p>These examples use v1.4.0. Create <code>translations/</code> and <code>templates/</code>, then save this as <code>translations/en_US.po</code>:</p>
+<pre><code>msgid ""
+msgstr ""
+"Language: en_US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Hello, World!"
+msgstr "Hello, World!"</code></pre>
+<p>Also create <code>translations/translations.pot</code> with this initial header. Lookups record newly used keys there:</p>
+<pre><code>msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"</code></pre>
+<h2>A complete program</h2>
+<pre><code>package main
+
+import (
+	"html/template"
+	"log"
+	"os"
+
+	"github.com/donseba/go-translator"
+)
+
+type Locale string
+
+func (l Locale) GetLocale() string { return string(l) }
+
+func main() {
+	tr := translator.NewTranslator("translations", "templates")
+	if err := tr.SetLanguage("en_US"); err != nil {
+		log.Fatal(err)
+	}
+	page := template.Must(template.New("welcome").Funcs(tr.FuncMap()).Parse(
+		`&lt;h1&gt;{{"{{"}} tl .Loc "Hello, World!" }}&lt;/h1&gt;`,
+	))
+	if err := page.Execute(os.Stdout, struct{ Loc Locale }{Loc: "en_US"}); err != nil {
+		log.Fatal(err)
+	}
+}</code></pre>
+<p>The program prints a translated heading. Locale codes are exact catalogue identifiers: <code>en_US</code> loads <code>en_US.po</code>. A file needs a <code>Language</code> header to load successfully.</p>
+<p>The <a href="{{ basePath }}/extraction" hx-get="{{ basePath }}/extraction" hx-target="#content" hx-push-url="true">extraction workflow</a> shows how to discover literal template keys before rendering and merge them into your language catalogues.</p>
+</article>

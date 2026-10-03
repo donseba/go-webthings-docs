@@ -14,6 +14,7 @@ func registerDocsRoutes(r *router.Router, domain string) {
 	registerGoPartialDocsRoutes(r, domain)
 	registerGoClueDocsRoutes(r, domain)
 	registerGoRouterDocsRoutes(r, domain)
+	registerComponentDocsRoutes(r, domain)
 }
 
 func docsIndex(w http.ResponseWriter, req *http.Request) {

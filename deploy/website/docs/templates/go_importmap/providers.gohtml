@@ -1,0 +1,21 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p><code>NewDefaults</code> selects cdnjs. Other provider adapters live below <code>github.com/donseba/go-importmap/client</code>.</p>
+<table><thead><tr><th>Provider package</th><th>Construction</th></tr></thead><tbody><tr><td><code>client/cdnjs</code></td><td><code>cdnjs.New()</code></td></tr><tr><td><code>client/jsdelivr</code></td><td><code>jsdelivr.New()</code>, <code>jsdelivr.NewESM()</code></td></tr><tr><td><code>client/unpkg</code></td><td><code>unpkg.New()</code></td></tr><tr><td><code>client/skypack</code></td><td><code>skypack.New()</code></td></tr><tr><td><code>client/esmsh</code></td><td><code>esmsh.New()</code></td></tr><tr><td><code>client/raw</code></td><td><code>raw.New(url)</code></td></tr></tbody></table>
+<h2>Set a provider for all packages</h2>
+<pre><code>im := importmap.NewDefaults().WithProvider(jsdelivr.New())</code></pre>
+<h2>Override one package</h2>
+<pre><code>im.WithPackage(library.Package{
+    Name: "htmx", Version: "2.0.4", Provider: cdnjs.New(),
+    Require: library.Includes{{"{{"}}File: "htmx.esm.min.js", As: "htmx"}},
+})</code></pre>
+<p>Provider metadata and filenames differ. A file selection written for cdnjs may need another path when switching providers. Verify the chosen file is the browser format you expect; a provider adapter is not a universal module bundler.</p>
+<h2>Custom providers</h2>
+<pre><code>type Provider interface {
+    FetchPackageFiles(ctx context.Context, name, version string) (library.Files, string, error)
+}</code></pre>
+<p>The returned files describe remote paths, local names and file types; the returned version is the resolved package version. A custom provider can use an internal registry or deterministic HTTP fixtures for tests. Downloads are performed by the package preparation workflow using the supplied context.</p>
+<p>The raw provider describes one URL. Its configured package name supplies the local filename; use a meaningful extension and explicit alias when preparing a single browser asset.</p>
+</article>

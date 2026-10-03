@@ -1,0 +1,30 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>type Locale string
+func (l Locale) GetLocale() string { return string(l) }
+
+func localeFor(code string) Locale {
+    switch code {
+    case "nl", "nl-NL", "nl_NL":
+        return "nl_NL"
+    default:
+        return "en_US"
+    }
+}</code></pre>
+<p>The mapping above is an application policy. go-translator does not normalize locale names, negotiate <code>Accept-Language</code>, persist a user preference, or choose a default for you.</p>
+<h2>Use a path, preference, or header</h2>
+<pre><code>loc := localeFor(r.PathValue("locale"))
+message := tr.Tl(loc, "Hello, %s", user.Name)
+
+err := page.Execute(w, struct {
+    Loc Locale
+    Name string
+}{Loc: loc, Name: user.Name})</code></pre>
+<p>Resolve the locale once for the request and pass the same localizer to template and form rendering. Stable domain codes and stored values can then be displayed in any supported language.</p>
+<h2>Concurrency and catalogue updates</h2>
+<p>Concurrent lookups serialize discovery and POT writes. Catalogue configuration and the language map are a separate concern: finish <code>SetLanguage</code>, directory changes and editing before serving requests. For a reload, construct and load a new translator before replacing the application reference.</p>
+<h2>Missing language behavior</h2>
+<p>An unloaded language or untranslated key produces a visible marker such as <code>*Hello, World!*</code>. Context and plural misses include additional key information. Automatic language fallback is not implemented. Resolve unsupported locale codes to a loaded language in the application; missing-key fallback needs an application strategy.</p>
+</article>

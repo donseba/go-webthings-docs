@@ -1,0 +1,13 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<table><thead><tr><th>Operation</th><th>Public methods</th></tr></thead><tbody><tr><td>Construction</td><td><code>NewTranslator(translationsDir, templateDir)</code></td></tr><tr><td>Loading</td><td><code>SetLanguage(lang)</code>, <code>EnsureLanguage(lang)</code></td></tr><tr><td>Lookups</td><td><code>Tl</code>, <code>Tn</code>, <code>Ctl</code>, <code>Ctn</code></td></tr><tr><td>Template helpers</td><td><code>FuncMap()</code></td></tr><tr><td>Extraction</td><td><code>ScanFiles(root)</code>, <code>CheckMissingTranslations()</code></td></tr><tr><td>Editing</td><td><code>NewLanguage</code>, <code>SetTL</code>, <code>SetTLN</code>, <code>SetCTL</code>, <code>SetCTN</code>, <code>Write</code></td></tr><tr><td>Metadata</td><td><code>Details</code>, <code>SetDetails</code>, <code>AddDetails</code>, <code>SetRefs</code></td></tr></tbody></table>
+<h2>Configuration</h2>
+<p><code>SetTranslationsDir</code>, <code>SetTemplateDir</code>, <code>SetPotFile</code> and <code>SetPrefixSeparator</code> have matching getters. Defaults are <code>translations.pot</code>, <code>.po</code>, <code>.gohtml</code> and the <code>__.</code> prefix separator. Apply setters before extraction or concurrent lookups.</p>
+<h2>Localizer contract</h2>
+<pre><code>type Localizer interface { GetLocale() string }</code></pre>
+<h2>Errors and missing keys</h2>
+<p>Catalogue operations return <code>ErrorLanguageNotFound</code> or <code>ErrorLanguageAlreadyExists</code> where applicable. Lookups return strings with missing-key markers rather than an error. <code>AddLanguage</code> is deprecated in favor of <code>SetLanguage</code>.</p>
+<p><a href="https://github.com/donseba/go-translator/tree/v1.4.0">Browse the v1.4.0 source</a> for the exact signatures and generated language headers.</p>
+</article>

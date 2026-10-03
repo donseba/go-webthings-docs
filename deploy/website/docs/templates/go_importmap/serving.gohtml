@@ -1,0 +1,25 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>mux.Handle("GET /assets/", http.StripPrefix("/assets/",
+    http.FileServer(http.Dir("/srv/my-site/assets")),
+))</code></pre>
+<p>This serves the files prepared under <code>/srv/my-site/assets</code> at <code>/assets/</code>. The file server needs the filesystem directory, while generated imports use browser paths. An absolute filesystem path prevents a different server working directory from changing which files are served.</p>
+<h2>Browser bootstrap</h2>
+<pre><code>// assets/app.js
+import htmx from "htmx";
+window.htmx = htmx;</code></pre>
+<pre><code>&lt;script type="module" src="/assets/app.js"&gt;&lt;/script&gt;</code></pre>
+<p>Include the prepared import map before this script. The <code>window</code> assignment is useful for application code that expects the HTMX global; it is an explicit choice in the bootstrap, not something go-importmap generates.</p>
+<h2>Embedded assets</h2>
+<pre><code>//go:embed assets
+var assets embed.FS
+
+public, err := fs.Sub(assets, "assets")
+if err != nil { return err }
+mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(public))))</code></pre>
+<p>Prepare downloaded files before building the binary so the embed directive can include them. Custom scripts, stylesheet sources and images are application-owned assets; keep them in the public tree or mount them deliberately.</p>
+<h2>Full pages and fragments</h2>
+<p>Place the dependency head in the full-page layout. A go-partial fragment normally updates content inside the already loaded page, so it does not need another copy of the import map or module bootstrap.</p>
+</article>
