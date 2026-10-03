@@ -1,0 +1,49 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p>Define input data as ordinary Go structs. Struct tags describe the controls, while <code>form.Info</code> supplies action, method, submit text, and optional attributes. <code>WithInfo</code> and <code>WithRequestInfo</code> keep that metadata outside your application model.</p>
+<h2>Installation</h2>
+<pre><code>go get github.com/donseba/go-form/v2</code></pre>
+<h2>Render a form</h2>
+<p>This complete program prints a form to standard output:</p>
+<pre><code>package main
+
+import (
+	&quot;html/template&quot;
+	&quot;log&quot;
+	&quot;os&quot;
+
+	&quot;github.com/donseba/go-form/v2&quot;
+)
+
+type Contact struct {
+	Name  string `form:&quot;input,text&quot; label:&quot;Name&quot; required:&quot;true&quot;`
+	Email string `form:&quot;input,email&quot; label:&quot;Email&quot; required:&quot;true&quot;`
+}
+
+func main() {
+	renderer := form.NewForm()
+	renderer.SetTheme(&quot;plain&quot;)
+
+	page := template.Must(template.New(&quot;contact&quot;).Funcs(renderer.FuncMap()).Parse(
+		`{{"{{"}} form_render .Form .Errors }}`,
+	))
+	model := form.WithInfo(Contact{}, form.Info{
+		Target: &quot;/contacts&quot;, Method: &quot;post&quot;, SubmitText: &quot;Save contact&quot;,
+	})
+	if err := page.Execute(os.Stdout, map[string]any{
+		&quot;Form&quot;: model, &quot;Errors&quot;: form.FieldErrors(nil),
+	}); err != nil {
+		log.Fatal(err)
+	}
+}</code></pre>
+<h2>Handle a submission</h2>
+<p>Create and configure one renderer before serving requests. Wrap your form handlers with <code>renderer.CSRFMiddleware()</code>. Within the handler, use <code>form.WithRequestInfo(r, input, info)</code> to include the token when rendering. On POST, call <code>form.MapForm(r, &amp;input)</code>, handle mapping errors, then call <code>renderer.ValidateForm(&amp;input)</code>. Pass the resulting <code>form.FieldErrors</code> to <code>form_render</code> when redisplaying the form, and save through your application service only when validation succeeds.</p>
+<p>CSRF protection is supplied by middleware; validation of input fields is a separate step. Tokens are session-bound and independently stored, so multiple open forms remain usable. The default CSRF store belongs to one renderer in one process. Applications with multiple instances need a shared store, with atomic token consumption for concurrent replay protection.</p>
+<h2>Themes and translations</h2>
+<p><code>SetTheme</code> accepts <code>plain</code>, <code>bootstrap</code> (default), <code>tailwind</code>, or <code>tailwindv4</code>. Load the corresponding stylesheet for class-based themes. <code>NewTranslatedForm(translationFunc)</code> accepts a translation callback; provide a request-local <code>GetLocale()</code> implementation when rendering or validating localized forms.</p>
+<h2>Composition</h2>
+<p>Register the renderer's <code>FuncMap()</code> with your templates or go-partial tree. Routing and persistence remain application choices. Tags, nested structs, enumerators, sorted select values, and custom validators support larger forms without requiring a different model system.</p>
+<p><a href="https://github.com/donseba/go-form/blob/main/README.md">Full reference and CSRF store examples</a></p>
+</article>

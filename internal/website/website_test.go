@@ -754,7 +754,7 @@ func TestDocsElementTemplatesUseSharedArticleShape(t *testing.T) {
 		if entry.IsDir() || !strings.HasSuffix(path, ".gohtml") {
 			return nil
 		}
-		if !strings.HasPrefix(path, "templates/go_partial/") && !strings.HasPrefix(path, "templates/go_doc/") && !strings.HasPrefix(path, "templates/go_router/") {
+		if !strings.HasPrefix(path, "templates/go_") {
 			return nil
 		}
 
@@ -939,7 +939,7 @@ func TestDocsInternalLinksUseHTMX(t *testing.T) {
 		if entry.IsDir() || !strings.HasSuffix(path, ".gohtml") {
 			return nil
 		}
-		if !strings.HasPrefix(path, "templates/go_partial/") && !strings.HasPrefix(path, "templates/go_doc/") && !strings.HasPrefix(path, "templates/go_router/") {
+		if !strings.HasPrefix(path, "templates/go_") {
 			return nil
 		}
 

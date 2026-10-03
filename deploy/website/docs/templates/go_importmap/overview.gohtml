@@ -1,0 +1,64 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p>Prepare JavaScript and CSS assets from CDNs, then serve them with your Go application. An import map maps module names to URLs; modules still need to be imported by browser code.</p>
+<h2>Installation</h2>
+<pre><code>go get github.com/donseba/go-importmap</code></pre>
+<h2>Prepare pinned assets</h2>
+<p>Run this during your asset build or before serving requests. The versions below are explicit example pins.</p>
+<pre><code>package main
+
+import (
+	&quot;context&quot;
+	&quot;fmt&quot;
+	&quot;log&quot;
+	&quot;time&quot;
+
+	&quot;github.com/donseba/go-importmap&quot;
+	&quot;github.com/donseba/go-importmap/library&quot;
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	im := importmap.NewDefaults().
+		WithPackages([]library.Package{
+			{
+				Name: &quot;htmx&quot;, Version: &quot;2.0.4&quot;,
+				Require: []library.Include{
+					{File: &quot;htmx.esm.min.js&quot;, As: &quot;htmx&quot;},
+				},
+			},
+			{
+				Name: &quot;bootstrap&quot;, Version: &quot;5.3.3&quot;,
+				Require: []library.Include{
+					{File: &quot;css/bootstrap.min.css&quot;, As: &quot;bootstrap&quot;},
+				},
+			},
+		})
+	if err := im.CacheOrFetch(ctx); err != nil {
+		log.Fatal(err)
+	}
+	head, err := im.Render()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(head)
+}</code></pre>
+<h2>Serve and import</h2>
+<p>With the defaults, serve the generated directory at <code>/assets/</code>:</p>
+<pre><code>mux.Handle(&quot;GET /assets/&quot;, http.StripPrefix(&quot;/assets/&quot;, http.FileServer(http.Dir(&quot;assets&quot;))))</code></pre>
+<p>The stylesheet URL is <code>/assets/bootstrap/css/bootstrap.min.css</code>. The import map maps <code>htmx</code> to <code>/assets/htmx/htmx.esm.min.js</code>. Include the rendered head before module scripts:</p>
+<pre><code>&lt;script type=&quot;module&quot;&gt;
+    import htmx from &quot;htmx&quot;;
+    window.htmx = htmx;
+&lt;/script&gt;</code></pre>
+<h2>Storage and deployment</h2>
+<p><code>RootDir</code> controls filesystem reads and writes. <code>AssetsDir</code> sets the asset directory and public URL prefix; a filesystem root is not added to browser URLs. Cache files live under <code>.importmap/&lt;package&gt;/&lt;version&gt;/</code> and public files under <code>assets/&lt;package&gt;/</code>. Use an absolute directory with <code>http.Dir</code> if the process runs elsewhere.</p>
+<p><code>CacheOrFetch</code> reuses complete cache files and can rebuild missing assets without contacting a provider. Downloads honor the context, reject unsuccessful responses, and publish only complete files. Ship prepared assets with the application and keep asset configuration fixed once serving begins.</p>
+<h2>Providers</h2>
+<p>The default provider is cdnjs. Providers are also available for jsDelivr, unpkg, Skypack, esm.sh, and raw URLs. Override the default with <code>WithProvider</code> or set <code>library.Package.Provider</code> for a single package. Choose ESM distributions for import maps; classic JavaScript distributions use ordinary script tags.</p>
+<p><a href="https://github.com/donseba/go-importmap/blob/main/README.md">Provider and configuration reference</a></p>
+</article>

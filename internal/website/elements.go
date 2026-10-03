@@ -179,6 +179,8 @@ func elementImage(slug string) string {
 		return "/assets/img/logo-go-doc.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
+	case "go-form", "go-importmap", "go-translator":
+		return "/assets/img/logo-" + slug + ".png"
 	default:
 		return "/assets/img/logo-go-webthings.png"
 	}
@@ -192,6 +194,12 @@ func elementDescription(slug string) string {
 		return "Typed editor tooling and diagnostics for Go templates."
 	case "go-router":
 		return "Host-aware HTTP routing built on top of net/http."
+	case "go-form":
+		return "Typed HTML forms with mapping, validation, themes, and CSRF protection."
+	case "go-importmap":
+		return "CDN asset preparation, local caching, and browser import maps."
+	case "go-translator":
+		return "Gettext translations, plural forms, contexts, and template extraction."
 	default:
 		return "A go-webthings element."
 	}

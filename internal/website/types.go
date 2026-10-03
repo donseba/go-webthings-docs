@@ -13,11 +13,15 @@ var (
 		"go-partial",
 		"go-docs",
 		"go-router",
+		"go-form",
+		"go-importmap",
+		"go-translator",
 	}
 
 	goPartialDocs = mustNewGoPartialDocs()
 	goDocsDocs    = mustNewGoDocsDocs()
 	goRouterDocs  = mustNewGoRouterDocs()
+	componentDocs = newComponentDocs()
 )
 
 type Section string

@@ -59,7 +59,7 @@ func mainComponentsPage(w http.ResponseWriter, req *http.Request) {
 		Section:     SectionMain,
 		Host:        req.Host,
 		Components:  mainComponents(req),
-		Description: "The current go-webthings family: typed template docs, partial rendering, and host-aware routing for server-rendered Go websites.",
+		Description: "Composable Go packages for routing, rendering, typed forms, translations, asset preparation, and template tooling.",
 	}
 	content := partial.NewID("content", "templates/components.gohtml").SetFileSystem(mainFS).SetDot(data)
 	renderMainShell(w, req, http.StatusOK, data, content)
@@ -180,6 +180,30 @@ func mainComponents(req *http.Request) []Component {
 			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
 			SourceURL:   "https://github.com/donseba/go-router",
 		},
+		{
+			Slug:        "go-form",
+			Name:        "Go Form",
+			Description: "Typed HTML forms from struct tags, with submission mapping, field validation, configurable themes, request metadata, and CSRF protection.",
+			Image:       mainElementImage("go-form"),
+			DocsURL:     docsElementURL(req, "go-form"),
+			SourceURL:   "https://github.com/donseba/go-form",
+		},
+		{
+			Slug:        "go-importmap",
+			Name:        "Go ImportMap",
+			Description: "Prepare pinned JavaScript and CSS dependencies from CDNs, reuse local cache files, and generate import maps and stylesheet tags for your templates.",
+			Image:       mainElementImage("go-importmap"),
+			DocsURL:     docsElementURL(req, "go-importmap"),
+			SourceURL:   "https://github.com/donseba/go-importmap",
+		},
+		{
+			Slug:        "go-translator",
+			Name:        "Go Translator",
+			Description: "Gettext PO catalogues with request-local locale selection, plural forms, translation contexts, and extraction of literal keys from Go templates.",
+			Image:       mainElementImage("go-translator"),
+			DocsURL:     docsElementURL(req, "go-translator"),
+			SourceURL:   "https://github.com/donseba/go-translator",
+		},
 	}
 }
 
@@ -191,6 +215,8 @@ func mainElementImage(slug string) string {
 		return "/assets/img/logo-go-doc.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
+	case "go-form", "go-importmap", "go-translator":
+		return "/assets/img/logo-" + slug + ".png"
 	default:
 		return "/assets/img/logo-go-webthings.png"
 	}
