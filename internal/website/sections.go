@@ -48,6 +48,11 @@ func docsElement(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if app, ok := componentDocs[slug]; ok {
+		app.docs.render(w, req, app.pages["/"], nil)
+		return
+	}
+
 	element, ok := findElement(slug)
 	if !ok {
 		renderNotFound(w, req)

@@ -49,15 +49,17 @@
         </ol>
     </section>
 
-    <section class="main-roadmap" aria-label="Upcoming components">
+    <section class="main-roadmap" aria-label="Application components">
         <div class="main-roadmap-copy">
-            <p class="main-eyebrow"><span aria-hidden="true">soon</span> in progress</p>
-            <h2>More server-side pieces are planned.</h2>
-            <p>The same idea extends to common web application chores: keep them explicit, typed where useful, and friendly to HTML-first rendering.</p>
+            <p class="main-eyebrow"><span aria-hidden="true">use</span> application pieces</p>
+            <h2>Add the pieces your application needs.</h2>
+            <p>Forms, translations, and asset preparation follow the same approach: explicit Go types and HTML-first rendering. Each package can be used on its own.</p>
             <ul>
-                <li><strong>translations</strong><span>go-translator</span></li>
-                <li><strong>forms</strong><span>go-form</span></li>
-                <li><strong>import maps</strong><span>go-importmap</span></li>
+                {{ range .Elements }}
+                    {{ if or (eq .Slug "go-form") (eq .Slug "go-translator") (eq .Slug "go-importmap") }}
+                        <li><strong>{{ .Name }}</strong><a href="{{ .Link }}">{{ .Slug }}</a></li>
+                    {{ end }}
+                {{ end }}
             </ul>
         </div>
     </section>

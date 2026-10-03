@@ -58,6 +58,7 @@ type DocsHeaderPage struct {
 	Title       string
 	Subtitle    string
 	GitHubURL   string
+	Elements    []Element
 }
 
 type DocsNavPage struct {
@@ -224,6 +225,7 @@ func (renderer *docsRenderer) header(r *http.Request) DocsHeaderPage {
 		Title:       renderer.title,
 		Subtitle:    renderer.subtitle,
 		GitHubURL:   renderer.gitHubURL,
+		Elements:    sectionElements(),
 	}
 }
 
@@ -235,6 +237,8 @@ func docsLogoImage(appName string) string {
 		return "/assets/img/logo-go-doc.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
+	case "go-form", "go-importmap", "go-translator":
+		return "/assets/img/logo-" + appName + ".png"
 	default:
 		return ""
 	}
@@ -263,6 +267,8 @@ func docsSEOImage(appName string) string {
 		return "/assets/img/logo-go-doc.png"
 	case "go-router":
 		return "/assets/img/logo-go-router.png"
+	case "go-form", "go-importmap", "go-translator":
+		return "/assets/img/logo-" + appName + ".png"
 	default:
 		return "/assets/img/logo-go-webthings.png"
 	}

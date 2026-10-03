@@ -1,0 +1,69 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p>Keep translations in gettext PO files and choose a locale through a request-local <code>Localizer</code>. Singular text, plural forms, and contextual translations work in Go code and templates.</p>
+<h2>Installation</h2>
+<pre><code>go get github.com/donseba/go-translator</code></pre>
+<h2>Create a catalogue</h2>
+<p>Create <code>translations</code> and <code>templates</code> directories. Store <code>.gohtml</code> files in the latter. Each locale has a PO file whose name matches the code passed to <code>SetLanguage</code>. For the example, create <code>translations/en_US.po</code>:</p>
+<pre><code>msgid &quot;&quot;
+msgstr &quot;&quot;
+&quot;Language: en_US\n&quot;
+&quot;Content-Type: text/plain; charset=UTF-8\n&quot;
+&quot;Plural-Forms: nplurals=2; plural=(n != 1);\n&quot;
+
+msgid &quot;Hello, World!&quot;
+msgstr &quot;Hello, World!&quot;
+
+msgid &quot;%d message&quot;
+msgid_plural &quot;%d messages&quot;
+msgstr[0] &quot;%d message&quot;
+msgstr[1] &quot;%d messages&quot;</code></pre>
+<h2>Load and render</h2>
+<pre><code>package main
+
+import (
+	&quot;html/template&quot;
+	&quot;log&quot;
+	&quot;os&quot;
+
+	&quot;github.com/donseba/go-translator&quot;
+)
+
+type Locale string
+
+func (l Locale) GetLocale() string { return string(l) }
+
+func main() {
+	tr := translator.NewTranslator(&quot;translations&quot;, &quot;templates&quot;)
+	if err := tr.SetLanguage(&quot;en_US&quot;); err != nil {
+		log.Fatal(err)
+	}
+	if err := tr.CheckMissingTranslations(); err != nil {
+		log.Fatal(err)
+	}
+	page := template.Must(template.New(&quot;welcome&quot;).Funcs(tr.FuncMap()).Parse(
+		`&lt;h1&gt;{{"{{"}} tl .Loc &quot;Hello, World!&quot; }}&lt;/h1&gt;&lt;p&gt;{{"{{"}} tn .Loc &quot;%d message&quot; &quot;%d messages&quot; .Count .Count }}&lt;/p&gt;`,
+	))
+	if err := page.Execute(os.Stdout, struct {
+		Loc   Locale
+		Count int
+	}{Loc: &quot;en_US&quot;, Count: 5}); err != nil {
+		log.Fatal(err)
+	}
+}</code></pre>
+<h2>Template helpers</h2>
+<pre><code>{{"{{"}} tl .Loc &quot;Hello, %s&quot; .Name }}
+{{"{{"}} tn .Loc &quot;%d message&quot; &quot;%d messages&quot; .Count .Count }}
+{{"{{"}} ctl .Loc &quot;navigation&quot; &quot;Home&quot; }}
+{{"{{"}} ctn .Loc &quot;inbox&quot; &quot;%d message&quot; &quot;%d messages&quot; .Count .Count }}</code></pre>
+<p>Arguments are separated by spaces. The first count selects the plural form; the second formats the text. <code>ctl</code> and <code>ctn</code> add a context to distinguish identical keys used in different places.</p>
+<h2>Extract keys and create languages</h2>
+<p><code>CheckMissingTranslations()</code> parses templates and adds literal keys to <code>translations.pot</code>. Helper-based and variable localizers, nested expressions, template definitions, and escaped keys are supported. Comments and dynamic keys are skipped. Malformed templates report their source filename.</p>
+<p><code>EnsureLanguage("fr")</code> creates a missing PO file with language and plural-form headers, then loads it. Existing translations are preserved. Runtime lookups also discover keys and serialize POT updates; allow catalogue writes if using runtime discovery.</p>
+<h2>Request-local locales</h2>
+<p><code>SetLanguage</code> loads a catalogue; it does not select a global current locale. Load all supported languages and finish configuration before serving concurrent requests. Each request supplies its own <code>GetLocale()</code> value. Normalize language codes in the application so they match the loaded catalogue names.</p>
+<p>Missing translations or languages produce visible markers such as <code>*key*</code>. Automatic fallback to another language is not provided. Catalogue editing and language loading belong outside request handling.</p>
+<p><a href="https://github.com/donseba/go-translator/blob/main/README.md">API and catalogue maintenance reference</a></p>
+</article>

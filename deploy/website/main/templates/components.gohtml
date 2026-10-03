@@ -13,9 +13,9 @@
 <section class="main-component-list" aria-label="Known go-webthings components">
     {{ range .Components }}
         <article class="main-component">
-            <span class="main-component-logo">
+            <a class="main-component-logo" href="{{ .DocsURL }}">
                 <img src="{{ .Image }}" alt="{{ .Name }}">
-            </span>
+            </a>
             <div>
                 <h2>{{ .Name }}</h2>
                 <p>{{ .Description }}</p>
