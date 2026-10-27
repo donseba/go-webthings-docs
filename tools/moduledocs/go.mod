@@ -11,8 +11,8 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/donseba/go-form/v2 v2.5.0 // indirect
-	github.com/donseba/go-importmap v1.3.0 // indirect
+	github.com/donseba/go-form/v2 v2.6.0 // indirect
+	github.com/donseba/go-importmap v1.5.0 // indirect
 	github.com/donseba/go-partial v0.15.0 // indirect
 	github.com/donseba/go-translator/v2 v2.0.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -44,14 +44,7 @@ require (
 
 replace (
 	donseba/go-webthings-docs => ../..
-	// go-webthings needs unreleased branches of go-form, go-importmap,
-	// go-router and go-translator (feature/webthings-integration) and
-	// go-partial (feature/exp-ext); remove these lines once they are
-	// released and go-webthings requires them.
-	github.com/donseba/go-form/v2 => ../../../go-form
-	github.com/donseba/go-importmap => ../../../go-importmap
-	github.com/donseba/go-partial => ../../../go-partial
-	github.com/donseba/go-router => ../../../go-router
-	github.com/donseba/go-translator/v2 => ../../../go-translator
+	// The module pages describe the go-webthings checkout next to this
+	// repository, the one -webthings reads.
 	github.com/donseba/go-webthings => ../../../go-webthings
 )
