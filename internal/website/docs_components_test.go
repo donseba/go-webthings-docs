@@ -27,8 +27,7 @@ func TestComponentDocumentationSections(t *testing.T) {
 						req := httptest.NewRequest(http.MethodGet, path, nil)
 						req.Host = host
 						if fragment {
-							req.Header.Set("HX-Request", "true")
-							req.Header.Set("HX-Target", "content")
+							setHTMXPartialRequest(req, "main#content")
 						}
 						rec := httptest.NewRecorder()
 						handler.ServeHTTP(rec, req)
@@ -91,8 +90,7 @@ func TestComponentDocumentation(t *testing.T) {
 					req := httptest.NewRequest(http.MethodGet, "/"+component.slug, nil)
 					req.Host = host
 					if fragment {
-						req.Header.Set("HX-Request", "true")
-						req.Header.Set("HX-Target", "content")
+						setHTMXPartialRequest(req, "main#content")
 					}
 					rec := httptest.NewRecorder()
 					handler.ServeHTTP(rec, req)
@@ -103,7 +101,7 @@ func TestComponentDocumentation(t *testing.T) {
 					for _, want := range []string{
 						component.title,
 						`src="/assets/img/logo-` + component.slug + `.png"`,
-						`href="/` + component.slug + `" hx-get="/` + component.slug + `" hx-target="#content" hx-push-url="true" aria-current="page"`,
+						`href="/` + component.slug + `" hx-get="/` + component.slug + `" hx-target="#content" hx-push-url="true" aria-current="true"`,
 						`href="/go-form"`, `href="/go-importmap"`, `href="/go-translator"`,
 					} {
 						if !strings.Contains(body, want) {

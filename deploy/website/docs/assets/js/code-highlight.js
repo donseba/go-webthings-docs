@@ -145,9 +145,26 @@
         return html;
     };
 
+    // Languages named on the block (Markdown's ```sh) win over guessing;
+    // these are shown as they are.
+    const plainLanguages = ["sh", "bash", "shell", "console", "text", "sql"];
+    const declaredLanguage = (code) => {
+        const match = code.className.match(/(?:^|\s)language-([\w-]+)/);
+        if (!match) {
+            return "";
+        }
+        return match[1] === "gotemplate" ? "template" : match[1];
+    };
+
     const highlight = (code) => {
         const text = code.textContent;
-        const language = inferLanguage(text);
+        const declared = declaredLanguage(code);
+        if (plainLanguages.includes(declared)) {
+            code.dataset.highlighted = "true";
+            code.dataset.language = declared;
+            return;
+        }
+        const language = declared || inferLanguage(text);
 
         if (language === "template" || language === "html") {
             code.innerHTML = highlightTemplate(text);
@@ -179,5 +196,7 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => highlightAll());
-    document.addEventListener("htmx:afterSwap", (event) => highlightAll(event.target));
+    // htmx 4 fires htmx:after:swap on the element that made the request, once
+    // the target and the out-of-band regions are swapped: look at the page.
+    document.addEventListener("htmx:after:swap", () => highlightAll());
 })();

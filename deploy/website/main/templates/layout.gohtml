@@ -17,10 +17,11 @@
     <meta name="twitter:description" content="{{ .SEO.Description }}">
     <meta name="twitter:image" content="{{ .SEO.Image }}">
     <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
-    <link rel="stylesheet" href="/assets/css/styles.css">
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261026">
+    <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
 </head>
-<body class="main-body m-0 min-h-screen text-[#fffff0]">
+{{/* htmx 4 swaps a 4xx or 5xx answer and pushes its URL; leave the page as it is, as htmx 2 did. */}}
+<body class="main-body m-0 min-h-screen text-[#fffff0]" hx-status:4xx:inherited="swap:none push:false" hx-status:5xx:inherited="swap:none push:false">
 <main class="mx-auto grid w-full max-w-[1120px] gap-4 px-4 pb-[6.5rem] pt-4 max-[760px]:px-3">
     {{ partial runtime "templates/bullitin.gohtml" . }}
     {{ partial runtime "templates/navbar.gohtml" . }}

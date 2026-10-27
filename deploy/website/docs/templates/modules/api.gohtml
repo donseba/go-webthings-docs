@@ -1,0 +1,39 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <p>Site code reaches an instance through <code>{{ .Module.Slug }}.Of(app, "{{ .Module.Example.Key }}")</code> once the app has started; other modules use <code>env.Service("{{ .Module.Example.Key }}")</code> in their handlers.</p>
+
+    <h2 id="functions">Functions</h2>
+    {{ if .Module.API.Funcs }}
+        {{ range .Module.API.Funcs }}
+            <h3 id="{{ .Name }}">{{ .Name }}</h3>
+            {{ template "module_func.gohtml" . }}
+        {{ end }}
+    {{ else }}
+        <p>None besides the constructor.</p>
+    {{ end }}
+
+    <h2 id="service">Service methods</h2>
+    {{ if .Module.API.Methods }}
+        {{ range .Module.API.Methods }}
+            <h3 id="Service.{{ .Name }}">{{ .Name }}</h3>
+            {{ template "module_func.gohtml" . }}
+        {{ end }}
+    {{ else }}
+        <p>The module's service has no exported methods.</p>
+    {{ end }}
+
+    <h2 id="types">Types</h2>
+    {{ if .Module.API.Types }}
+        {{ range .Module.API.Types }}
+            <h3 id="{{ .Name }}">{{ .Name }}</h3>
+            {{ .Doc }}
+            <pre><code>{{ .Decl }}</code></pre>
+        {{ end }}
+    {{ else }}
+        <p>The module exports no types.</p>
+    {{ end }}
+
+    {{ template "module_pager.gohtml" . }}
+</article>

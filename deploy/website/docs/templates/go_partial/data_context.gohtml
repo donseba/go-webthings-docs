@@ -2,8 +2,8 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-    <h2 class="text-xl font-bold text-slate-50">Two render modes</h2>
-    <p class="leading-7 text-slate-400">The preferred mode is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetDot</code>: the template root is your app model, and go-clue can understand it with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@dot</code>. The older wrapper fields exist only when a partial has no explicit dot.</p>
+    <h2 class="text-xl font-bold text-slate-50">Template data</h2>
+    <p class="leading-7 text-slate-400">The preferred mode is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetDot</code>: the template root is your app model, and go-clue can understand it with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@dot</code>. go-partial does not wrap your model in other fields. A partial without a dot of its own renders with the dot of its nearest ancestor that has one, or with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">nil</code>.</p>
 
     <table class="w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-800/90 text-left">
         <thead class="bg-slate-900"><tr><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Field</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Lifetime</th><th class="border-b border-slate-700 px-3 py-2.5 text-left font-bold text-slate-50">Use</th></tr></thead>
@@ -37,6 +37,35 @@
 
     <h2 class="text-xl font-bold text-slate-50">Caching note</h2>
     <p class="leading-7 text-slate-400">Template caching caches parsed templates, not rendered HTML. Dynamic data should still be loaded per request and passed into the partial. Avoid caching rendered row output unless the data is truly immutable.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Functions with a context</h2>
+    <p class="leading-7 text-slate-400">A function registered with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetFunc</code> whose first parameter is a <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">context.Context</code> receives the render's context, the one passed to <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Render</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">RenderWithRequest</code> or <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Write</code> with what render stages added. Templates call it without that parameter. It is bound once per render tree, however many partials call it.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">root.SetFunc(template.FuncMap{
+    "posts": func(ctx context.Context, section string, limit int) ([]Post, error) {
+        return store.Latest(ctx, section, limit)
+    },
+})
+
+{{ "{{ range posts \"news\" 3 }}" }}&lt;li&gt;{{ "{{ .Title }}" }}&lt;/li&gt;{{ "{{ end }}" }}</code></pre>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.BindContext(ctx, funcs...)</code> binds such functions for templates go-partial does not execute. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.RuntimeFrom(ctx)</code> returns the runtime of the partial whose template calls the function, so <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">runtime.RenderPartial(component)</code> renders a component as a child of that partial, with its models, functions and stages. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.ReservedFuncNames(stages...)</code> lists the names <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetFunc</code> cannot give templates.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Checking contracts</h2>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">p.CheckContracts()</code> reports, without rendering, whether every typed root the templates declare finds one value on the partial or its parents, and whether the dot has the declared <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">@dot</code> type. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">runtime.CheckContracts(p)</code> checks a partial as a child of the one being rendered, and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.ParseDeclarations(sources...)</code> lists the declarations of template sources.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">if err := fragment.CheckContracts(); err != nil {
+    // This page cannot answer for the fragment.
+}</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">Checking templates</h2>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">p.CheckTemplates(patterns...)</code> parses every template file of the partial's file system, in every folder, with the functions its renders have: those of <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetFunc</code> on the partial and its ancestors, go-partial's own helpers, those its render stages give and the typed roots the files declare. It reports every problem, not only the first: a file that does not parse, every call of a function the partial does not have, and every <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ template }}" }}</code> that names a template no file defines. Run it when the application starts.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">problems, err := root.CheckTemplates()
+if err != nil {
+    return err // reading the file system failed
+}
+
+for _, problem := range problems {
+    log.Print(problem) // layout.gohtml:2:4: function "newsleterForm" not defined; did you mean "newsletterForm"?
+}</code></pre>
+    <p class="leading-7 text-slate-400">Each <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.TemplateProblem</code> has the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">File</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Line</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Column</code>, the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Func</code> or <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Template</code> it names, a <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Suggestion</code> and the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Message</code>; for an <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Overlay</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Layer</code> is the index of the layer the file comes from. Without patterns every <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">*.gohtml</code> file is checked. The problems are not errors; the error is only that of reading the file system.</p>
 </article>
 
 

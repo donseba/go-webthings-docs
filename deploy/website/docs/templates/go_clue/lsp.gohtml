@@ -18,6 +18,7 @@
 
 <h2>Diagnostics</h2>
 <p>The LSP validates unknown accessors, invalid field names, non-rangeable expressions, unsupported function returns, incorrect function arguments, wrong include data, and missing include data.</p>
+<p>It also reports unknown types in <code>@dot</code>, <code>@func</code> and typed-root declarations, typed-root names that collide with a template function, unknown or type-less custom annotations, and typed roots or functions that are declared but not used. Annotations placed before a <code>define</code> are reported as information, with a quick fix that moves them inside.</p>
 
 <h2>Refresh behavior</h2>
 <p>The server republishes diagnostics on every document change and explicitly clears stale diagnostics first. That keeps edit loops such as renaming <code>@model PageInf</code> back to <code>@model PageInfo</code> from leaving old red underlines behind.</p>

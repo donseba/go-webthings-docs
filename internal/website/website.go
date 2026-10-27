@@ -16,6 +16,8 @@ func NewRouter() http.Handler {
 
 	registerDomain(r, "rocketweb.nl")
 	registerDomain(r, "gowebthings.com")
+	// localhost needs no DNS: http://modules.localhost:8080 and the like.
+	registerDomain(r, "localhost")
 
 	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "https://docs.gowebthings.com/go-router", http.StatusTemporaryRedirect)
@@ -38,6 +40,11 @@ func registerDomain(r *router.Router, domain string) {
 		registerDocsRoutes(docs, domain)
 	})
 
+	r.Subdomain("modules", domain, func(modules *router.Router) {
+		registerStaticRoutes(modules, websiteFS)
+		registerModulesRoutes(modules, domain)
+	})
+
 	r.Subdomain("showcase", domain, func(showcase *router.Router) {
 		registerStaticRoutes(showcase, showcaseFS)
 		registerShowcaseRoutes(showcase, domain)
@@ -49,6 +56,7 @@ func registerMainRoutes(r *router.Router, domain, routeScope string) {
 	r.Get("/", mainIndex).As(fmt.Sprintf("%s.%s.index", domain, routeScope))
 	r.Get("/bulletin", mainBulletin).As(fmt.Sprintf("%s.%s.bulletin", domain, routeScope))
 	r.Get("/components", mainComponentsPage).As(fmt.Sprintf("%s.%s.components", domain, routeScope))
+	r.Get("/modules", mainModulesPage).As(fmt.Sprintf("%s.%s.modules", domain, routeScope))
 	r.Get("/generate", mainGenerate).As(fmt.Sprintf("%s.%s.generate", domain, routeScope))
 	r.Get("/generate/preview", mainGeneratePreview).As(fmt.Sprintf("%s.%s.generate.preview", domain, routeScope))
 	r.Get("/generate/image", mainGenerateImage).As(fmt.Sprintf("%s.%s.generate.image", domain, routeScope))

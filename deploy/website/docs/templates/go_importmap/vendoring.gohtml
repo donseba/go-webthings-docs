@@ -1,0 +1,86 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p>The <code>importmap</code> command downloads pinned packages into a directory, with their licences and a lock file. The application embeds that directory and loads it with <code>FromFS</code>, so it needs no network and no disk access at run time. This is the recommended way to ship packages.</p>
+<h2>Configure the packages</h2>
+<pre><code>{
+  "provider": "cdnjs",
+  "packages": [
+    {
+      "name": "htmx",
+      "version": "4.0.0",
+      "require": [{"file": "htmx.esm.min.js", "as": "htmx"}],
+      "license": "https://unpkg.com/htmx.org@4.0.0/LICENSE"
+    }
+  ]
+}</code></pre>
+<table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>provider</code></td><td>The default provider: <code>cdnjs</code> (default), <code>jsdelivr</code>, <code>jsdelivr-esm</code>, <code>unpkg</code>, <code>skypack</code> or <code>esmsh</code>; a package can set its own</td></tr><tr><td><code>name</code>, <code>version</code></td><td>The package; pin the version</td></tr><tr><td><code>require</code></td><td>Files to vendor: <code>file</code> is a pattern, <code>as</code> the import name; <code>raw</code> maps the name to a URL left on its host. Without <code>require</code> every file is vendored. <code>file</code> is a path in the package; <code>**</code> matches any part of it, slashes included</td></tr><tr><td><code>url</code></td><td>A single file to download, saved under <code>name</code>; <code>as</code> names it</td></tr><tr><td><code>license</code></td><td>A file of the package or a URL with its licence text. Without it a <code>LICENSE</code>, <code>LICENCE</code> or <code>COPYING</code> file of the package is copied</td></tr><tr><td><code>local</code></td><td><code>true</code> for files the application builds itself (below)</td></tr></tbody></table>
+<p>The command refuses unknown fields, so a misspelled field fails instead of being ignored.</p>
+<h2>Vendor the files</h2>
+<pre><code>//go:generate go run github.com/donseba/go-importmap/cmd/importmap vendor -config importmap.json -out assets/vendor</code></pre>
+<p>This writes <code>assets/vendor/htmx/htmx.esm.min.js</code>, <code>assets/vendor/htmx/LICENSE</code> and <code>assets/vendor/importmap.lock.json</code>, and prints one line per package, such as <code>htmx 4.0.0: 2 files (htmx/LICENSE)</code>; a package without a licence shows <code>no licence file found</code>. Commit the files and the lock.</p>
+<table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>-config</code></td><td>The configuration file; default <code>importmap.json</code></td></tr><tr><td><code>-out</code></td><td>The directory for the files and the lock; default <code>assets/vendor</code></td></tr><tr><td><code>-timeout</code></td><td>The time allowed for all downloads; default <code>2m</code></td></tr><tr><td><code>-local</code></td><td>Only record the integrity of local packages again, without network</td></tr></tbody></table>
+<p>Running the command again asks the providers for their file lists, but downloads only files whose source changed or whose content no longer matches the lock. Files the previous lock listed and the configuration no longer requires are removed. A lock that lists a downloaded file outside the out directory, such as <code>../x.js</code> after a hand edit, is refused before anything is downloaded or removed.</p>
+<h2>The lock file</h2>
+<pre><code>{
+  "lockfileVersion": 1,
+  "packages": [
+    {
+      "name": "htmx",
+      "version": "4.0.0",
+      "provider": "cdnjs",
+      "license": "htmx/LICENSE",
+      "files": [
+        {
+          "path": "htmx/LICENSE",
+          "source": "https://unpkg.com/htmx.org@4.0.0/LICENSE",
+          "integrity": "sha384-…"
+        },
+        {
+          "path": "htmx/htmx.esm.min.js",
+          "as": "htmx",
+          "source": "https://cdnjs.cloudflare.com/ajax/libs/htmx/4.0.0/htmx.esm.min.js",
+          "integrity": "sha384-…"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+<p>Paths are relative to the lock file. Each file has its source URL and its SHA-384 Subresource Integrity; a raw import has only <code>as</code> and <code>source</code>. A diff of the lock shows what an update changed.</p>
+<h2>Verify in CI</h2>
+<pre><code>go run github.com/donseba/go-importmap/cmd/importmap verify -out assets/vendor</code></pre>
+<p><code>verify</code> checks every file the lock lists against its integrity, without network, and prints <code>assets/vendor matches importmap.lock.json</code>. A missing or changed file fails the command.</p>
+<h2>Load the files at run time</h2>
+<pre><code>//go:embed assets/vendor
+var vendored embed.FS
+
+func importMap() (*importmap.ImportMap, error) {
+	files, err := fs.Sub(vendored, "assets/vendor")
+	if err != nil {
+		return nil, err
+	}
+
+	return importmap.FromFS(files, importmap.LockFile)
+}</code></pre>
+<p><code>FromFS</code> reads the lock, fingerprints every file of the file system, and returns an error when a listed file is missing or does not match its integrity, so a hand-edited file fails at start-up. Each <code>as</code> name maps to the file's versioned URL, such as <code>/assets/htmx/htmx.esm.min.js?v=3f2a…</code>; a <code>.css</code> file becomes a stylesheet, and a raw import maps to its URL. The application's own scripts and stylesheets in the same file system get versioned URLs too, through <code>URL</code> and <code>WithFile</code>.</p>
+<p>A <code>go:embed</code> directory pattern leaves out files whose names start with <code>_</code>, and <code>FromFS</code> then reports them missing. Write <code>//go:embed all:assets/vendor</code> when a package has files that start with <code>_</code>. Files with a part that starts with a dot, such as <code>.github/</code>, are never served: <code>vendor</code> does not download or lock them, and a local package that lists one fails.</p>
+<p>Next, <a href="{{ basePath }}/serving" hx-get="{{ basePath }}/serving" hx-target="#content" hx-push-url="true">serve the files</a> with <code>ServeFile</code> and <a href="{{ basePath }}/rendering" hx-get="{{ basePath }}/rendering" hx-target="#content" hx-push-url="true">render the head</a>.</p>
+<h2>Files the application builds</h2>
+<pre><code>{"name": "editor", "local": true, "require": [{"file": "../editor/bundle.js", "as": "editor"}], "license": "../editor/LICENSES.txt"}</code></pre>
+<p>A bundle the application builds itself, for example with esbuild, can be locked too, so <code>FromFS</code> and <code>verify</code> check it like a vendored file. A package with <code>"local": true</code> is not downloaded: <code>require</code> lists its files by their exact paths relative to the out directory, which may start with <code>../</code>, and <code>license</code> is such a path too. The lock records their integrity with <code>"local": true</code> and no source. Give a local file <code>as</code> to map it; without <code>as</code> it is only checked against the lock. Local files are never removed.</p>
+<p>After a rebuild, <code>importmap vendor -local</code> records their integrity again without network and leaves the other packages' entries as they are; those must already be in the lock. Files outside the out directory are only in a file system that holds both, so load the lock from that one and verify with its root:</p>
+<pre><code>im, err := importmap.FromFS(assetsFS, "vendor/importmap.lock.json")</code></pre>
+<pre><code>go run github.com/donseba/go-importmap/cmd/importmap verify -out assets/vendor -root assets</code></pre>
+<h2>From Go</h2>
+<pre><code>im := importmap.New().
+	WithProvider(cdnjs.New()).
+	WithPackage(library.Package{
+		Name: "htmx", Version: "4.0.0",
+		Require: library.Includes{{"{{"}}File: "htmx.esm.min.js", As: "htmx"}},
+		License: "https://unpkg.com/htmx.org@4.0.0/LICENSE",
+	})
+
+lock, err := im.Vendor(ctx, "assets/vendor")</code></pre>
+<p><code>Vendor(ctx, dir)</code> does what the command does and returns the <code>*Lock</code> it wrote. <code>VendorLocal(dir)</code> is <code>vendor -local</code>. <code>ReadLock(fsys, name)</code> reads a lock file alone, for tools that inspect what was vendored; it fails for an unknown <code>lockfileVersion</code>. <code>library.Package.License</code> and <code>library.Package.Local</code> are the <code>license</code> and <code>local</code> settings; <code>Fetch</code> and <code>CacheOrFetch</code> leave local packages out.</p>
+</article>

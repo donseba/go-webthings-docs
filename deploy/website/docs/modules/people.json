@@ -1,0 +1,702 @@
+{
+  "Slug": "people",
+  "Name": "People",
+  "Group": "Content",
+  "Summary": "The people behind an organisation, such as staff, a team, a board or volunteers: a name, photo, contact details and biography, with a page per person.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/people",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/people",
+  "Type": "people",
+  "Example": {
+    "Key": "team",
+    "Title": "Team",
+    "Code": "app.Use(people.Module(\"team\", \"Team\"))"
+  },
+  "Guide": "\u003cp\u003eUse one instance per set of people. Within an instance, a translated group such as \u0026quot;Board\u0026quot; or \u0026quot;Staff\u0026quot; sorts people into sections, so one instance usually covers the whole organisation.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    people.Module(\u0026quot;team\u0026quot;, \u0026quot;Team\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003eteam\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eTeam\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page then serves the people below its own address; with the page at \u003ccode\u003e/team\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/team\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eteam/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe published people, in the order set in the admin\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/team/\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eteam/person.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone person\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so \u003ccode\u003epeople/person.gohtml\u003c/code\u003e serves every People instance that has no design of its own. Generate starting points with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- team\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe list has everyone twice: in \u003ccode\u003e.People\u003c/code\u003e as one list, and in \u003ccode\u003e.Groups\u003c/code\u003e by group. Groups come in the order of their first person; people without a group form a group without a name. A list by group:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/people.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{range .Groups}}\n    \u0026lt;section\u0026gt;\n        {{with .Name}}\u0026lt;h2\u0026gt;{{.}}\u0026lt;/h2\u0026gt;{{end}}\n        {{range .People}}\n            \u0026lt;article\u0026gt;\n                {{with .PhotoURL}}\u0026lt;img src=\u0026quot;{{image . \u0026quot;300x300 crop\u0026quot;}}\u0026quot; width=\u0026quot;300\u0026quot; height=\u0026quot;300\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n                \u0026lt;h3\u0026gt;\u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}}\u0026lt;/a\u0026gt;\u0026lt;/h3\u0026gt;\n                {{with .Role}}\u0026lt;p\u0026gt;{{.}}\u0026lt;/p\u0026gt;{{end}}\n            \u0026lt;/article\u0026gt;\n        {{end}}\n    \u0026lt;/section\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eperson.gohtml\u003c/code\u003e gets a single \u003ccode\u003epeople.Person\u003c/code\u003e; its \u003ccode\u003eBio\u003c/code\u003e is the rendered Markdown. \u003ccode\u003ePhotoURL\u003c/code\u003e is the photo as pages show it, at most 1600 pixels wide, with \u003ccode\u003ePhotoSrcset\u003c/code\u003e, \u003ccode\u003ePhotoWidth\u003c/code\u003e and \u003ccode\u003ePhotoHeight\u003c/code\u003e for the \u003ccode\u003eimg\u003c/code\u003e tag, and \u003ccode\u003ePhotoOriginalURL\u003c/code\u003e is the uploaded file; \u003ccode\u003eimage\u003c/code\u003e makes other sizes from it, such as the square crop above. For a phone link use \u003ccode\u003ePhoneURL\u003c/code\u003e, a ready \u003ccode\u003etel:\u003c/code\u003e link: \u003ccode\u003ehtml/template\u003c/code\u003e blocks \u003ccode\u003etel:\u003c/code\u003e in a plain string.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{if .PhotoURL}}\u0026lt;img src=\u0026quot;{{.PhotoURL}}\u0026quot; srcset=\u0026quot;{{.PhotoSrcset}}\u0026quot; sizes=\u0026quot;15rem\u0026quot; width=\u0026quot;{{.PhotoWidth}}\u0026quot; height=\u0026quot;{{.PhotoHeight}}\u0026quot; alt=\u0026quot;{{.Name}}\u0026quot;\u0026gt;{{end}}\n{{with .Email}}\u0026lt;a href=\u0026quot;mailto:{{.}}\u0026quot;\u0026gt;{{.}}\u0026lt;/a\u0026gt;{{end}}\n{{with .PhoneURL}}\u0026lt;a href=\u0026quot;{{.}}\u0026quot;\u0026gt;{{$.Phone}}\u0026lt;/a\u0026gt;{{end}}\n{{with .LinkedIn}}\u0026lt;a href=\u0026quot;{{.}}\u0026quot;\u0026gt;LinkedIn\u0026lt;/a\u0026gt;{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA person appears in each language they have been saved in. Their slug is the same in every language. Person pages are only reachable while the instance is placed on a page.\u003c/p\u003e\n\u003ch2 id=\"show-people-anywhere\"\u003eShow people anywhere\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003epeople\u003c/code\u003e returns everyone in their order, \u003ccode\u003epeopleIn\u003c/code\u003e the people of one group (by its name in the current language, ignoring case) and \u003ccode\u003eperson\u003c/code\u003e one person by slug, or nothing:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range peopleIn \u0026quot;team\u0026quot; \u0026quot;Board\u0026quot;}}\n    {{.Name}}, {{.Role}}\n{{end}}\n\n{{with person \u0026quot;team\u0026quot; \u0026quot;jane-doe\u0026quot;}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}}\u0026lt;/a\u0026gt;, {{.Role}}\n{{end}}\n\n\u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;team\u0026quot;}}\u0026quot;\u0026gt;Meet the team\u0026lt;/a\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eURL\u003c/code\u003e is empty while the instance is not placed on a page.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/people\u003c/code\u003e serves the published people as JSON, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003eteam\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/team/people\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.team.people\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published people, in the editors' order, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/team/people?slug=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe person with that slug\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/team/people?group=\u0026lt;name\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe people in that group, by its name in the language of the answer, ignoring case and spaces around it; it can be combined with \u003ccode\u003e?slug=\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/team/people/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.team.person\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne person, with their biography\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eA person has their \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003eslug\u003c/code\u003e and \u003ccode\u003ename\u003c/code\u003e, the \u003ccode\u003egroup\u003c/code\u003e and \u003ccode\u003erole\u003c/code\u003e in the language of the answer, the \u003ccode\u003ephoto\u003c/code\u003e as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e, and the contact details the person's page shows: \u003ccode\u003eemail\u003c/code\u003e, \u003ccode\u003ephone\u003c/code\u003e, \u003ccode\u003ewebsite\u003c/code\u003e and \u003ccode\u003elinkedin\u003c/code\u003e, each \u003ccode\u003enull\u003c/code\u003e when not given. \u003ccode\u003eurl\u003c/code\u003e is the person's page, \u003ccode\u003enull\u003c/code\u003e while the instance is on no page; \u003ccode\u003eapi_url\u003c/code\u003e and \u003ccode\u003eupdated_at\u003c/code\u003e follow. \u003ccode\u003e/people/{id}\u003c/code\u003e adds \u003ccode\u003ebio_html\u003c/code\u003e, when the person has a biography.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/people/{id}\u003c/code\u003e sends a \u003ccode\u003eLast-Modified\u003c/code\u003e: the latest change of the person, of the page the instance is on and of the person's media, the photo and those in the biography. A person with an image that was deleted gets none, and so do the lists; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/team\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e). The overview shows each person's name with their role and group.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eA person has a name, web address, photo from the media library, email address, phone number, website and LinkedIn address, shared by all languages; per language a group, a role and a Markdown biography.\u003c/li\u003e\n\u003cli\u003eA phone number has 3 to 50 characters, digits, spaces, parentheses, dots, slashes and dashes, after an optional \u003ccode\u003e+\u003c/code\u003e. The website and LinkedIn addresses start with \u003ccode\u003ehttp://\u003c/code\u003e or \u003ccode\u003ehttps://\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003eLeave the \u003cstrong\u003eWeb address\u003c/strong\u003e empty to make it from the name: \u0026quot;José Núñez\u0026quot; becomes \u003ccode\u003ejose-nunez\u003c/code\u003e, and a second Jane Doe gets \u003ccode\u003ejane-doe-2\u003c/code\u003e. A web address made this way has at most 80 characters, plus the number of a second person with the same name, and a name without Latin letters or digits gets \u003ccode\u003eperson\u003c/code\u003e. A web address typed by hand uses lowercase letters, digits and dashes and must be free in the instance.\u003c/li\u003e\n\u003cli\u003ePeople have no drafts or revisions: saving changes the person at once, also when they are published. New people start unpublished at the end of the list. \u003cstrong\u003ePublish\u003c/strong\u003e and \u003cstrong\u003eUnpublish\u003c/strong\u003e show or hide a person; publishing needs them to be saved in the site's default language.\u003c/li\u003e\n\u003cli\u003eThe move buttons on the overview set the order on the site, and with it the order of the groups.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a person to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where they can be restored or deleted for good. Their web address is free again meanwhile; restoring is refused when someone else has taken it.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003ePublished people appear in the site search by name, role, group and biography, and their pages are listed in \u003ccode\u003esitemap.xml\u003c/code\u003e, both once the instance is placed on a page.\u003c/p\u003e\n\u003cp\u003eA person's page tells search engines who it is about with a schema.org \u003ccode\u003ePerson\u003c/code\u003e in its structured data, which core's head tags write with \u003ccode\u003e{{structuredData}}\u003c/code\u003e: the name, the role as \u003ccode\u003ejobTitle\u003c/code\u003e, the page as \u003ccode\u003eurl\u003c/code\u003e, the photo, the email address and phone number, the website and LinkedIn address as \u003ccode\u003esameAs\u003c/code\u003e, and the site's organisation as \u003ccode\u003eworksFor\u003c/code\u003e. Empty fields are left out. The list of people is an \u003ccode\u003eItemList\u003c/code\u003e of their pages, in the order shown. See \u003ca href=\"wt-docs:/go-webthings/search-and-seo#structured-data\"\u003eSearch and SEO\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the biographies and websites of published people count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the people that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003cp\u003eThe editor of a published person lists the published content that links to the person's page and asks before it is unpublished or moved to the trash. With the \u003ca href=\"/redirects\"\u003eredirects module\u003c/a\u003e, editors who may create redirects also get \u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e, and saving a published person with a new \u003cstrong\u003eWeb address\u003c/strong\u003e redirects the old address to the new one; see \u003ca href=\"wt-docs:/go-webthings/editing#links-to-an-item\"\u003eLinks to an item\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003epeople.Of(app, \u0026quot;team\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eteam := people.Of(app, \u0026quot;team\u0026quot;)\n\nboard, err := team.InGroup(ctx, \u0026quot;en\u0026quot;, \u0026quot;Board\u0026quot;)\n\njane, err := team.BySlug(ctx, \u0026quot;en\u0026quot;, \u0026quot;jane-doe\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eList(ctx, locale)\u003c/code\u003e returns every published person. While the instance is on no page in that language, these methods still return the people, with an empty \u003ccode\u003eURL\u003c/code\u003e. \u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses. The store does not make slugs, so give each person one:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003estore := team.Store()\n\nperson, err := store.Save(ctx, content.Draft[people.Fields, people.Text]{\n    Fields: people.Fields{\n        Slug:  \u0026quot;jane-doe\u0026quot;,\n        Name:  \u0026quot;Jane Doe\u0026quot;,\n        Email: \u0026quot;jane@example.com\u0026quot;,\n    },\n    Translations: []content.Translation[people.Text]{\n        {\n            Locale: \u0026quot;en\u0026quot;,\n            Text: people.Text{\n                Group: \u0026quot;Board\u0026quot;,\n                Role:  \u0026quot;Chair\u0026quot;,\n            },\n        },\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, person.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/lists\"\u003eLists\u003c/a\u003e suits short entries without pages of their own, such as services or steps.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/directory\"\u003eDirectory\u003c/a\u003e lists organisations and places with opening hours.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": false,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": true,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*people.Service"
+  },
+  "Admin": [
+    {
+      "ID": "team",
+      "Title": "Team",
+      "Path": "/admin/team",
+      "Permission": "team",
+      "Icon": "users",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New person",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "person",
+      "Method": "GET",
+      "Path": "/{slug}"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.team.people",
+      "Method": "GET",
+      "Path": "/api/v1/team/people"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.team.person",
+      "Method": "GET",
+      "Path": "/api/v1/team/people/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "people",
+      "Signature": "people(key string) []Person",
+      "Doc": "\u003cp\u003eall returns the published people of an instance in their order, for\nexample {{range people \u0026quot;team\u0026quot;}}.\n"
+    },
+    {
+      "Name": "peopleIn",
+      "Signature": "peopleIn(key, group string) []Person",
+      "Doc": "\u003cp\u003einGroup returns the published people of one group, for example\n{{range peopleIn \u0026quot;team\u0026quot; \u0026quot;Board\u0026quot;}}.\n"
+    },
+    {
+      "Name": "person",
+      "Signature": "person(key, slug string) *Person",
+      "Doc": "\u003cp\u003ebySlug returns one published person, or nil, for example\n{{with person \u0026quot;team\u0026quot; \u0026quot;jane-doe\u0026quot;}}{{.Name}}{{end}}.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "team/list.gohtml",
+        "people/list.gohtml"
+      ],
+      "DataType": "people.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "People",
+          "Type": "[]people.Person",
+          "Doc": "People are all published people in their order.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Group",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Role",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Bio",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Phone",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhoneURL",
+              "Type": "template.URL",
+              "Doc": "PhoneURL is a tel: link for Phone, empty without a phone number.",
+              "Fields": null
+            },
+            {
+              "Name": "Website",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "LinkedIn",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoURL",
+              "Type": "string",
+              "Doc": "PhotoURL is the photo as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); PhotoSrcset lists smaller copies for a srcset attribute, PhotoWidth and PhotoHeight are the size of PhotoURL and PhotoOriginalURL is the uploaded file, for downloads. All are empty when the person has no photo.",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the person's page, empty when the module is not mounted.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Groups",
+          "Type": "[]people.Group",
+          "Doc": "Groups hold the same people grouped by Group, in order of the first person of each group. People without a group form a group without name.",
+          "Fields": [
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "People",
+              "Type": "[]people.Person",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Slug",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Group",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Role",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Bio",
+                  "Type": "template.HTML",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Email",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Phone",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhoneURL",
+                  "Type": "template.URL",
+                  "Doc": "PhoneURL is a tel: link for Phone, empty without a phone number.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Website",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "LinkedIn",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhotoURL",
+                  "Type": "string",
+                  "Doc": "PhotoURL is the photo as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); PhotoSrcset lists smaller copies for a srcset attribute, PhotoWidth and PhotoHeight are the size of PhotoURL and PhotoOriginalURL is the uploaded file, for downloads. All are empty when the person has no photo.",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhotoSrcset",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhotoOriginalURL",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhotoWidth",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "PhotoHeight",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "URL is the person's page, empty when the module is not mounted.",
+                  "Fields": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/people.ListView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{range .People}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Group}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Role}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            \u003cdiv\u003e{{.Bio}}\u003c/div\u003e\n            {{with .Email}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Phone}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .PhoneURL}}\u003ca href=\"{{.}}\"\u003ePhoneURL\u003c/a\u003e{{end}}\n            {{with .Website}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .LinkedIn}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{if .PhotoURL}}\u003cimg src=\"{{.PhotoURL}}\"{{with .PhotoSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n            {{/* PhotoOriginalURL: {{.PhotoOriginalURL}} — the uploaded file, for a download link */}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{range .Groups}}\n        \u003carticle\u003e\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{range .People}}\n                \u003carticle\u003e\n                \u003c/article\u003e\n            {{end}}\n        \u003c/article\u003e\n    {{end}}\n\u003c/main\u003e"
+    },
+    {
+      "Name": "person",
+      "Files": [
+        "team/person.gohtml",
+        "people/person.gohtml"
+      ],
+      "DataType": "people.Person",
+      "Fields": [
+        {
+          "Name": "ID",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Slug",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Group",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Role",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Bio",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Email",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Phone",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PhoneURL",
+          "Type": "template.URL",
+          "Doc": "PhoneURL is a tel: link for Phone, empty without a phone number.",
+          "Fields": null
+        },
+        {
+          "Name": "Website",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "LinkedIn",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PhotoURL",
+          "Type": "string",
+          "Doc": "PhotoURL is the photo as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); PhotoSrcset lists smaller copies for a srcset attribute, PhotoWidth and PhotoHeight are the size of PhotoURL and PhotoOriginalURL is the uploaded file, for downloads. All are empty when the person has no photo.",
+          "Fields": null
+        },
+        {
+          "Name": "PhotoSrcset",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PhotoOriginalURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PhotoWidth",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PhotoHeight",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the person's page, empty when the module is not mounted.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/people.Person */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n    {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Group}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Role}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    \u003cdiv\u003e{{.Bio}}\u003c/div\u003e\n    {{with .Email}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Phone}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .PhoneURL}}\u003ca href=\"{{.}}\"\u003ePhoneURL\u003c/a\u003e{{end}}\n    {{with .Website}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .LinkedIn}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{if .PhotoURL}}\u003cimg src=\"{{.PhotoURL}}\"{{with .PhotoSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n    {{/* PhotoOriginalURL: {{.PhotoOriginalURL}} — the uploaded file, for a download link */}}\n    {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- People are a collection (see package content). The slug is the same in every\n-- language and unique per instance.\nCREATE TABLE wt_person (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    slug       VARCHAR(190) NOT NULL,\n    name       VARCHAR(200) NOT NULL DEFAULT '',\n    photo_id   UUID,\n    email      VARCHAR(254) NOT NULL DEFAULT '',\n    phone      VARCHAR(50) NOT NULL DEFAULT '',\n    website    VARCHAR(500) NOT NULL DEFAULT '',\n    linkedin   VARCHAR(500) NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_person_instance ON wt_person (instance, position);\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_person_slug ON wt_person (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE TABLE wt_person_translation (\n    item_id    UUID NOT NULL REFERENCES wt_person (id) ON DELETE CASCADE,\n    locale     VARCHAR(35) NOT NULL,\n    group_name VARCHAR(200) NOT NULL DEFAULT '',\n    role_title VARCHAR(200) NOT NULL DEFAULT '',\n    bio        TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- People are a collection (see package content). The slug is the same in every\n-- language and unique per instance.\nCREATE TABLE wt_person (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    slug       TEXT NOT NULL,\n    name       TEXT NOT NULL DEFAULT '',\n    photo_id   TEXT,\n    email      TEXT NOT NULL DEFAULT '',\n    phone      TEXT NOT NULL DEFAULT '',\n    website    TEXT NOT NULL DEFAULT '',\n    linkedin   TEXT NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_person_instance ON wt_person (instance, position);\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_person_slug ON wt_person (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE TABLE wt_person_translation (\n    item_id    TEXT NOT NULL REFERENCES wt_person (id) ON DELETE CASCADE,\n    locale     TEXT NOT NULL,\n    group_name TEXT NOT NULL DEFAULT '',\n    role_title TEXT NOT NULL DEFAULT '',\n    bio        TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- People are a collection (see package content). The slug is the same in every\n-- language and unique per instance.\nCREATE TABLE wt_person (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    slug       VARCHAR(190) NOT NULL,\n    -- Deleted rows keep no slug: MySQL has no partial indexes, but allows\n    -- many NULLs in a unique one.\n    live_slug  VARCHAR(190) AS (CASE WHEN deleted_at IS NULL THEN slug END) STORED,\n    name       VARCHAR(200) NOT NULL DEFAULT '',\n    photo_id   VARCHAR(36) NULL,\n    email      VARCHAR(254) NOT NULL DEFAULT '',\n    phone      VARCHAR(50) NOT NULL DEFAULT '',\n    website    VARCHAR(500) NOT NULL DEFAULT '',\n    linkedin   VARCHAR(500) NOT NULL DEFAULT '',\n    INDEX wt_person_instance (instance, position),\n    UNIQUE INDEX wt_person_slug (instance, live_slug)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_person_translation (\n    item_id    VARCHAR(36) NOT NULL,\n    locale     VARCHAR(35) NOT NULL,\n    group_name VARCHAR(200) NOT NULL DEFAULT '',\n    role_title VARCHAR(200) NOT NULL DEFAULT '',\n    bio        MEDIUMTEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_person (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_person",
+      "Note": "People are a collection (see package content). The slug is the same in every language and unique per instance.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "photo_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "phone",
+          "Type": "VARCHAR(50)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "website",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "linkedin",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_person_instance (instance, position)",
+        "UNIQUE INDEX wt_person_slug (instance, slug)"
+      ]
+    },
+    {
+      "Name": "wt_person_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_person (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "group_name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "role_title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "bio",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "BySlug",
+        "Signature": "func (s *Service) BySlug(ctx context.Context, locale, slug string) (Person, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "InGroup",
+        "Signature": "func (s *Service) InGroup(ctx context.Context, locale, group string) ([]Person, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "List",
+        "Signature": "func (s *Service) List(ctx context.Context, locale string) ([]Person, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APIPerson",
+        "Doc": "\u003cp\u003eAPIPerson is a published person in the content API (see package api), at\n/api/v1/\u0026lt;key\u0026gt;/people/{id} and in the list of /api/v1/\u0026lt;key\u0026gt;/people, which\nleaves out BioHTML. The contact details are those the person\u0026apos;s page\nshows, also in its structured data; each is null when not given.\n",
+        "Fields": null,
+        "Decl": "type APIPerson struct {\n\tID    string `json:\"id\"`\n\tSlug  string `json:\"slug\"`\n\tName  string `json:\"name\"`\n\tGroup string `json:\"group\"`\n\tRole  string `json:\"role\"`\n\t// BioHTML is the biography as HTML (api.HTML); only the person's own\n\t// endpoint has it.\n\tBioHTML  string     `json:\"bio_html,omitempty\"`\n\tPhoto    *api.Image `json:\"photo\"`\n\tEmail    *string    `json:\"email\"`\n\tPhone    *string    `json:\"phone\"`\n\tWebsite  *string    `json:\"website\"`\n\tLinkedIn *string    `json:\"linkedin\"`\n\t// URL is the person's page, null while the instance is on no page;\n\t// APIURL the person in the API.\n\tURL       *string   `json:\"url\"`\n\tAPIURL    string    `json:\"api_url\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of a person.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tSlug     string `db:\"slug\"`\n\tName     string `db:\"name\"`\n\tPhoto    string `db:\"photo_id,null\"`\n\tEmail    string `db:\"email\"`\n\tPhone    string `db:\"phone\"`\n\tWebsite  string `db:\"website\"`\n\tLinkedIn string `db:\"linkedin\"`\n}"
+      },
+      {
+        "Name": "Group",
+        "Doc": "\u003cp\u003eGroup is a group of people with the same Group name, in list order.\n",
+        "Fields": null,
+        "Decl": "type Group struct {\n\tName   string\n\tPeople []Person\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a person with their translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of people/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is mounted on.\n\tTitle string\n\t// People are all published people in their order.\n\tPeople []Person\n\t// Groups hold the same people grouped by Group, in order of the first\n\t// person of each group. People without a group form a group without name.\n\tGroups []Group\n}"
+      },
+      {
+        "Name": "Person",
+        "Doc": "\u003cp\u003ePerson is a published person as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Person struct {\n\tID    string\n\tSlug  string\n\tName  string\n\tGroup string\n\tRole  string\n\tBio   template.HTML\n\tEmail string\n\tPhone string\n\t// PhoneURL is a tel: link for Phone, empty without a phone number.\n\tPhoneURL template.URL\n\tWebsite  string\n\tLinkedIn string\n\t// PhotoURL is the photo as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); PhotoSrcset lists smaller\n\t// copies for a srcset attribute, PhotoWidth and PhotoHeight are the\n\t// size of PhotoURL and PhotoOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the person has no photo.\n\tPhotoURL         string\n\tPhotoSrcset      string\n\tPhotoOriginalURL string\n\tPhotoWidth       int\n\tPhotoHeight      int\n\t// URL is the person's page, empty when the module is not mounted.\n\tURL string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one People instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a person in one language. Bio is Markdown.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tGroup string `db:\"group_name\"`\n\tRole  string `db:\"role_title\"`\n\tBio   string `db:\"bio\"`\n}"
+      }
+    ]
+  }
+}

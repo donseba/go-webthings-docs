@@ -1,0 +1,51 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <p>Every module owns its schema, recorded as <code>{{ .Module.Type }}</code> in <code>wt_schema</code>. When the app starts it runs the migrations newer than the recorded version, in the flavour of the configured database: SQLite, PostgreSQL or MySQL. All instances of the module share its tables; rows carry the instance key.</p>
+
+    <h2 id="tables">Tables</h2>
+    {{ if .Module.Tables }}
+        {{ range .Module.Tables }}
+            <h3 id="table-{{ .Name }}"><code>{{ .Name }}</code></h3>
+            {{ with .Note }}<p>{{ . }}</p>{{ end }}
+            <div class="module-table"><table>
+                <thead>
+                    <tr><th>Column</th><th>Type</th><th>Constraints</th></tr>
+                </thead>
+                <tbody>
+                    {{ range .Columns }}
+                        <tr><td><code>{{ .Name }}</code></td><td><code>{{ .Type }}</code></td><td>{{ .Notes }}</td></tr>
+                    {{ end }}
+                </tbody>
+            </table>
+            {{ with .Indexes }}
+                <div class="module-table-foot">
+                    <span>keys</span>
+                    {{ range . }}<code>{{ . }}</code>{{ end }}
+                </div>
+            {{ end }}
+            </div>
+        {{ end }}
+        <p>Column types are those of PostgreSQL; the other flavours use their equivalents.</p>
+    {{ else }}
+        <p>The module creates no tables.</p>
+    {{ end }}
+
+    <h2 id="migrations">Migrations</h2>
+    {{ if .Module.Migrations }}
+        {{ range .Module.Migrations }}
+            <h3 id="migration-{{ .Version }}"><code>{{ .Version }}</code>{{ with .Description }} {{ . }}{{ end }}</h3>
+            {{ range .SQL }}
+                <details class="module-details">
+                    <summary>{{ .Name }} <span class="module-type">{{ .File }}</span></summary>
+                    <pre><code>{{ .SQL }}</code></pre>
+                </details>
+            {{ end }}
+        {{ end }}
+    {{ else }}
+        <p>The module has no migrations.</p>
+    {{ end }}
+
+    {{ template "module_pager.gohtml" . }}
+</article>

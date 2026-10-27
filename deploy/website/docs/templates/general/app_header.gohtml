@@ -2,26 +2,17 @@
 @dot donseba/go-webthings-docs/internal/website.DocsHeaderPage
 */}}
 {{ define "header.gohtml" }}
-<header id="app-header" class="sticky top-0 z-50 flex min-h-16 items-center justify-between gap-5 border-b border-slate-800 bg-[#0b111a]/95 px-6 py-2.5 shadow-sm max-[900px]:flex-col max-[900px]:items-start"{{ oobAttr }}>
-    <a class="inline-flex min-w-52 items-center gap-3 text-slate-50 no-underline" href="{{ .BasePath }}" hx-get="{{ .BasePath }}" hx-target="#content" hx-push-url="true">
-        <span class="inline-flex h-9 w-auto min-w-0 items-center justify-center">
-            {{ if .LogoImage }}
-                <img class="block h-9 w-auto object-contain" src="{{ .LogoImage }}" alt="" height="36">
-            {{ else }}
-                {{ .Logo }}
-            {{ end }}
-        </span>
+<header id="app-header" class="sticky top-0 z-50 flex min-h-16 items-center justify-between gap-5 border-b border-slate-800 bg-[#0b111a]/95 px-6 py-2.5 shadow-sm max-[900px]:static max-[900px]:flex-col max-[900px]:items-start"{{ oobAttr }}>
+    <a class="inline-flex min-w-52 items-center gap-3 text-slate-50 no-underline" href="/" hx-get="/" hx-target="#content" hx-push-url="true">
+        <img class="block h-9 w-auto object-contain" src="{{ .LogoImage }}" alt="" height="36">
         <span>
             <strong class="block font-mono text-sm font-bold uppercase tracking-wide text-slate-50">{{ .Title }}</strong>
             <small class="block text-[11px] uppercase tracking-wide text-slate-500">{{ .Subtitle }}</small>
         </span>
     </a>
     <nav class="flex flex-wrap items-center gap-2" aria-label="Website sections">
-        <a class="min-h-9 border border-slate-700 bg-[#0f172a]/50 px-3 py-2 font-mono text-sm lowercase text-slate-400 hover:border-slate-500 hover:bg-slate-800/80 hover:text-slate-100" href="{{ .MainURL }}">webthings</a>
-        <a class="min-h-9 border border-slate-700 bg-[#0f172a]/50 px-3 py-2 font-mono text-sm lowercase text-slate-400 hover:border-slate-500 hover:bg-slate-800/80 hover:text-slate-100" href="{{ .ShowcaseURL }}">showcase</a>
-        <span class="block h-9 w-1 shrink-0 bg-sky-400" aria-hidden="true"></span>
-        {{ range .Elements }}
-        <a class="relative min-h-9 border px-3 py-2 font-mono text-sm lowercase hover:border-slate-500 hover:bg-slate-800/80 hover:text-slate-100 {{ if eq $.AppName .Slug }}active border-slate-500 bg-slate-800 font-bold text-slate-50{{ else }}border-slate-700 bg-[#0f172a]/45 text-slate-400{{ end }}" href="{{ .Link }}" hx-get="{{ .Link }}" hx-target="#content" hx-push-url="true"{{ if eq $.AppName .Slug }} aria-current="page"{{ end }}>{{ .Slug }}</a>
+        {{ range .Links }}
+        <a class="min-h-9 border px-3 py-2 font-mono text-sm lowercase hover:border-slate-500 hover:bg-slate-800/80 hover:text-slate-100 {{ if .Active }}border-slate-500 bg-slate-800 font-bold text-slate-50{{ else }}border-slate-700 bg-[#0f172a]/50 text-slate-400{{ end }}" href="{{ .URL }}"{{ if .Active }} aria-current="true"{{ end }}>{{ .Label }}</a>
         {{ end }}
         <span class="block h-9 w-1 shrink-0 bg-sky-400" aria-hidden="true"></span>
         <a class="min-h-9 border border-slate-700 bg-[#0f172a]/45 px-3 py-2 font-mono text-sm lowercase text-slate-400 hover:border-slate-500 hover:bg-slate-800/80 hover:text-slate-100" href="{{ .GitHubURL }}" target="_blank">github</a>

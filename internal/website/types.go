@@ -22,6 +22,8 @@ var (
 	goClueDocs    = mustNewGoClueDocs()
 	goRouterDocs  = mustNewGoRouterDocs()
 	componentDocs = newComponentDocs()
+	moduleSite    = newModulesSite()
+	guideDocs     = newGuidesSite()
 )
 
 type Section string
@@ -30,6 +32,7 @@ const (
 	SectionMain     Section = "main"
 	SectionDocs     Section = "docs"
 	SectionShowcase Section = "showcase"
+	SectionModules  Section = "modules"
 )
 
 type Element struct {
@@ -57,6 +60,8 @@ type PageData struct {
 	Element          *Element
 	Elements         []Element
 	Components       []Component
+	ModuleGroups     []ModuleGroup
+	ModulesURL       string
 	Production       string
 	Local            string
 	Description      string

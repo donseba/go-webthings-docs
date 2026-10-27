@@ -1,0 +1,33 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulesIndexData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <p>A module is a Go package that adds one capability to a go-webthings site. Add an instance with a key and a title, and the site gets its admin sections, the pages it serves below the page an editor places it on, template functions for every template, and its own database tables.</p>
+    <pre><code>app.Use(
+    publishing.Module("news", "News"),
+    events.Module("agenda", "Agenda"),
+    gallery.Module("photos", "Photos"),
+)</code></pre>
+    <p>The key names the instance everywhere: admin addresses (<code>/admin/news</code>), template folders (<code>news/post.gohtml</code>), template functions (<code>{{ "{{" }}range posts "news" 3{{ "}}" }}</code>) and, for a module with visitor forms, its actions, such as <code>/_/remarks/</code> for the comments instance <code>remarks</code>. One module can run as several instances, such as <code>news</code> and <code>blog</code>, each with its own content.</p>
+    <p>The modules below live in <a class="text-sky-300 hover:text-sky-200" href="https://github.com/donseba/go-webthings/tree/main/modules">go-webthings/modules</a>. They use only the public API of go-webthings, so a module of your own, such as a webshop, can do everything they do.</p>
+
+    {{ range .Groups }}
+        <h2 id="{{ .Name }}">{{ .Name }}</h2>
+        <p>{{ .Intro }}</p>
+        <section class="module-grid" aria-label="{{ .Name }} modules">
+            {{ range .Modules }}
+                <a class="module-card" href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true">
+                    <span class="module-card-head">
+                        <span class="module-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="/assets/img/icons.svg#{{ .Icon }}"></use></svg></span>
+                        <strong>{{ .Name }}</strong>
+                    </span>
+                    <span class="module-card-summary">{{ .Summary }}</span>
+                    <span class="module-facts">
+                        {{ if .Deprecated }}<span class="module-fact-warning">going away</span>{{ end }}
+                        {{ range .Facts }}<span>{{ . }}</span>{{ end }}
+                    </span>
+                </a>
+            {{ end }}
+        </section>
+    {{ end }}
+</article>

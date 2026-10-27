@@ -12,6 +12,8 @@ func TestErrorSectionRendersGoPartialErrorCard(t *testing.T) {
 	handler := NewHandler(os.DirFS("../../deploy/website/showcase"))
 	req := httptest.NewRequest(http.MethodGet, "/error/section", nil)
 	req.Header.Set("HX-Request", "true")
+	req.Header.Set("HX-Request-Type", "partial")
+	req.Header.Set("HX-Target", "div#broken-section")
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)

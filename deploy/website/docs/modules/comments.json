@@ -1,0 +1,896 @@
+{
+  "Slug": "comments",
+  "Name": "Comments",
+  "Group": "Visitors",
+  "Summary": "Comments below posts, events or pages, and guestbooks. New messages wait for approval unless moderation is off, and staff can reply from the admin.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/comments",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/comments",
+  "Type": "comments",
+  "Example": {
+    "Key": "guestbook",
+    "Title": "Guestbook",
+    "Code": "app.Use(comments.Module(\"guestbook\", \"Guestbook\"))"
+  },
+  "Guide": "\u003cp\u003eEvery message belongs to a subject: a text the template chooses, such as a post ID, a page ID or a fixed word. Add an instance per kind of conversation; each has its own messages, settings and admin section.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    comments.Module(\u0026quot;guestbook\u0026quot;, \u0026quot;Guestbook\u0026quot;),\n    comments.Module(\u0026quot;remarks\u0026quot;, \u0026quot;Comments\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003eguestbook\u003c/code\u003e) is the instance's name in URLs and template functions and must be unique on the site. The title (\u003ccode\u003eGuestbook\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"comments-below-content\"\u003eComments below content\u003c/h2\u003e\n\u003cp\u003eComments attach to anything with an ID through the template functions; the instance needs no page of its own. Below a post in \u003ccode\u003enews/post.gohtml\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{commentThread \u0026quot;remarks\u0026quot; .ID}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003ecommentThread\u003c/code\u003e renders the approved comments on that subject, oldest first with their replies, followed by the form. \u003ccode\u003e{{commentForm \u0026quot;remarks\u0026quot; .ID}}\u003c/code\u003e renders only the form, and \u003ccode\u003e{{commentCount \u0026quot;remarks\u0026quot; .ID}}\u003c/code\u003e counts the approved comments and replies, for example next to titles in a list.\u003c/p\u003e\n\u003cp\u003eBoth come with plain, accessible default markup. A theme replaces them with \u003ccode\u003eremarks/thread.gohtml\u003c/code\u003e and \u003ccode\u003eremarks/form.gohtml\u003c/code\u003e, or \u003ccode\u003ecomments/thread.gohtml\u003c/code\u003e and \u003ccode\u003ecomments/form.gohtml\u003c/code\u003e for every instance; \u003ccode\u003etask templates -- remarks\u003c/code\u003e writes the defaults to start from. They use stable \u003ccode\u003ewt-*\u003c/code\u003e classes (\u003ccode\u003ewt-comments\u003c/code\u003e, \u003ccode\u003ewt-comment\u003c/code\u003e, \u003ccode\u003ewt-comment--staff\u003c/code\u003e, …), laid out by the optional stylesheet \u003ccode\u003ewebthings.css\u003c/code\u003e, which the layout links with \u003ccode\u003e{{styles \u0026quot;webthings.css\u0026quot; \u0026quot;site.css\u0026quot;}}\u003c/code\u003e (see \u003ca href=\"wt-docs:/go-webthings/themes#the-base-stylesheet\"\u003eThe base stylesheet\u003c/a\u003e). Their texts go through \u003ccode\u003etl\u003c/code\u003e, so the site's translations translate them.\u003c/p\u003e\n\u003cp\u003eFor markup of your own, \u003ccode\u003ecomments\u003c/code\u003e returns the approved comments, \u003ccode\u003ecommentURL\u003c/code\u003e the address the form posts to, \u003ccode\u003ecommentInput\u003c/code\u003e the form's model for a subject, \u003ccode\u003ecommentResult\u003c/code\u003e the outcome of the visitor's last post and \u003ccode\u003ecommentsClosed\u003c/code\u003e whether new comments are refused:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range comments \u0026quot;remarks\u0026quot; .ID}}\n    \u0026lt;article\u0026gt;\n        \u0026lt;strong\u0026gt;{{.Name}}\u0026lt;/strong\u0026gt; {{date .CreatedAt}}\n        {{.HTML}}\n\n        {{range .Replies}}\n            \u0026lt;blockquote\u0026gt;{{if .Staff}}Reply from the site:{{else}}{{.Name}}:{{end}} {{.HTML}}\u0026lt;/blockquote\u0026gt;\n        {{end}}\n    \u0026lt;/article\u0026gt;\n{{end}}\n\n\u0026lt;div id=\u0026quot;remarks\u0026quot;\u0026gt;\n    {{with commentResult \u0026quot;remarks\u0026quot;}}\u0026lt;p class=\u0026quot;notice\u0026quot;\u0026gt;{{.}}\u0026lt;/p\u0026gt;{{end}}\n\n    {{if not (commentsClosed \u0026quot;remarks\u0026quot;)}}\n        {{with commentInput \u0026quot;remarks\u0026quot; .ID}}\n            {{form_open .}}\n                {{form_field . \u0026quot;subject\u0026quot; nil}}\n                {{form_field . \u0026quot;name\u0026quot; nil}}\n                {{form_field . \u0026quot;email\u0026quot; nil}}\n                {{form_field . \u0026quot;body\u0026quot; nil}}\n                \u0026lt;button\u0026gt;Send\u0026lt;/button\u0026gt;\n            {{form_close}}\n        {{end}}\n    {{end}}\n\u0026lt;/div\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eHTML\u003c/code\u003e is the message escaped, with its paragraphs and line breaks. \u003ccode\u003eCreatedAt\u003c/code\u003e is in UTC; \u003ccode\u003e{{date .CreatedAt}}\u003c/code\u003e shows it in the page's language and the site's timezone.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eform_open\u003c/code\u003e writes the form tag, posting to \u003ccode\u003ecommentURL\u003c/code\u003e, with the spam trap and the page to return to: the element whose id is the instance key, here \u003ccode\u003eremarks\u003c/code\u003e. \u003ccode\u003eform_field\u003c/code\u003e renders one field of the form by its key, with its label, its limits (\u003ccode\u003erequired\u003c/code\u003e, \u003ccode\u003emaxlength\u003c/code\u003e) and its help text, translated with the site's translations and in the site's form theme; \u003ccode\u003esubject\u003c/code\u003e is a hidden field with the subject. The fields' ids start with the key, such as \u003ccode\u003eremarks-name\u003c/code\u003e. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e. Inputs written by hand with the same names work too.\u003c/p\u003e\n\u003ch2 id=\"guestbook-page\"\u003eGuestbook page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page renders \u003ccode\u003eguestbook/list.gohtml\u003c/code\u003e, or \u003ccode\u003ecomments/list.gohtml\u003c/code\u003e for every instance without a design of its own, with a \u003ccode\u003ecomments.ListView\u003c/code\u003e: the approved messages of the instance, newest first, 20 per page. \u003ccode\u003e.Form\u003c/code\u003e is the form, with \u003ccode\u003e.Subject\u003c/code\u003e, the instance key, as its subject: \u003ccode\u003e{{form_open .Form}}\u003c/code\u003e with \u003ccode\u003eform_field\u003c/code\u003e per field, \u003ccode\u003esubject\u003c/code\u003e included, returns the visitor to the element whose id is \u003ccode\u003e.Key\u003c/code\u003e. The pager's \u003ccode\u003e.NewerURL\u003c/code\u003e and \u003ccode\u003e.OlderURL\u003c/code\u003e are the page's address with \u003ccode\u003e?page=\u003c/code\u003e, such as \u003ccode\u003e/en/guestbook?page=2\u003c/code\u003e. Generate a starting point with:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- guestbook\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe form component works here too:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/comments.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{commentForm .Key .Subject}}\n\n{{range .Comments}}\n    \u0026lt;article\u0026gt;\n        \u0026lt;p\u0026gt;\u0026lt;strong\u0026gt;{{.Name}}\u0026lt;/strong\u0026gt; · {{date .CreatedAt}}\u0026lt;/p\u0026gt;\n        {{.HTML}}\n    \u0026lt;/article\u0026gt;\n{{end}}\n\n{{with .NewerURL}}\u0026lt;a href=\u0026quot;{{.}}\u0026quot;\u0026gt;Newer\u0026lt;/a\u0026gt;{{end}}\n{{with .OlderURL}}\u0026lt;a href=\u0026quot;{{.}}\u0026quot;\u0026gt;Older\u0026lt;/a\u0026gt;{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe page lists the messages of every subject of the instance, so keep a guestbook apart from the comments below posts.\u003c/p\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eThe form posts to \u003ccode\u003e/_/\u0026lt;key\u0026gt;/post\u003c/code\u003e (\u003ccode\u003e{{commentURL \u0026quot;remarks\u0026quot;}}\u003c/code\u003e) with the fields of \u003ccode\u003ecomments.PostInput\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003esubject\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003erequired, one line, at most 200 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ename\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003erequired, one line, at most 100 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eemail\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eoptional; never shown on the website\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ebody\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003erequired, plain text, at most 5,000 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eparent\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eoptional: the ID of the comment to answer; a reply to a reply joins the same thread\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003e\u003ccode\u003eform_open\u003c/code\u003e adds the spam trap and the page to return to, the element whose id is the instance key. The visitor comes back with \u003ccode\u003e?\u0026lt;key\u0026gt;=\u0026lt;result\u0026gt;\u003c/code\u003e, which \u003ccode\u003ecommentResult\u003c/code\u003e and the form component read:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003esent\u003c/code\u003e: the message is shown right away;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003epending\u003c/code\u003e: it waits for approval;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003einvalid\u003c/code\u003e: a field is missing, too long or not on one line;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eclosed\u003c/code\u003e: the instance was closed for new messages when the visitor posted; the form component says so even after it opens again;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ethrottled\u003c/code\u003e: the visitor posted more than 5 times in 10 minutes.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eWith \u003ccode\u003einvalid\u003c/code\u003e, the form shows what the visitor wrote again, with a message in the page's language at each field to correct. The components and \u003ccode\u003eform_field\u003c/code\u003e do this without a change to the template; inputs written by hand do not. Of several comment forms on one page, only the one for the subject the visitor wrote on shows it. See \u003ca href=\"wt-docs:/go-webthings/visitor-forms#a-post-with-mistakes\"\u003eA post with mistakes\u003c/a\u003e. A post that cannot be saved, such as when the database cannot be reached, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e, also with HTMX.\u003c/p\u003e\n\u003cp\u003eBots that fill in the spam trap get the answer a person would get; nothing is stored. A post that stores nothing, spam, \u003ccode\u003einvalid\u003c/code\u003e, \u003ccode\u003eclosed\u003c/code\u003e or \u003ccode\u003ethrottled\u003c/code\u003e, leaves the pages in the site's output cache as they are; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e. The message's language is the language of the page it was written on. Visitors' IP addresses are never stored: a hash that changes daily lets moderators spot a flood from one sender.\u003c/p\u003e\n\u003ch2 id=\"moderation\"\u003eModeration\u003c/h2\u003e\n\u003cp\u003eThe instance's admin section (\u003ccode\u003e/admin/remarks\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) lists the messages newest first, grouped by subject, with tabs for pending, approved and all messages. A group is headed by the title of the published content on the page its messages were written on, such as a post's title, with the page's address below it; when messages were written in several languages, the page in the admin's language wins. Without published content there the heading is the address, and a guestbook's is the instance's title. Each message shows the name, the e-mail address, the language, the page it was written on and a short sender code. The badge in the navigation counts the messages that are not shown.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eApprove\u003c/strong\u003e shows a message, \u003cstrong\u003eHide\u003c/strong\u003e takes it off the website again, after the question \u0026quot;Take this off the website?\u0026quot;. Both need the publish right.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eReply\u003c/strong\u003e adds a staff reply, shown at once and marked as \u003ccode\u003eStaff\u003c/code\u003e. It is signed with the site title in the comment's language (or the organisation, or the editor's name) and approves the comment it answers. It needs the create right.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a message and its replies to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where they can be restored or deleted for good; restoring the message brings its replies back with it. It needs the delete right. A reply deleted on its own cannot be restored while the message it answers is in the trash.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eUnder \u003cstrong\u003eSettings\u003c/strong\u003e, editors with the edit right switch \u003cstrong\u003eApprove messages before they are shown\u003c/strong\u003e (on by default), close the instance with \u003cstrong\u003eClosed for new messages\u003c/strong\u003e, and set a \u003cstrong\u003eNotification address\u003c/strong\u003e.\u003c/p\u003e\n\u003ch2 id=\"e-mail\"\u003eE-mail\u003c/h2\u003e\n\u003cp\u003eWith a notification address, every new message from a visitor is mailed there in the admin's language: the name and address, the message, the page it was written on, whether it waits for approval, and a link to the admin. Replying to the mail answers the visitor when they gave an address.\u003c/p\u003e\n\u003cp\u003eThe mail is the template \u003ccode\u003enotify\u003c/code\u003e, with a \u003ccode\u003ecomments.NotifyView\u003c/code\u003e. A theme replaces it with \u003ccode\u003email/remarks/notify.gohtml\u003c/code\u003e, or \u003ccode\u003email/comments/notify.gohtml\u003c/code\u003e for every instance; \u003ccode\u003etask templates -- remarks\u003c/code\u003e writes the default there.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003ecomments.Of(app, \u0026quot;remarks\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eremarks := comments.Of(app, \u0026quot;remarks\u0026quot;)\n\nlist, err := remarks.List(ctx, postID)\ncount, err := remarks.Count(ctx, postID)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eAdd\u003c/code\u003e stores a message after the same checks as the form, for example in an import; \u003ccode\u003eReply\u003c/code\u003e, \u003ccode\u003eApprove\u003c/code\u003e and \u003ccode\u003eDelete\u003c/code\u003e do what the admin does, and \u003ccode\u003eUndelete\u003c/code\u003e and \u003ccode\u003ePurge\u003c/code\u003e bring a deleted message back or remove it for good. What they change shows on the site at once, also on pages in the site's output cache; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e. \u003ccode\u003eCreatedAt\u003c/code\u003e keeps the original date; zero means now. A reply passes the ID of the comment \u003ccode\u003eAdd\u003c/code\u003e returned as \u003ccode\u003eParentID\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003ecomment, err := remarks.Add(ctx, comments.Entry{\n    Subject:   postID,\n    Name:      \u0026quot;Anna\u0026quot;,\n    Body:      \u0026quot;Great to see the playground open again.\u0026quot;,\n    Locale:    \u0026quot;en\u0026quot;,\n    Approved:  true,\n    CreatedAt: written,\n})\n\nreply, err := remarks.Add(ctx, comments.Entry{\n    Subject:  postID,\n    ParentID: comment.ID,\n    Name:     \u0026quot;Ben\u0026quot;,\n    Body:     \u0026quot;The swings are new too.\u0026quot;,\n    Locale:   \u0026quot;en\u0026quot;,\n    Approved: true,\n})\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/publishing\"\u003ePublishing\u003c/a\u003e and \u003ca href=\"/events\"\u003eEvents\u003c/a\u003e give comments a subject: a post's or event's \u003ccode\u003eID\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/registrations\"\u003eRegistrations\u003c/a\u003e attaches sign-ups to events in the same way.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/forms\"\u003eForms\u003c/a\u003e receives messages for the site's staff only, with an inbox.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*comments.Service"
+  },
+  "Admin": [
+    {
+      "ID": "guestbook",
+      "Title": "Guestbook",
+      "Path": "/admin/guestbook",
+      "Permission": "guestbook",
+      "Icon": "megaphone",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": true,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": {
+    "Name": "Settings",
+    "Doc": "\u003cp\u003eSettings are the options of one instance.\n",
+    "Fields": [
+      {
+        "Name": "Moderated",
+        "Type": "bool",
+        "Doc": "Moderated hides new messages until they are approved.",
+        "Fields": null
+      },
+      {
+        "Name": "Closed",
+        "Type": "bool",
+        "Doc": "Closed refuses new messages.",
+        "Fields": null
+      },
+      {
+        "Name": "Notify",
+        "Type": "string",
+        "Doc": "Notify receives an e-mail for every new message when set.",
+        "Fields": null
+      }
+    ],
+    "Decl": "type Settings struct {\n\t// Moderated hides new messages until they are approved.\n\tModerated bool `db:\"moderated\"`\n\t// Closed refuses new messages.\n\tClosed bool `db:\"closed\"`\n\t// Notify receives an e-mail for every new message when set.\n\tNotify string `db:\"notify\"`\n}"
+  },
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "action",
+      "Name": "guestbook.post",
+      "Method": "POST",
+      "Path": "/_/guestbook/post"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "commentCount",
+      "Signature": "commentCount(key, subject string) int",
+      "Doc": "\u003cp\u003ecount returns the number of approved comments on subject, for example\n{{commentCount \u0026quot;remarks\u0026quot; .ID}} next to a post title.\n"
+    },
+    {
+      "Name": "commentForm",
+      "Signature": "commentForm(key, subject string) (template.HTML, error)",
+      "Doc": "\u003cp\u003ecommentForm renders the form component, for example {{commentForm\n\u0026quot;guestbook\u0026quot; \u0026quot;guestbook\u0026quot;}} on its own.\n"
+    },
+    {
+      "Name": "commentInput",
+      "Signature": "commentInput(key, subject string) form.RenderModel",
+      "Doc": "\u003cp\u003ecommentInput is the model of the comment form on subject, for a form a\ntheme lays out itself with go-form\u0026apos;s functions, such as {{form_field\n(commentInput \u0026quot;remarks\u0026quot; .ID) \u0026quot;name\u0026quot; nil}}.\n"
+    },
+    {
+      "Name": "commentResult",
+      "Signature": "commentResult(key string) string",
+      "Doc": "\u003cp\u003eresult is the outcome of the visitor\u0026apos;s last post on this page: \u0026quot;sent\u0026quot;,\n\u0026quot;pending\u0026quot;, \u0026quot;invalid\u0026quot;, \u0026quot;closed\u0026quot;, \u0026quot;throttled\u0026quot; or \u0026quot;\u0026quot;.\n"
+    },
+    {
+      "Name": "commentThread",
+      "Signature": "commentThread(key, subject string) (template.HTML, error)",
+      "Doc": "\u003cp\u003ethread renders the thread component, for example {{commentThread\n\u0026quot;remarks\u0026quot; .ID}} below a post.\n"
+    },
+    {
+      "Name": "commentURL",
+      "Signature": "commentURL(key string) string",
+      "Doc": "\u003cp\u003eactionURL is the address comment forms post to, for example\n\u0026lt;form method=\u0026quot;post\u0026quot; action=\u0026quot;{{commentURL \u0026quot;remarks\u0026quot;}}\u0026quot;\u0026gt;, or \u0026quot;\u0026quot; for an\nunknown instance.\n"
+    },
+    {
+      "Name": "comments",
+      "Signature": "comments(key, subject string) []Comment",
+      "Doc": "\u003cp\u003elist returns the approved comments on subject with their replies, for\nexample {{range comments \u0026quot;remarks\u0026quot; .ID}}.\n"
+    },
+    {
+      "Name": "commentsClosed",
+      "Signature": "commentsClosed(key string) bool",
+      "Doc": "\u003cp\u003eclosed reports whether the instance accepts no new comments, so templates\ncan leave out the form.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "guestbook/list.gohtml",
+        "comments/list.gohtml"
+      ],
+      "DataType": "comments.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is placed on.",
+          "Fields": null
+        },
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key, for the template functions.",
+          "Fields": null
+        },
+        {
+          "Name": "Comments",
+          "Type": "[]comments.Comment",
+          "Doc": "Comments are the approved messages of every subject, newest first, with their replies.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Subject",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "Body is the plain text as written.",
+              "Fields": null
+            },
+            {
+              "Name": "HTML",
+              "Type": "template.HTML",
+              "Doc": "HTML is Body escaped, with paragraphs and line breaks.",
+              "Fields": null
+            },
+            {
+              "Name": "Staff",
+              "Type": "bool",
+              "Doc": "Staff is set for replies written in the admin.",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "CreatedAt is in UTC; {{date .CreatedAt}} shows it in the site's timezone.",
+              "Fields": null
+            },
+            {
+              "Name": "Replies",
+              "Type": "[]comments.Comment",
+              "Doc": "Replies are the approved replies, oldest first. Replies have none.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Subject",
+          "Type": "string",
+          "Doc": "Subject is the value of the form's subject field.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the form's model (PostInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"name\" nil}}; it returns the visitor to the element with the id Key.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is the outcome of the visitor's last post: \"sent\", \"pending\", \"invalid\", \"closed\", \"throttled\" or \"\".",
+          "Fields": null
+        },
+        {
+          "Name": "Closed",
+          "Type": "bool",
+          "Doc": "Closed is set when the instance accepts no new messages.",
+          "Fields": null
+        },
+        {
+          "Name": "Moderated",
+          "Type": "bool",
+          "Doc": "Moderated is set when new messages wait for approval.",
+          "Fields": null
+        },
+        {
+          "Name": "NewerURL",
+          "Type": "string",
+          "Doc": "NewerURL and OlderURL page through the messages; empty at either end.",
+          "Fields": null
+        },
+        {
+          "Name": "OlderURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/comments.ListView */}}\n{{/* Starting point generated by WebThings: a guestbook with its form. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{/* The form returns the visitor here, to the element with the id {{.Key}}. */}}\n    \u003csection id=\"{{.Key}}\"\u003e\n        {{if eq .Result \"sent\"}}\u003cp\u003eThank you for your message.\u003c/p\u003e{{end}}\n        {{if eq .Result \"pending\"}}\u003cp\u003eThank you. Your message is shown after approval.\u003c/p\u003e{{end}}\n        {{if eq .Result \"invalid\"}}\u003cp\u003ePlease fill in your name and a message.\u003c/p\u003e{{end}}\n        {{if eq .Result \"throttled\"}}\u003cp\u003eYou posted several messages already. Please try again later.\u003c/p\u003e{{end}}\n        {{if and (eq .Result \"closed\") (not .Closed)}}\u003cp\u003eNew messages were closed when you posted. Please try again.\u003c/p\u003e{{end}}\n\n        {{if .Closed}}\n            \u003cp\u003eNew messages are closed.\u003c/p\u003e\n        {{else}}\n            {{form_open .Form}}\n                {{form_field .Form \"subject\" nil}}\n                {{form_field .Form \"name\" nil}}\n                {{form_field .Form \"email\" nil}}\n                {{form_field .Form \"body\" nil}}\n\n                \u003cbutton type=\"submit\"\u003eSend\u003c/button\u003e\n            {{form_close}}\n        {{end}}\n    \u003c/section\u003e\n\n    {{range .Comments}}\n        \u003carticle id=\"comment-{{.ID}}\"\u003e\n            \u003cp\u003e\u003cstrong\u003e{{.Name}}\u003c/strong\u003e · {{date .CreatedAt}}\u003c/p\u003e\n            {{.HTML}}\n\n            {{range .Replies}}\n                \u003cblockquote\u003e\n                    \u003cp\u003e\u003cstrong\u003e{{if .Staff}}Reply from the site{{else}}{{.Name}}{{end}}\u003c/strong\u003e · {{date .CreatedAt}}\u003c/p\u003e\n                    {{.HTML}}\n                \u003c/blockquote\u003e\n            {{end}}\n        \u003c/article\u003e\n    {{else}}\n        \u003cp\u003eNo messages yet.\u003c/p\u003e\n    {{end}}\n\n    \u003cnav\u003e\n        {{with .NewerURL}}\u003ca href=\"{{.}}\"\u003eNewer\u003c/a\u003e{{end}}\n        {{with .OlderURL}}\u003ca href=\"{{.}}\"\u003eOlder\u003c/a\u003e{{end}}\n    \u003c/nav\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [
+    {
+      "Name": "thread",
+      "Files": [
+        "guestbook/thread.gohtml",
+        "comments/thread.gohtml"
+      ],
+      "DataType": "comments.ThreadView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key, for {{commentForm .Key .Subject}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Subject",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Comments",
+          "Type": "[]comments.Comment",
+          "Doc": "Comments are oldest first, each with its approved Replies.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Subject",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "Body is the plain text as written.",
+              "Fields": null
+            },
+            {
+              "Name": "HTML",
+              "Type": "template.HTML",
+              "Doc": "HTML is Body escaped, with paragraphs and line breaks.",
+              "Fields": null
+            },
+            {
+              "Name": "Staff",
+              "Type": "bool",
+              "Doc": "Staff is set for replies written in the admin.",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "CreatedAt is in UTC; {{date .CreatedAt}} shows it in the site's timezone.",
+              "Fields": null
+            },
+            {
+              "Name": "Replies",
+              "Type": "[]comments.Comment",
+              "Doc": "Replies are the approved replies, oldest first. Replies have none.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Count",
+          "Type": "int",
+          "Doc": "Count is the number of approved comments and replies.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/comments.ThreadView */}}\n{{/* The comments on a subject, then the form: {{commentThread \"remarks\" .ID}}. */}}\n\u003csection class=\"wt-comments\" id=\"{{.Key}}-comments\" aria-labelledby=\"{{.Key}}-comments-title\"\u003e\n    \u003ch2 class=\"wt-comments__title\" id=\"{{.Key}}-comments-title\"\u003e\n        {{if .Count}}{{tl localizer \"Comments (%d)\" .Count}}{{else}}{{tl localizer \"Comments\"}}{{end}}\n    \u003c/h2\u003e\n\n    {{if .Comments}}\n        \u003col class=\"wt-comments__list\"\u003e\n            {{range .Comments}}\n                \u003cli class=\"wt-comment\" id=\"comment-{{.ID}}\"\u003e\n                    \u003cheader class=\"wt-comment__header\"\u003e\n                        \u003cstrong class=\"wt-comment__name\"\u003e{{.Name}}\u003c/strong\u003e\n                        \u003ctime class=\"wt-comment__date wt-meta\" datetime=\"{{.CreatedAt.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{date .CreatedAt}}\u003c/time\u003e\n                    \u003c/header\u003e\n                    \u003cdiv class=\"wt-comment__body\"\u003e{{.HTML}}\u003c/div\u003e\n\n                    {{with .Replies}}\n                        \u003col class=\"wt-comment__replies\"\u003e\n                            {{range .}}\n                                \u003cli class=\"wt-comment wt-comment--reply{{if .Staff}} wt-comment--staff{{end}}\" id=\"comment-{{.ID}}\"\u003e\n                                    \u003cheader class=\"wt-comment__header\"\u003e\n                                        \u003cstrong class=\"wt-comment__name\"\u003e{{.Name}}\u003c/strong\u003e\n                                        {{if .Staff}}\u003cspan class=\"wt-comment__badge\"\u003e{{tl localizer \"Team\"}}\u003c/span\u003e{{end}}\n                                        \u003ctime class=\"wt-comment__date wt-meta\" datetime=\"{{.CreatedAt.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{date .CreatedAt}}\u003c/time\u003e\n                                    \u003c/header\u003e\n                                    \u003cdiv class=\"wt-comment__body\"\u003e{{.HTML}}\u003c/div\u003e\n                                \u003c/li\u003e\n                            {{end}}\n                        \u003c/ol\u003e\n                    {{end}}\n                \u003c/li\u003e\n            {{end}}\n        \u003c/ol\u003e\n    {{else}}\n        \u003cp class=\"wt-comments__empty wt-meta\"\u003e{{tl localizer \"No comments yet.\"}}\u003c/p\u003e\n    {{end}}\n\n    {{commentForm .Key .Subject}}\n\u003c/section\u003e"
+    },
+    {
+      "Name": "form",
+      "Files": [
+        "guestbook/form.gohtml",
+        "comments/form.gohtml"
+      ],
+      "DataType": "comments.FormView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Subject",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the form's model (PostInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"name\" nil}}; it returns the visitor to the element with the id Key.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is \"sent\", \"pending\", \"invalid\", \"closed\", \"throttled\" or \"\".",
+          "Fields": null
+        },
+        {
+          "Name": "Closed",
+          "Type": "bool",
+          "Doc": "Closed is set when the instance accepts no new comments.",
+          "Fields": null
+        },
+        {
+          "Name": "Moderated",
+          "Type": "bool",
+          "Doc": "Moderated is set when new comments wait for approval.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/comments.FormView */}}\n{{/* The comment form of a subject with the result of the last post: {{commentForm \"remarks\" .ID}}. */}}\n\u003cdiv class=\"wt-comment-form\" id=\"{{.Key}}\"\u003e\n    {{if .Closed}}\n        \u003cp class=\"wt-meta\"\u003e{{tl localizer \"Comments are closed.\"}}\u003c/p\u003e\n    {{else}}\n        {{with .Result}}\n            \u003cp class=\"wt-notice\" role=\"status\"\u003e\n                {{if eq . \"sent\"}}{{tl localizer \"Thank you for your comment.\"}}\n                {{else if eq . \"pending\"}}{{tl localizer \"Thank you. Your comment is shown after approval.\"}}\n                {{else if eq . \"throttled\"}}{{tl localizer \"You posted several comments already. Please try again later.\"}}\n                {{else if eq . \"closed\"}}{{tl localizer \"Comments were closed when you posted. Please try again.\"}}\n                {{else if eq . \"invalid\"}}{{tl localizer \"Please fill in your name and a comment.\"}}{{end}}\n            \u003c/p\u003e\n        {{end}}\n\n        {{/* The form returns the visitor to the element with the id {{.Key}}. */}}\n        {{form_open .Form}}\n            {{form_field .Form \"subject\" nil}}\n\n            \u003ch3 class=\"wt-form__title\"\u003e{{tl localizer \"Leave a comment\"}}\u003c/h3\u003e\n\n            {{form_field .Form \"name\" nil}}\n            {{form_field .Form \"email\" nil}}\n            {{form_field .Form \"body\" nil}}\n\n            {{if .Moderated}}\u003cp class=\"wt-form__help\"\u003e{{tl localizer \"Comments are shown after approval.\"}}\u003c/p\u003e{{end}}\n\n            \u003cbutton class=\"wt-button\" type=\"submit\"\u003e{{tl localizer \"Post comment\"}}\u003c/button\u003e\n        {{form_close}}\n    {{end}}\n\u003c/div\u003e"
+    }
+  ],
+  "Mail": [
+    {
+      "Name": "notify",
+      "Files": [
+        "mail/guestbook/notify.gohtml",
+        "mail/comments/notify.gohtml"
+      ],
+      "DataType": "comments.NotifyView",
+      "Fields": [
+        {
+          "Name": "Comment",
+          "Type": "comments.Comment",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Subject",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "Body is the plain text as written.",
+              "Fields": null
+            },
+            {
+              "Name": "HTML",
+              "Type": "template.HTML",
+              "Doc": "HTML is Body escaped, with paragraphs and line breaks.",
+              "Fields": null
+            },
+            {
+              "Name": "Staff",
+              "Type": "bool",
+              "Doc": "Staff is set for replies written in the admin.",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "CreatedAt is in UTC; {{date .CreatedAt}} shows it in the site's timezone.",
+              "Fields": null
+            },
+            {
+              "Name": "Replies",
+              "Type": "[]comments.Comment",
+              "Doc": "Replies are the approved replies, oldest first. Replies have none.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Email",
+          "Type": "string",
+          "Doc": "Email is the visitor's address; empty when they gave none.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the instance's title, for example \"Comments\".",
+          "Fields": null
+        },
+        {
+          "Name": "Pending",
+          "Type": "bool",
+          "Doc": "Pending is set when the message waits for approval.",
+          "Fields": null
+        },
+        {
+          "Name": "PageURL",
+          "Type": "string",
+          "Doc": "PageURL is the page the message was written on; empty when unknown.",
+          "Fields": null
+        },
+        {
+          "Name": "ReviewURL",
+          "Type": "string",
+          "Doc": "ReviewURL opens the messages in the admin.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/comments.NotifyView */}}\n{{/* Sent to the notification address of the settings, in the admin's language. */}}\n{{define \"subject\"}}{{.Title}}: {{.Name}}{{end}}\n\n{{define \"text\"}}\n{{if .Pending}}{{tl localizer \"A new message waits for approval.\"}}{{else}}{{tl localizer \"A new message was posted.\"}}{{end}}\n\n{{.Name}}{{with .Email}} \u003c{{.}}\u003e{{end}}\n\n{{.Body}}\n{{with .PageURL}}\n{{tl localizer \"Page:\"}} {{.}}\n{{- end}}\n{{tl localizer \"Review:\"}} {{.ReviewURL}}\n{{end}}"
+    }
+  ],
+  "Forms": [
+    {
+      "Type": "comments.PostInput",
+      "Doc": "\u003cp\u003ePostInput is the form a visitor posts to /_/\u0026lt;key\u0026gt;/post: the subject the\nmessage belongs to, optionally the message it answers, a name, an\noptional e-mail address and the message. Themes render its fields with\nform_field, with their limits ({{form_field .Form \u0026quot;name\u0026quot; nil}}, see\nListView, FormView and commentInput), or write inputs with these names.\n",
+      "Fields": [
+        {
+          "Key": "subject",
+          "Control": "input hidden",
+          "Label": "",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 200 characters"
+          ]
+        },
+        {
+          "Key": "parent",
+          "Control": "input hidden",
+          "Label": "",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "one line",
+            "at most 64 characters"
+          ]
+        },
+        {
+          "Key": "name",
+          "Control": "input text",
+          "Label": "Name",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 100 characters"
+          ]
+        },
+        {
+          "Key": "email",
+          "Control": "input email",
+          "Label": "E-mail address",
+          "Description": "Optional, never shown on the website.",
+          "Required": false,
+          "Rules": [
+            "at most 254 characters"
+          ]
+        },
+        {
+          "Key": "body",
+          "Control": "textarea",
+          "Label": "Message",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 5000 characters"
+          ]
+        }
+      ]
+    }
+  ],
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Visitor comments and guestbook entries. subject is what a comment belongs\n-- to, chosen by the template: a post ID, a page path or a fixed word. A reply\n-- points at its top-level comment; staff replies are written in the admin.\n-- ip_hash is a keyed, daily-changing hash of the address, only for spotting\n-- floods; the address itself is never stored.\n-- Deleting moves a message to the trash (deleted_at); its replies go along\n-- with the same deleted_at and come back with it.\nCREATE TABLE wt_comment (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    subject    VARCHAR(200) NOT NULL,\n    parent_id  UUID REFERENCES wt_comment (id) ON DELETE CASCADE,\n    name       VARCHAR(100) NOT NULL,\n    email      VARCHAR(254) NOT NULL DEFAULT '',\n    body       TEXT NOT NULL,\n    locale     VARCHAR(35) NOT NULL,\n    page_path  VARCHAR(500) NOT NULL DEFAULT '',\n    approved   BOOLEAN NOT NULL DEFAULT FALSE,\n    is_staff   BOOLEAN NOT NULL DEFAULT FALSE,\n    ip_hash    VARCHAR(64) NOT NULL DEFAULT '',\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID\n);\n\nCREATE INDEX wt_comment_subject ON wt_comment (instance, subject, created_at);\n\nCREATE INDEX wt_comment_review ON wt_comment (instance, approved, created_at);\n\nCREATE INDEX wt_comment_parent ON wt_comment (parent_id);\n\n-- Settings per instance; an instance without a row uses the defaults\n-- (moderated, open, no notification).\nCREATE TABLE wt_comment_setting (\n    instance   VARCHAR(64) PRIMARY KEY,\n    moderated  BOOLEAN NOT NULL DEFAULT TRUE,\n    closed     BOOLEAN NOT NULL DEFAULT FALSE,\n    notify     VARCHAR(254) NOT NULL DEFAULT '',\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Visitor comments and guestbook entries. subject is what a comment belongs\n-- to, chosen by the template: a post ID, a page path or a fixed word. A reply\n-- points at its top-level comment; staff replies are written in the admin.\n-- ip_hash is a keyed, daily-changing hash of the address, only for spotting\n-- floods; the address itself is never stored.\n-- Deleting moves a message to the trash (deleted_at); its replies go along\n-- with the same deleted_at and come back with it.\nCREATE TABLE wt_comment (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    subject    TEXT NOT NULL,\n    parent_id  TEXT REFERENCES wt_comment (id) ON DELETE CASCADE,\n    name       TEXT NOT NULL,\n    email      TEXT NOT NULL DEFAULT '',\n    body       TEXT NOT NULL,\n    locale     TEXT NOT NULL,\n    page_path  TEXT NOT NULL DEFAULT '',\n    approved   BOOLEAN NOT NULL DEFAULT FALSE,\n    is_staff   BOOLEAN NOT NULL DEFAULT FALSE,\n    ip_hash    TEXT NOT NULL DEFAULT '',\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT\n);\n\nCREATE INDEX wt_comment_subject ON wt_comment (instance, subject, created_at);\n\nCREATE INDEX wt_comment_review ON wt_comment (instance, approved, created_at);\n\nCREATE INDEX wt_comment_parent ON wt_comment (parent_id);\n\n-- Settings per instance; an instance without a row uses the defaults\n-- (moderated, open, no notification).\nCREATE TABLE wt_comment_setting (\n    instance   TEXT PRIMARY KEY,\n    moderated  BOOLEAN NOT NULL DEFAULT TRUE,\n    closed     BOOLEAN NOT NULL DEFAULT FALSE,\n    notify     TEXT NOT NULL DEFAULT '',\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Visitor comments and guestbook entries. subject is what a comment belongs\n-- to, chosen by the template: a post ID, a page path or a fixed word. A reply\n-- points at its top-level comment; staff replies are written in the admin.\n-- ip_hash is a keyed, daily-changing hash of the address, only for spotting\n-- floods; the address itself is never stored.\n-- Deleting moves a message to the trash (deleted_at); its replies go along\n-- with the same deleted_at and come back with it.\nCREATE TABLE wt_comment (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    subject    VARCHAR(200) NOT NULL,\n    parent_id  VARCHAR(36) NULL,\n    name       VARCHAR(100) NOT NULL,\n    email      VARCHAR(254) NOT NULL DEFAULT '',\n    body       TEXT NOT NULL,\n    locale     VARCHAR(35) NOT NULL,\n    page_path  VARCHAR(500) NOT NULL DEFAULT '',\n    approved   BOOLEAN NOT NULL DEFAULT FALSE,\n    is_staff   BOOLEAN NOT NULL DEFAULT FALSE,\n    ip_hash    VARCHAR(64) NOT NULL DEFAULT '',\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    INDEX wt_comment_subject (instance, subject, created_at),\n    INDEX wt_comment_review (instance, approved, created_at),\n    FOREIGN KEY (parent_id) REFERENCES wt_comment (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- Settings per instance; an instance without a row uses the defaults\n-- (moderated, open, no notification).\nCREATE TABLE wt_comment_setting (\n    instance   VARCHAR(64) PRIMARY KEY,\n    moderated  BOOLEAN NOT NULL DEFAULT TRUE,\n    closed     BOOLEAN NOT NULL DEFAULT FALSE,\n    notify     VARCHAR(254) NOT NULL DEFAULT '',\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_comment",
+      "Note": "Visitor comments and guestbook entries. subject is what a comment belongs to, chosen by the template: a post ID, a page path or a fixed word. A reply points at its top-level comment; staff replies are written in the admin. ip_hash is a keyed, daily-changing hash of the address, only for spotting floods; the address itself is never stored. Deleting moves a message to the trash (deleted_at); its replies go along with the same deleted_at and come back with it.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "subject",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "parent_id",
+          "Type": "UUID",
+          "Notes": "REFERENCES wt_comment (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(100)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "page_path",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "approved",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "is_staff",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "ip_hash",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_comment_subject (instance, subject, created_at)",
+        "INDEX wt_comment_review (instance, approved, created_at)",
+        "INDEX wt_comment_parent (parent_id)"
+      ]
+    },
+    {
+      "Name": "wt_comment_setting",
+      "Note": "Settings per instance; an instance without a row uses the defaults (moderated, open, no notification).",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "moderated",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT TRUE"
+        },
+        {
+          "Name": "closed",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "notify",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": null
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Add",
+        "Signature": "func (s *Service) Add(ctx context.Context, entry Entry) (Comment, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Approve",
+        "Signature": "func (s *Service) Approve(ctx context.Context, id string, approved bool) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Count",
+        "Signature": "func (s *Service) Count(ctx context.Context, subject string) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Delete",
+        "Signature": "func (s *Service) Delete(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Latest",
+        "Signature": "func (s *Service) Latest(ctx context.Context, offset, limit int) ([]Comment, bool, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "List",
+        "Signature": "func (s *Service) List(ctx context.Context, subject string) ([]Comment, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Pending",
+        "Signature": "func (s *Service) Pending(ctx context.Context) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Purge",
+        "Signature": "func (s *Service) Purge(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Reply",
+        "Signature": "func (s *Service) Reply(ctx context.Context, id, name, body string) (Comment, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SaveSettings",
+        "Signature": "func (s *Service) SaveSettings(ctx context.Context, settings Settings) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Settings",
+        "Signature": "func (s *Service) Settings(ctx context.Context) (Settings, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Undelete",
+        "Signature": "func (s *Service) Undelete(ctx context.Context, id string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Comment",
+        "Doc": "\u003cp\u003eComment is an approved message as templates see it. The e-mail address is\nnever part of it.\n",
+        "Fields": null,
+        "Decl": "type Comment struct {\n\tID      string\n\tSubject string\n\tName    string\n\t// Body is the plain text as written.\n\tBody string\n\t// HTML is Body escaped, with paragraphs and line breaks.\n\tHTML template.HTML\n\t// Staff is set for replies written in the admin.\n\tStaff  bool\n\tLocale string\n\t// CreatedAt is in UTC; {{date .CreatedAt}} shows it in the site's timezone.\n\tCreatedAt time.Time\n\t// Replies are the approved replies, oldest first. Replies have none.\n\tReplies []Comment\n}"
+      },
+      {
+        "Name": "Entry",
+        "Doc": "\u003cp\u003eEntry is a new message, from a visitor or an import.\n",
+        "Fields": null,
+        "Decl": "type Entry struct {\n\tSubject string\n\t// ParentID makes the entry a reply. A reply to a reply is attached to the\n\t// top-level comment, so threads stay one level deep.\n\tParentID string\n\tName     string\n\tEmail    string\n\tBody     string\n\tLocale   string\n\t// Path is the page the message was written on, for the admin.\n\tPath     string\n\tApproved bool\n\tStaff    bool\n\t// IPHash identifies the sender for a day; see Service.visitor.\n\tIPHash string\n\t// CreatedAt is when the message was written, for imports; zero is now.\n\tCreatedAt time.Time\n}"
+      },
+      {
+        "Name": "FormView",
+        "Doc": "\u003cp\u003eFormView is the data of the form component: the comment form of a subject\nwith the result of the visitor\u0026apos;s last post.\n",
+        "Fields": null,
+        "Decl": "type FormView struct {\n\tKey     string\n\tSubject string\n\t// Action is the address the form posts to.\n\tAction string\n\t// Form is the form's model (PostInput) for go-form's template\n\t// functions, such as {{form_open .Form}} and {{form_field .Form \"name\"\n\t// nil}}; it returns the visitor to the element with the id Key.\n\tForm form.RenderModel\n\t// Result is \"sent\", \"pending\", \"invalid\", \"closed\", \"throttled\" or \"\".\n\tResult string\n\t// Closed is set when the instance accepts no new comments.\n\tClosed bool\n\t// Moderated is set when new comments wait for approval.\n\tModerated bool\n}"
+      },
+      {
+        "Name": "InboxGroup",
+        "Doc": "\u003cp\u003eInboxGroup is the messages on one subject.\n",
+        "Fields": null,
+        "Decl": "type InboxGroup struct {\n\tSubject string\n\t// Title names the subject for people: the instance title for the\n\t// instance's own subject (a guestbook); otherwise the title of the\n\t// published content on the page the messages were written on, in the\n\t// admin's language when a message was written in it, or that page's\n\t// address when no published content is there; the subject key when no\n\t// message knows its page.\n\tTitle string\n\t// Address is the page whose content Title names, shown with it.\n\tAddress string\n\tRows    []InboxRow\n}"
+      },
+      {
+        "Name": "InboxRow",
+        "Doc": "\u003cp\u003eInboxRow is one message in the admin list.\n",
+        "Fields": null,
+        "Decl": "type InboxRow struct {\n\tDate   string\n\tName   string\n\tEmail  string\n\tLocale string\n\tBody   string\n\t// PageURL is the page the message was written on.\n\tPageURL  string\n\tReplyTo  string\n\tStaff    bool\n\tApproved bool\n\t// Sender is a short code that is equal for messages from one address on\n\t// one day.\n\tSender   string\n\tApprove  *form.RenderModel\n\tHide     *form.RenderModel\n\tDelete   *form.RenderModel\n\tReplyURL string\n}"
+      },
+      {
+        "Name": "InboxView",
+        "Doc": "\u003cp\u003eInboxView is the data of templates/admin/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type InboxView struct {\n\tTitle   string\n\tPending int\n\t// Filters switch between pending, approved and all messages.\n\tFilters     admin.Tabs\n\tGroups      []InboxGroup\n\tSettingsURL string\n\tTrashURL    string\n\tPager       admin.Pager\n}"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of comments/list.gohtml, the instance placed on a page.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is placed on.\n\tTitle string\n\t// Key is the instance key, for the template functions.\n\tKey string\n\t// Comments are the approved messages of every subject, newest first, with\n\t// their replies.\n\tComments []Comment\n\t// Action is the address the form posts to.\n\tAction string\n\t// Subject is the value of the form's subject field.\n\tSubject string\n\t// Form is the form's model (PostInput) for go-form's template\n\t// functions, such as {{form_open .Form}} and {{form_field .Form \"name\"\n\t// nil}}; it returns the visitor to the element with the id Key.\n\tForm form.RenderModel\n\t// Result is the outcome of the visitor's last post: \"sent\", \"pending\",\n\t// \"invalid\", \"closed\", \"throttled\" or \"\".\n\tResult string\n\t// Closed is set when the instance accepts no new messages.\n\tClosed bool\n\t// Moderated is set when new messages wait for approval.\n\tModerated bool\n\t// NewerURL and OlderURL page through the messages; empty at either end.\n\tNewerURL string\n\tOlderURL string\n}"
+      },
+      {
+        "Name": "NotifyView",
+        "Doc": "\u003cp\u003eNotifyView is the data of the mail template notify, sent to the\nnotification address in the admin\u0026apos;s language. Replying answers the\nvisitor when they gave an address.\n",
+        "Fields": null,
+        "Decl": "type NotifyView struct {\n\tComment\n\t// Email is the visitor's address; empty when they gave none.\n\tEmail string\n\t// Title is the instance's title, for example \"Comments\".\n\tTitle string\n\t// Pending is set when the message waits for approval.\n\tPending bool\n\t// PageURL is the page the message was written on; empty when unknown.\n\tPageURL string\n\t// ReviewURL opens the messages in the admin.\n\tReviewURL string\n}"
+      },
+      {
+        "Name": "PostInput",
+        "Doc": "\u003cp\u003ePostInput is the form a visitor posts to /_/\u0026lt;key\u0026gt;/post: the subject the\nmessage belongs to, optionally the message it answers, a name, an\noptional e-mail address and the message. Themes render its fields with\nform_field, with their limits ({{form_field .Form \u0026quot;name\u0026quot; nil}}, see\nListView, FormView and commentInput), or write inputs with these names.\n",
+        "Fields": null,
+        "Decl": "type PostInput struct {\n\tSubject string `form:\"input,hidden\" name:\"subject\" required:\"true\" maxLength:\"200\"  line:\"true\"`\n\tParent  string `form:\"input,hidden\" name:\"parent\"                  maxLength:\"64\"   line:\"true\"`\n\tName    string `form:\"input,text\"   name:\"name\"    required:\"true\" maxLength:\"100\"  line:\"true\" label:\"Name\"           autocomplete:\"name\"`\n\tEmail   string `form:\"input,email\"  name:\"email\"                   maxLength:\"254\"              label:\"E-mail address\" autocomplete:\"email\" validate:\"mail\" description:\"Optional, never shown on the website.\"`\n\tBody    string `form:\"textarea\"     name:\"body\"    required:\"true\" maxLength:\"5000\"             label:\"Message\"`\n}"
+      },
+      {
+        "Name": "ReplyView",
+        "Doc": "\u003cp\u003eReplyView is the data of templates/admin/reply.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ReplyView struct {\n\tTitle   string\n\tBackURL string\n\tName    string\n\tDate    string\n\tBody    string\n\tForm    form.RenderModel\n\tErrors  form.FieldErrors\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Comments instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Settings",
+        "Doc": "\u003cp\u003eSettings are the options of one instance.\n",
+        "Fields": null,
+        "Decl": "type Settings struct {\n\t// Moderated hides new messages until they are approved.\n\tModerated bool `db:\"moderated\"`\n\t// Closed refuses new messages.\n\tClosed bool `db:\"closed\"`\n\t// Notify receives an e-mail for every new message when set.\n\tNotify string `db:\"notify\"`\n}"
+      },
+      {
+        "Name": "ThreadView",
+        "Doc": "\u003cp\u003eThreadView is the data of the thread component: the approved comments on\na subject, followed by the form (the form component).\n",
+        "Fields": null,
+        "Decl": "type ThreadView struct {\n\t// Key is the instance key, for {{commentForm .Key .Subject}}.\n\tKey     string\n\tSubject string\n\t// Comments are oldest first, each with its approved Replies.\n\tComments []Comment\n\t// Count is the number of approved comments and replies.\n\tCount int\n}"
+      }
+    ]
+  }
+}

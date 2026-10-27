@@ -11,5 +11,6 @@
 
 <h2>Notes</h2>
 <p>The timeout middleware is useful as a broad guardrail. Handlers should still respect request contexts for database queries, outbound HTTP calls, and longer workflows.</p>
+<p><code>http.TimeoutHandler</code> buffers the response and cannot flush, so keep streaming routes, such as server-sent events, out of it.</p>
 </article>
 

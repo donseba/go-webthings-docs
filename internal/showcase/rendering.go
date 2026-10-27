@@ -44,7 +44,7 @@ func (app *App) renderPartial(w http.ResponseWriter, r *http.Request, content *p
 
 func (app *App) writeContent(w http.ResponseWriter, r *http.Request, content *partial.Partial) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	content = app.configureStandalone(content, connector.NewHTMX(nil))
+	content = app.configureStandalone(content, connector.NewHTMX4(nil))
 	if err := partial.Write(app.requestContext(r), w, r, content); err != nil {
 		log.Printf("render error: %v", err)
 	}

@@ -1,0 +1,44 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<p><code>form_render</code> renders the whole form. To lay out the fields yourself, such as two fields side by side or a field between your own markup, render the form tag, the fields and the buttons one at a time. They render with the selected theme, so they look the same as in <code>form_render</code>.</p>
+<pre><code>{{"{{"}} form_open .Form }}
+  &lt;div class="row"&gt;
+    &lt;div class="col"&gt;{{"{{"}} form_field .Form "first_name" .Errors }}&lt;/div&gt;
+    &lt;div class="col"&gt;{{"{{"}} form_field .Form "last_name" .Errors }}&lt;/div&gt;
+  &lt;/div&gt;
+  {{"{{"}} form_field .Form "address.city" .Errors }}
+  &lt;input name="voucher" value=""&gt;
+  {{"{{"}} range form_errors .Errors "voucher" }}&lt;p class="error"&gt;{{"{{"}} . }}&lt;/p&gt;{{"{{"}} end }}
+  {{"{{"}} form_buttons .Form }}
+{{"{{"}} form_close }}</code></pre>
+<table><thead><tr><th>Function</th><th>Renders</th></tr></thead><tbody><tr><td><code>form_field model name errors</code></td><td>One field with its label, description and errors, by the name it renders with (the <code>name</code> tag or Go name, nested as <code>address.city</code>). A group renders with all its fields.</td></tr><tr><td><code>form_errors errors name</code></td><td>The messages of one field, as <code>[]string</code> (<code>errs.Messages(name)</code> in Go).</td></tr><tr><td><code>form_open model [attributes…]</code></td><td>The opening <code>&lt;form&gt;</code> tag, then the hidden inputs: the CSRF token, the honeypot and <code>Info.Hidden</code>.</td></tr><tr><td><code>form_hidden model</code></td><td>The hidden inputs of <code>form_open</code> alone, for a <code>&lt;form&gt;</code> tag you write yourself.</td></tr><tr><td><code>form_buttons model</code></td><td>The cancel link and the submit button; a read-only form has no submit button.</td></tr><tr><td><code>form_close</code></td><td>The closing <code>&lt;/form&gt;</code> tag.</td></tr><tr><td><code>form_honeypot name</code></td><td>The spam trap input, for a form whose markup you write yourself.</td></tr></tbody></table>
+<p><code>form_field_localized</code>, <code>form_open_localized</code>, <code>form_hidden_localized</code> and <code>form_buttons_localized</code> take a localizer first, like <code>form_render_localized</code>. <code>form_open</code>, <code>form_hidden</code> and <code>form_buttons</code> need a model with form metadata (<code>WithInfo</code>).</p>
+<p>A name the model does not have fails the template. The error lists the names the model has, a group’s fields after the group, so a typing mistake shows the right name:</p>
+<pre><code>form: no field "nmae" (fields: name, email, address, address.city)</code></pre>
+<h2>Attributes in the template</h2>
+<pre><code>{{"{{"}} form_open .Form "class" "booking" "novalidate" nil .SubmitAttrs }}</code></pre>
+<p>After the model, <code>form_open</code> takes attributes of the template’s own: name/value pairs and <code>template.HTMLAttr</code> values, such as the attributes another library renders for a form that submits with HTMX. go-form does not need to know that library.</p>
+<ul><li><code>class</code> and <code>style</code> add to those of the theme and of <code>Info.Attributes</code>, in one attribute each; a class that is already there is not repeated.</li><li><code>action</code>, <code>method</code> and <code>enctype</code> come from the form metadata (<code>Info.Target</code>, <code>Info.Method</code>, <code>Info.Attributes["enctype"]</code> or a file input). Giving them in the template is an error.</li><li>Any other attribute replaces the one of the same name in <code>Info.Attributes</code>; given twice, the last one counts.</li><li>The values of pairs are escaped, and a pair cannot set an event handler (<code>on…</code>); that takes a trusted <code>template.HTMLAttr</code>. A <code>nil</code> value renders the name alone; a <code>nil</code> attribute is skipped, so an optional one can be left out.</li></ul>
+<h2>Hidden inputs</h2>
+<pre><code>model := form.WithRequestInfo(r, input, form.Info{
+    Target: "/comments", Method: http.MethodPost, Honeypot: "website",
+    Hidden: url.Values{"back": {r.URL.Path + "#comments"}},
+})</code></pre>
+<p><code>Info.Hidden</code> adds hidden inputs, such as the page to return to: one input per value, in name order, after the CSRF token and the honeypot. <code>form_open</code> and <code>form_render</code> render them; a template that writes the <code>&lt;form&gt;</code> tag itself renders them with <code>{{"{{"}} form_hidden .Form }}</code>.</p>
+<h2>Several forms on one page</h2>
+<pre><code>newsletter := form.WithInfo(SubscribeInput{}, form.Info{
+    Target: "/subscribe", Method: http.MethodPost, IDPrefix: "newsletter",
+})
+// &lt;label for="newsletter-email" id="newsletter-email_label"&gt; &lt;input id="newsletter-email" name="email" …&gt;</code></pre>
+<p>Fields render with their name as their id, which labels, descriptions and errors refer to. Two forms on one page with a field of the same name would share an id. <code>Info.IDPrefix</code> puts a prefix and a dash before every id of a form and before the ids that <code>for</code>, <code>aria-labelledby</code> and <code>aria-describedby</code> refer to. Names stay as they are.</p>
+<h2>Rendering from Go</h2>
+<pre><code>funcs := template.FuncMap{
+    "form_field": func(ctx context.Context, model any, name string, errs form.FieldErrors) (template.HTML, error) {
+        return renderer.Field(localizerFrom(ctx), model, name, errs)
+    },
+}</code></pre>
+<p>The template functions are methods of <code>*form.Form</code> too, for template functions of your own, such as functions that take the localizer from a context: <code>Render(loc, model, errs)</code>, <code>Field(loc, model, name, errs)</code>, <code>Open(loc, model, attrs...)</code>, <code>Hidden(loc, model)</code>, <code>Buttons(loc, model)</code>, <code>Close()</code> and <code>Honeypot(loc, name)</code>. Each returns <code>(template.HTML, error)</code>. A nil localizer renders as the functions without a localizer do.</p>
+<p>A theme that overrides <code>form-open.gohtml</code> must render the attributes of <code>Info.Attributes</code> and <code>form_open</code>; see <a href="{{ basePath }}/themes" hx-get="{{ basePath }}/themes" hx-target="#content" hx-push-url="true">themes</a>.</p>
+</article>

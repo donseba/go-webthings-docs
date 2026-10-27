@@ -1,0 +1,50 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    {{ with .Module.Deprecated }}
+        <div class="callout module-warning">
+            <p><strong>Going away.</strong> {{ . }}</p>
+        </div>
+    {{ end }}
+
+    <div class="module-meta">
+        <span class="module-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="/assets/img/icons.svg#{{ .Icon }}"></use></svg></span>
+        <div class="grid gap-2">
+            <code class="module-import">import "{{ .Module.ImportPath }}"</code>
+            <span class="module-facts">{{ range .Facts }}<span>{{ . }}</span>{{ end }}</span>
+        </div>
+        <a class="module-source" href="{{ .Module.SourceURL }}">source</a>
+    </div>
+
+    <pre><code>{{ .Module.Example.Code }}</code></pre>
+
+    {{ if .Guide }}
+        {{ .Guide }}
+    {{ else }}
+        <p>This module has no guide yet. The reference pages below are generated from its code.</p>
+    {{ end }}
+
+    <h2 id="reference">Reference</h2>
+    <p>Generated from the module's code, for an instance with key <code>{{ .Module.Example.Key }}</code>.</p>
+    <section class="module-grid" aria-label="Reference pages">
+        <a class="module-card" href="/{{ .Module.Slug }}/configuration" hx-get="/{{ .Module.Slug }}/configuration" hx-target="#content" hx-push-url="true">
+            <strong>Configuration</strong>
+            <span class="module-card-summary">Constructor{{ if .Module.Options }} and options{{ end }}, {{ len .Module.Admin }} admin section{{ if ne (len .Module.Admin) 1 }}s{{ end }}{{ if .Module.Settings }}, settings{{ end }}{{ if .Module.Routes }}, {{ len .Module.Routes }} address{{ if ne (len .Module.Routes) 1 }}es{{ end }}{{ end }}.</span>
+        </a>
+        <a class="module-card" href="/{{ .Module.Slug }}/templates" hx-get="/{{ .Module.Slug }}/templates" hx-target="#content" hx-push-url="true">
+            <strong>Templates</strong>
+            <span class="module-card-summary">{{ len .Module.Funcs }} template function{{ if ne (len .Module.Funcs) 1 }}s{{ end }}, {{ len .Module.Templates }} template{{ if ne (len .Module.Templates) 1 }}s{{ end }}{{ if .Module.Components }}, {{ len .Module.Components }} component{{ if ne (len .Module.Components) 1 }}s{{ end }}{{ end }}{{ if .Module.Mail }}, {{ len .Module.Mail }} e-mail template{{ if ne (len .Module.Mail) 1 }}s{{ end }}{{ end }}.</span>
+        </a>
+        <a class="module-card" href="/{{ .Module.Slug }}/database" hx-get="/{{ .Module.Slug }}/database" hx-target="#content" hx-push-url="true">
+            <strong>Database</strong>
+            <span class="module-card-summary">{{ len .Module.Migrations }} migration{{ if ne (len .Module.Migrations) 1 }}s{{ end }}, {{ len .Module.Tables }} table{{ if ne (len .Module.Tables) 1 }}s{{ end }}.</span>
+        </a>
+        <a class="module-card" href="/{{ .Module.Slug }}/api" hx-get="/{{ .Module.Slug }}/api" hx-target="#content" hx-push-url="true">
+            <strong>Go API</strong>
+            <span class="module-card-summary">{{ len .Module.API.Funcs }} function{{ if ne (len .Module.API.Funcs) 1 }}s{{ end }}, {{ len .Module.API.Methods }} service method{{ if ne (len .Module.API.Methods) 1 }}s{{ end }}, {{ len .Module.API.Types }} type{{ if ne (len .Module.API.Types) 1 }}s{{ end }}.</span>
+        </a>
+    </section>
+
+    {{ template "module_pager.gohtml" . }}
+</article>

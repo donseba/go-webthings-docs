@@ -1,0 +1,362 @@
+{
+  "Slug": "lists",
+  "Name": "Lists",
+  "Group": "Content",
+  "Summary": "Short ordered lists such as an FAQ, services, features or steps: entries with a title, Markdown text, an optional image and an optional link.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/lists",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/lists",
+  "Type": "lists",
+  "Example": {
+    "Key": "faq",
+    "Title": "FAQ",
+    "Code": "app.Use(lists.Module(\"faq\", \"FAQ\"))"
+  },
+  "Guide": "\u003cp\u003eOne instance is one list, so a site with an FAQ and a list of services adds two instances. Entries have no pages of their own: a list is shown whole, on the page it is placed on or anywhere else through a template function.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    lists.Module(\u0026quot;faq\u0026quot;, \u0026quot;FAQ\u0026quot;),\n    lists.Module(\u0026quot;services\u0026quot;, \u0026quot;Services\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003efaq\u003c/code\u003e) is the list's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eFAQ\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the list under \u003cstrong\u003eShows on this page\u003c/strong\u003e. With the page at \u003ccode\u003e/faq\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/faq\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003efaq/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe published entries, in the order set in the admin\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eOther addresses below the page get the site's 404 page. Templates are looked up by instance key first, then by module type, so \u003ccode\u003elists/list.gohtml\u003c/code\u003e serves every list that has no design of its own; \u003ccode\u003e.Key\u003c/code\u003e tells the lists apart inside a shared template. Generate a starting point with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- faq\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal FAQ:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/lists.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{range .Entries}}\n    \u0026lt;article id=\u0026quot;{{.ID}}\u0026quot;\u0026gt;\n        {{with .ImageURL}}\u0026lt;img src=\u0026quot;{{image . \u0026quot;120x120 crop\u0026quot;}}\u0026quot; width=\u0026quot;120\u0026quot; height=\u0026quot;120\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n        \u0026lt;h2\u0026gt;{{.Title}}\u0026lt;/h2\u0026gt;\n        {{.Body}}\n        {{with .Link}}\u0026lt;a href=\u0026quot;{{.}}\u0026quot;\u0026gt;Read more\u0026lt;/a\u0026gt;{{end}}\n    \u0026lt;/article\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eTitle\u003c/code\u003e is the published title of the page the list is placed on. \u003ccode\u003eBody\u003c/code\u003e is the rendered Markdown, with media from the library already resolved. \u003ccode\u003eLink\u003c/code\u003e is a \u003ccode\u003etemplate.URL\u003c/code\u003e, so \u003ccode\u003etel:\u003c/code\u003e links work in \u003ccode\u003ehref\u003c/code\u003e. \u003ccode\u003eImageURL\u003c/code\u003e is the image as pages show it, at most 1600 pixels wide, with \u003ccode\u003eImageSrcset\u003c/code\u003e, \u003ccode\u003eImageWidth\u003c/code\u003e and \u003ccode\u003eImageHeight\u003c/code\u003e for an \u003ccode\u003eimg\u003c/code\u003e tag of that size and \u003ccode\u003eImageOriginalURL\u003c/code\u003e for the uploaded file; given \u003ccode\u003eImageURL\u003c/code\u003e, \u003ccode\u003eimage\u003c/code\u003e makes the square copy above from the uploaded image (see \u003ca href=\"wt-docs:/go-webthings/media#image-sizes-in-templates\"\u003eMedia and images\u003c/a\u003e). Keep \u003ccode\u003eid=\u0026quot;{{.ID}}\u0026quot;\u003c/code\u003e on each entry, as the generated starting point does: site search results link to \u003ccode\u003e#\u0026lt;id\u0026gt;\u003c/code\u003e on the list's page, and the ID never changes.\u003c/p\u003e\n\u003cp\u003eAn entry appears in each language it has a title for.\u003c/p\u003e\n\u003ch2 id=\"show-a-list-anywhere\"\u003eShow a list anywhere\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003eentries\u003c/code\u003e template function returns the published entries of a list in the current language, in their order. The list does not need to be placed on a page for this.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e\u0026lt;section\u0026gt;\n    \u0026lt;h2\u0026gt;Frequently asked\u0026lt;/h2\u0026gt;\n    {{range entries \u0026quot;faq\u0026quot;}}\n        \u0026lt;h3\u0026gt;{{.Title}}\u0026lt;/h3\u0026gt;\n        {{.Body}}\n    {{end}}\n    \u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;faq\u0026quot;}}\u0026quot;\u0026gt;All questions\u0026lt;/a\u0026gt;\n\u0026lt;/section\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/entries\u003c/code\u003e serves the published entries as JSON, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the list \u003ccode\u003efaq\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/faq/entries\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.faq.entries\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published entries, in the editors' order, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/faq/entries/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.faq.entry\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne entry\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eEntries have no page of their own, so the list gives each entry whole: its \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003etitle\u003c/code\u003e and \u003ccode\u003ebody_html\u003c/code\u003e, its \u003ccode\u003eimage\u003c/code\u003e as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e, \u003ccode\u003enull\u003c/code\u003e without one, its \u003ccode\u003elink\u003c/code\u003e, \u003ccode\u003eurl\u003c/code\u003e, \u003ccode\u003eapi_url\u003c/code\u003e and \u003ccode\u003eupdated_at\u003c/code\u003e. \u003ccode\u003elink\u003c/code\u003e is the entry's link as a visitor follows it from the list's page: a path of the site made absolute, an anchor on the list's page, and other addresses, such as \u003ccode\u003emailto:\u003c/code\u003e links, as they are; \u003ccode\u003enull\u003c/code\u003e without a link. \u003ccode\u003eurl\u003c/code\u003e is the entry on the list's page, such as \u003ccode\u003ehttps://example.com/en/faq#\u0026lt;id\u0026gt;\u003c/code\u003e, and \u003ccode\u003enull\u003c/code\u003e while the list is on no page.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/entries/{id}\u003c/code\u003e sends a \u003ccode\u003eLast-Modified\u003c/code\u003e: the latest change of the entry, of the page the instance is on and of the entry's media, its image and those in its text. An entry with an image that was deleted gets none, and so does every entry while the instance is on no page; the lists get none either; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach list has its own section in the admin (\u003ccode\u003e/admin/faq\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) with its entries.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eAn entry has an optional image from the media library and an optional link, shared by all languages, and per language a title and Markdown text.\u003c/li\u003e\n\u003cli\u003eA link is a path on the site (\u003ccode\u003e/contact\u003c/code\u003e), an anchor (\u003ccode\u003e#opening-hours\u003c/code\u003e), or a web, \u003ccode\u003emailto:\u003c/code\u003e or \u003ccode\u003etel:\u003c/code\u003e address.\u003c/li\u003e\n\u003cli\u003eEntries have no drafts or revisions: saving changes the entry at once, also when it is published. New entries start unpublished at the end of the list. \u003cstrong\u003ePublish\u003c/strong\u003e and \u003cstrong\u003eUnpublish\u003c/strong\u003e show or hide an entry; publishing needs a title in the site's default language.\u003c/li\u003e\n\u003cli\u003eThe move buttons on the overview set the order of the entries on the site.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves an entry to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per list in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003ePublished entries appear in the site search by title and text once the list is placed on a page.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the text and links of published entries count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the entries that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003elists.Of(app, \u0026quot;faq\u0026quot;)\u003c/code\u003e returns the list once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003efaq := lists.Of(app, \u0026quot;faq\u0026quot;)\n\nentries, err := faq.Entries(ctx, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003estore := faq.Store()\n\nentry, err := store.Save(ctx, content.Draft[lists.Fields, lists.Text]{\n    Fields: lists.Fields{\n        Link: \u0026quot;/contact\u0026quot;,\n    },\n    Translations: []content.Translation[lists.Text]{\n        {\n            Locale: \u0026quot;en\u0026quot;,\n            Text: lists.Text{\n                Title: \u0026quot;Do you deliver?\u0026quot;,\n                Body:  \u0026quot;Within the city, yes. [Ask us](/contact) about other places.\u0026quot;,\n            },\n        },\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, entry.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/people\"\u003ePeople\u003c/a\u003e suits a team, with a page and contact details per person.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/testimonials\"\u003eTestimonials\u003c/a\u003e keeps quotes from customers.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/gallery\"\u003eGallery\u003c/a\u003e shows albums of images.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": false,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*lists.Service"
+  },
+  "Admin": [
+    {
+      "ID": "faq",
+      "Title": "FAQ",
+      "Path": "/admin/faq",
+      "Permission": "faq",
+      "Icon": "list",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New entry",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.faq.entries",
+      "Method": "GET",
+      "Path": "/api/v1/faq/entries"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.faq.entry",
+      "Method": "GET",
+      "Path": "/api/v1/faq/entries/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "entries",
+      "Signature": "entries(key string) []Entry",
+      "Doc": "\u003cp\u003eentries returns the published entries of a list, for example\n{{range entries \u0026quot;faq\u0026quot;}} on any page.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "faq/list.gohtml",
+        "lists/list.gohtml"
+      ],
+      "DataType": "lists.ListView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the list's instance key, for example \"faq\", so one template can show several lists differently.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the list is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "Entries",
+          "Type": "[]lists.Entry",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageURL",
+              "Type": "string",
+              "Doc": "ImageURL is the entry's image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the entry has no image.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Link",
+              "Type": "template.URL",
+              "Doc": "Link is empty when not set. It is a template.URL because the store only accepts paths, anchors and http(s), mailto: and tel: addresses, so templates can use it in href without html/template replacing tel: links with #ZgotmplZ.",
+              "Fields": null
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/lists.ListView */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{range .Entries}}\n        \u003csection id=\"{{.ID}}\"\u003e\n            {{with .ImageURL}}\u003cimg src=\"{{image . \"400x300 crop\"}}\" alt=\"\"\u003e{{end}}\n            \u003ch2\u003e{{.Title}}\u003c/h2\u003e\n            {{.Body}}\n            {{with .Link}}\u003cp\u003e\u003ca href=\"{{.}}\"\u003eRead more\u003c/a\u003e\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{else}}\n        \u003cp\u003eNothing here yet.\u003c/p\u003e\n    {{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261004000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261004000000_init.postgres.sql",
+          "SQL": "-- One row per list entry; the instance is the list (see content.Collection).\nCREATE TABLE wt_lists_entry (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    image_id   UUID,\n    link_url   VARCHAR(2000) NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_lists_entry_instance ON wt_lists_entry (instance, position);\n\nCREATE TABLE wt_lists_entry_translation (\n    item_id UUID NOT NULL REFERENCES wt_lists_entry (id) ON DELETE CASCADE,\n    locale  VARCHAR(35) NOT NULL,\n    title   VARCHAR(200) NOT NULL DEFAULT '',\n    body    TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261004000000_init.sqlite.sql",
+          "SQL": "-- One row per list entry; the instance is the list (see content.Collection).\nCREATE TABLE wt_lists_entry (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    image_id   TEXT,\n    link_url   TEXT NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_lists_entry_instance ON wt_lists_entry (instance, position);\n\nCREATE TABLE wt_lists_entry_translation (\n    item_id TEXT NOT NULL REFERENCES wt_lists_entry (id) ON DELETE CASCADE,\n    locale  TEXT NOT NULL,\n    title   TEXT NOT NULL DEFAULT '',\n    body    TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261004000000_init.mysql.sql",
+          "SQL": "-- One row per list entry; the instance is the list (see content.Collection).\nCREATE TABLE wt_lists_entry (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    image_id   VARCHAR(36) NULL,\n    link_url   VARCHAR(2000) NOT NULL DEFAULT '',\n    INDEX wt_lists_entry_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_lists_entry_translation (\n    item_id VARCHAR(36) NOT NULL,\n    locale  VARCHAR(35) NOT NULL,\n    title   VARCHAR(200) NOT NULL DEFAULT '',\n    body    MEDIUMTEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_lists_entry (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_lists_entry",
+      "Note": "One row per list entry; the instance is the list (see content.Collection).",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "image_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "link_url",
+          "Type": "VARCHAR(2000)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_lists_entry_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_lists_entry_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_lists_entry (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Entries",
+        "Signature": "func (s *Service) Entries(ctx context.Context, locale string) ([]Entry, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APIEntry",
+        "Doc": "\u003cp\u003eAPIEntry is a published entry in the content API (see package api), at\n/api/v1/\u0026lt;key\u0026gt;/entries/{id} and in the list of /api/v1/\u0026lt;key\u0026gt;/entries.\nEntries have no page of their own: the list\u0026apos;s page shows them whole, so\nthe list has their text too.\n",
+        "Fields": null,
+        "Decl": "type APIEntry struct {\n\tID       string     `json:\"id\"`\n\tTitle    string     `json:\"title\"`\n\tBodyHTML string     `json:\"body_html\"`\n\tImage    *api.Image `json:\"image\"`\n\t// Link is the entry's link as a visitor follows it from the list's\n\t// page: a path of the site made absolute, an anchor on the list's\n\t// page, other addresses (https:, mailto:, tel:) as they are; null\n\t// without a link.\n\tLink *string `json:\"link\"`\n\t// URL is the entry on the list's page (#\u003cid\u003e), null while the list is\n\t// on no page; APIURL the entry in the API.\n\tURL       *string   `json:\"url\"`\n\tAPIURL    string    `json:\"api_url\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "Entry",
+        "Doc": "\u003cp\u003eEntry is a published entry as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Entry struct {\n\tID    string\n\tTitle string\n\tBody  template.HTML\n\t// ImageURL is the entry's image as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); ImageSrcset lists smaller\n\t// copies for a srcset attribute, ImageWidth and ImageHeight are the\n\t// size of ImageURL and ImageOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the entry has no image.\n\tImageURL         string\n\tImageSrcset      string\n\tImageOriginalURL string\n\tImageWidth       int\n\tImageHeight      int\n\t// Link is empty when not set. It is a template.URL because the store only\n\t// accepts paths, anchors and http(s), mailto: and tel: addresses, so\n\t// templates can use it in href without html/template replacing tel:\n\t// links with #ZgotmplZ.\n\tLink template.URL\n}"
+      },
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of an entry.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tImage string `db:\"image_id,null\"`\n\tLink  string `db:\"link_url\"`\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a list entry with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of lists/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Key is the list's instance key, for example \"faq\", so one template can\n\t// show several lists differently.\n\tKey string\n\t// Title is the title of the page the list is mounted on.\n\tTitle   string\n\tEntries []Entry\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one list, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is an entry in one language. Body is Markdown.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tTitle string `db:\"title\"`\n\tBody  string `db:\"body\"`\n}"
+      }
+    ]
+  }
+}

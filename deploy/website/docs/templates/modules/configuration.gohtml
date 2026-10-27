@@ -1,0 +1,98 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <h2 id="constructor">Constructor</h2>
+    {{ template "module_func.gohtml" .Module.Constructor }}
+    <pre><code>{{ .Module.Example.Code }}</code></pre>
+    <p>The key, here <code>{{ .Module.Example.Key }}</code>, must be unique on the site. It names the admin section (<code>/admin/{{ .Module.Example.Key }}</code>, below the admin's address, which <code>Config.AdminPath</code> can change), the template folder (<code>{{ .Module.Example.Key }}/</code>, falling back to <code>{{ .Module.Type }}/</code>){{ if .Module.Parts.Actions }}, the visitor form actions (<code>/_/{{ .Module.Example.Key }}/</code>){{ end }} and the instance in template functions. The title is shown in the admin and the page editor. Use the module several times with different keys for separate instances.</p>
+
+    {{ if .Module.Options }}
+        <h2 id="options">Options</h2>
+        {{ range .Module.Options }}
+            <h3 id="option-{{ .Name }}">{{ .Name }}</h3>
+            {{ template "module_func.gohtml" . }}
+        {{ end }}
+    {{ end }}
+
+    <h2 id="parts">What it adds</h2>
+    <div class="module-table"><table>
+        <thead>
+            <tr><th>Part</th><th>Provided</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Page</td><td>{{ if .Module.Parts.Public }}yes{{ else }}no{{ end }}</td><td>Editors can place the instance on a page; it serves the addresses below that page.</td></tr>
+            <tr><td>Visitor forms</td><td>{{ if .Module.Parts.Actions }}yes{{ else }}no{{ end }}</td><td>Visitors post forms to <code>/_/{{ .Module.Example.Key }}/</code> from any page that shows them.</td></tr>
+            <tr><td>Middleware</td><td>{{ if .Module.Parts.Middleware }}yes{{ else }}no{{ end }}</td><td>Wraps the whole public site, for example to count views or redirect old addresses.</td></tr>
+            <tr><td>Site search</td><td>{{ if .Module.Parts.Search }}yes{{ else }}no{{ end }}</td><td>Published content appears in the site search.</td></tr>
+            <tr><td>Sitemap</td><td>{{ if .Module.Parts.Sitemap }}yes{{ else }}no{{ end }}</td><td>Published addresses are listed in <code>sitemap.xml</code>.</td></tr>
+            <tr><td>Scheduled publishing</td><td>{{ if .Module.Parts.Scheduled }}yes{{ else }}no{{ end }}</td><td>Editors can plan publication and unpublication.</td></tr>
+            <tr><td>Service</td><td>{{ if .Module.Parts.Service }}<code>{{ .Module.Parts.Service }}</code>{{ else }}no{{ end }}</td><td>The instance's Go API for site code and other modules.</td></tr>
+        </tbody>
+    </table></div>
+
+    <h2 id="admin">Admin</h2>
+    {{ if .Module.Admin }}
+        <p>Editors' rights are set per section in the groups' permission matrix (read, create, edit, publish, delete, review, export). Sections that share rights name the section whose rights apply. In the navigation the sections are listed under the group given with <code>.Group(…)</code>, or under Modules; see <a href="{{ .DocsURL }}/go-webthings/modules#the-admin-navigation">Using modules</a>.</p>
+        <div class="module-table"><table>
+            <thead>
+                <tr><th>Section</th><th>Address</th><th>Rights of</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                {{ range .Module.Admin }}
+                    <tr>
+                        <td>{{ .Title }}</td>
+                        <td><code>{{ .Path }}</code></td>
+                        <td><code>{{ .Permission }}</code></td>
+                        <td>{{ if .Hidden }}reached from another section; {{ end }}{{ if .AdminOnly }}administrators only; {{ end }}{{ if .Badge }}a count in the navigation and under Needs attention; {{ end }}{{ with .NewLabel }}dashboard button “{{ . }}”; {{ end }}{{ if .Recent }}in Recently edited; {{ end }}{{ if .Scheduled }}in Scheduled; {{ end }}{{ if .Trash }}deleted items go to the trash; {{ end }}{{ if .Review }}can require review (Site settings › Review); {{ end }}{{ with .Group }}listed under {{ . }}{{ end }}</td>
+                    </tr>
+                {{ end }}
+            </tbody>
+        </table></div>
+    {{ else }}
+        <p>The module adds no admin sections.</p>
+    {{ end }}
+
+    <h2 id="settings">Settings</h2>
+    {{ with .Module.Settings }}
+        {{ .Doc }}
+        <div class="module-table"><table>
+            <thead>
+                <tr><th>Setting</th><th>Type</th><th>Meaning</th></tr>
+            </thead>
+            <tbody>
+                {{ range .Fields }}
+                    <tr><td><code>{{ .Name }}</code></td><td><code>{{ .Type }}</code></td><td>{{ .Doc }}</td></tr>
+                {{ end }}
+            </tbody>
+        </table></div>
+    {{ else }}
+        <p>The module has no instance settings: editors configure each item in the admin{{ if .Module.Options }}, and the options above configure the instance in code{{ end }}.</p>
+    {{ end }}
+
+    <h2 id="addresses">Addresses</h2>
+    {{ if .Module.Routes }}
+        <p>Page addresses are relative to the page the instance is placed on: with the instance on <code>/en/{{ .Module.Example.Key }}</code>, <code>/</code> is that page itself and <code>/{slug}</code> is <code>/en/{{ .Module.Example.Key }}/{slug}</code>. Any other address or method below the page gets the site's 404 page.{{ if .Module.Parts.Feeds }} The feeds are below the page too, in Atom and RSS, with as many entries as the site setting Items in feeds allows; a theme links them in the head of the module's pages with <code>{{ "{{" }}feedLinks{{ "}}" }}</code> (see <a href="{{ .DocsURL }}/go-webthings/themes#feeds">Themes</a>).{{ end }}{{ if .Module.Parts.API }} The API endpoints answer in JSON once the site turns on the content API (see <a href="{{ .DocsURL }}/go-webthings/api">Content API</a>).{{ end }} Visitor form actions are the same on every page; another method there gets 405. A route's name builds its address: the module's own code passes a page route's name to its router, and an action route's name, with the instance key in front, also works elsewhere on the site, for example with <code>Frontend.Route</code>.</p>
+        <div class="module-table"><table>
+            <thead>
+                <tr><th>Kind</th><th>Method</th><th>Path</th><th>Name</th></tr>
+            </thead>
+            <tbody>
+                {{ range .Module.Routes }}
+                    <tr><td>{{ .Kind }}</td><td><code>{{ .Method }}</code></td><td><code>{{ .Path }}</code></td><td>{{ with .Name }}<code>{{ . }}</code>{{ end }}</td></tr>
+                {{ end }}
+            </tbody>
+        </table></div>
+    {{ else }}
+        <p>The module serves no addresses of its own; templates show its content through template functions.</p>
+    {{ end }}
+
+    <h2 id="translations">Admin languages</h2>
+    {{ if .Module.Translations }}
+        <p>The module's admin text is translated into: {{ range $i, $locale := .Module.Translations }}{{ if $i }}, {{ end }}<code>{{ $locale }}</code>{{ end }}.</p>
+    {{ else }}
+        <p>The module ships no admin translations.</p>
+    {{ end }}
+
+    {{ template "module_pager.gohtml" . }}
+</article>

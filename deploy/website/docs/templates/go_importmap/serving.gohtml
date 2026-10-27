@@ -2,24 +2,49 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-<pre><code>mux.Handle("GET /assets/", http.StripPrefix("/assets/",
-    http.FileServer(http.Dir("/srv/my-site/assets")),
-))</code></pre>
-<p>This serves the files prepared under <code>/srv/my-site/assets</code> at <code>/assets/</code>. The file server needs the filesystem directory, while generated imports use browser paths. An absolute filesystem path prevents a different server working directory from changing which files are served.</p>
+<pre><code>mux.HandleFunc("GET /assets/{file...}", func(w http.ResponseWriter, r *http.Request) {
+    im.ServeFile(w, r, r.PathValue("file"))
+})</code></pre>
+<p><code>ServeFile</code> serves one local file by name, for routers that pass it as a path parameter: from the file system of <code>FromFS</code> or the manifest of <code>WithAssets</code>; without either every file is not found, so after <code>CacheOrFetch</code> fingerprint the assets directory and pass it to <code>WithAssets</code>. URLs are <code>/assets/&lt;file&gt;</code> by default.</p>
+<h2>Caching</h2>
+<p>With <code>FromFS</code> or <code>WithAssets</code>, URLs carry the file's version, such as <code>/assets/htmx/htmx.esm.min.js?v=3f2a…</code>. Every response has a strong <code>ETag</code> and <code>X-Content-Type-Options: nosniff</code>. A request for the current version gets <code>Cache-Control: public, max-age=31536000, immutable</code>; any other request gets <code>no-cache</code>, so browsers revalidate cheaply. Unknown files are not found, and methods other than GET and HEAD get 405.</p>
+<p>A file whose size or modification time changed since it was fingerprinted, such as one edited on disk, is hashed again when served, so it is never sent under a version or <code>ETag</code> it no longer has.</p>
+<h2>Routes of your own</h2>
+<pre><code>mux.HandleFunc("GET /static/{file...}", func(w http.ResponseWriter, r *http.Request) {
+    im.ServeFile(w, r, r.PathValue("file"))
+})
+
+im.WithURLFunc(func(file string) string {
+    return "/static/" + file
+})</code></pre>
+<p>When the files are served at another address, <code>WithURLFunc</code> sets the address of a local file, for example from a named route; the version is added to it, and entries already in the map are updated.</p>
+<h2>Files loaded by relative paths</h2>
+<pre><code>im.WithVersionedPaths()                       // every local file but the lock and licences
+im.WithVersionedPaths("**/*.js", "**/*.svg") // files that match
+im.WithVersionedPaths("!vendor/**")           // every file but these</code></pre>
+<p>A script that loads another file relative to its own URL, such as <code>import "./chunk.js"</code>, asks for the plain URL without a version. <code>WithVersionedPaths</code> maps such plain URLs to the versioned ones in the import map, so those files can be cached for a year too. A pattern matches a file's whole path with the syntax of <code>path.Match</code>, where <code>**</code> stands for any number of directories; a pattern that starts with <code>!</code> leaves files out. A name mapped with <code>WithImport</code> or <code>WithFile</code> wins.</p>
 <h2>Browser bootstrap</h2>
 <pre><code>// assets/app.js
 import htmx from "htmx";
 window.htmx = htmx;</code></pre>
 <pre><code>&lt;script type="module" src="/assets/app.js"&gt;&lt;/script&gt;</code></pre>
-<p>Include the prepared import map before this script. The <code>window</code> assignment is useful for application code that expects the HTMX global; it is an explicit choice in the bootstrap, not something go-importmap generates.</p>
+<p>Include the prepared import map before this script. When <code>app.js</code> is a local file, <code>{{"{{"}}importmap_script "app.js" "type" "module"}}</code> writes the tag with its URL, versioned with <code>FromFS</code> or <code>WithAssets</code>. The <code>window</code> assignment is useful for application code that expects the HTMX global; it is an explicit choice in the bootstrap, not something go-importmap generates.</p>
 <h2>Embedded assets</h2>
-<pre><code>//go:embed assets
-var assets embed.FS
-
-public, err := fs.Sub(assets, "assets")
+<p><a href="{{ basePath }}/vendoring" hx-get="{{ basePath }}/vendoring" hx-target="#content" hx-push-url="true">Vendored packages</a> are embedded and loaded with <code>FromFS</code>. It fingerprints every file of its file system, so the application's own scripts and stylesheets in the same file system get versioned URLs and are served by <code>ServeFile</code> too. For any other file system, the <code>assets</code> package does the same without an import map:</p>
+<pre><code>manifest, err := assets.Fingerprint(static) // e.g. an embed.FS
 if err != nil { return err }
-mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(public))))</code></pre>
-<p>Prepare downloaded files before building the binary so the embed directive can include them. Custom scripts, stylesheet sources and images are application-owned assets; keep them in the public tree or mount them deliberately.</p>
+manifest.WithURLFunc(func(file string) string { return "/static/" + file })
+mux.HandleFunc("GET /static/{file...}", func(w http.ResponseWriter, r *http.Request) {
+    manifest.ServeFile(w, r, r.PathValue("file"))
+})</code></pre>
+<p><code>manifest.URL</code>, <code>Integrity</code> and <code>Stylesheet</code> give a file's versioned URL, its Subresource Integrity and a stylesheet tag. <code>assets.Only(files...)</code> fingerprints only the named files, and <code>assets.Reload()</code> fingerprints again when files on disk change, for development. Custom scripts, stylesheet sources and images are application-owned assets; keep them in the public tree or mount them deliberately.</p>
+<pre><code>tag, err := assets.ScriptTag(myRoute("app.js"), manifest.TagIntegrity("app.js"), "type", "module")</code></pre>
+<p><code>manifest.PlainURL</code> is the address without a version, the one a script reaches by a relative path. <code>assets.ScriptTag(src, integrity, attrs...)</code> and <code>assets.StylesheetTag(href, integrity, attrs...)</code> write a tag from an address of your own and an integrity value; an empty integrity writes neither <code>integrity</code> nor <code>crossorigin</code>. Take the value from <code>manifest.TagIntegrity(file)</code>, which is <code>Integrity</code> except while the manifest reloads.</p>
+<h2>Reloading while developing</h2>
+<pre><code>manifest, err := assets.Fingerprint(os.DirFS("static"), assets.Reload())
+im.WithAssets(manifest) // the import map follows the new versions too</code></pre>
+<p>Fingerprints are taken once. <code>assets.Reload()</code> looks at the file system again on every use, by the names, sizes and modification times of the files, and fingerprints it again when anything changed, was added or removed. A change that keeps a file's size and modification time goes unnoticed. It is safe for concurrent use. An embedded file system never changes, so leave it out in production; <code>manifest.Reloads()</code> reports whether a manifest was made with it.</p>
+<p>A reloading file changes under pages that may be cached, and a page holding its old integrity makes the browser refuse the new content. So while the manifest reloads, <code>manifest.Stylesheet</code> and <code>manifest.TagIntegrity</code> leave the integrity out; <code>Integrity</code> still gives the current value. For the import map, render with <code>WithStableIntegrity</code> (see <a href="{{ basePath }}/rendering" hx-get="{{ basePath }}/rendering" hx-target="#content" hx-push-url="true">rendering</a>).</p>
 <h2>Full pages and fragments</h2>
 <p>Place the dependency head in the full-page layout. A go-partial fragment normally updates content inside the already loaded page, so it does not need another copy of the import map or module bootstrap.</p>
 </article>

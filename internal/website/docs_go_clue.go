@@ -54,7 +54,6 @@ func mustNewGoClueDocs() *goClueApp {
 			BasePath:  "/go-clue",
 			AppName:   "go-clue",
 			LogName:   "go-clue",
-			Logo:      "gc",
 			Title:     "go-clue",
 			Subtitle:  "typed contracts for Go templates",
 			GitHubURL: "https://github.com/donseba/go-clue",

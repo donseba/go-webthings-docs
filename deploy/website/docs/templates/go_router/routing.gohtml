@@ -10,7 +10,29 @@ r.Put("/users/{id}", updateUser)
 r.Patch("/users/{id}", patchUser)
 r.Delete("/users/{id}", deleteUser)</code></pre>
 
-<p>Patterns use the standard Go 1.22+ <code>http.ServeMux</code> syntax. Inside handlers, use <code>req.PathValue("id")</code> or typed helpers such as <code>router.IntParam</code>.</p>
+<p>Patterns use the standard Go 1.22+ <code>http.ServeMux</code> syntax. Inside handlers, use <code>req.PathValue("id")</code> or typed helpers such as <code>router.IntParam</code>. <code>Head</code> and <code>Options</code> register the other two methods.</p>
+
+<h2>Handle and HandleFunc</h2>
+<p><code>Handle</code> and <code>HandleFunc</code> take a <code>ServeMux</code> pattern with or without a method, also a method of your own. The handler sees the full request URL.</p>
+<pre><code>r.Handle("/theme/", http.StripPrefix("/theme/", themeFiles))
+r.Handle("PURGE /cache/", purge)</code></pre>
+
+<h2>The registered route</h2>
+<p>Every registration returns the route, a <code>*router.RouteRegistration</code>, so calls chain: <code>As</code> names it, <code>Label</code> gives it labels and <code>Use</code> adds middleware to this route only.</p>
+<pre><code>r.Post("/users/{id}/delete", deleteUser).
+    Use(can("users.delete")).
+    As("users.delete").
+    Label("admin")</code></pre>
+
+<p><code>/users</code> and <code>/users/</code> are two routes. Registering the same host, method and pattern twice panics. The <code>Try</code> variants, such as <code>TryGet</code>, <code>TryHandle</code> and <code>TryMount</code>, return the route and an error instead; the route is <code>nil</code> when there is an error.</p>
+<pre><code>route, err := r.TryHandle("/feed.xml", feed)
+if err != nil {
+    return err
+}
+
+if err := route.TryAs("feed"); err != nil {
+    return err
+}</code></pre>
 
 <h2>Groups</h2>
 <pre><code>r.Group("/api", func(api *router.Router) {

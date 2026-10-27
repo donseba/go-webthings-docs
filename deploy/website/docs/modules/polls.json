@@ -1,0 +1,638 @@
+{
+  "Slug": "polls",
+  "Name": "Polls",
+  "Group": "Visitors",
+  "Summary": "Ask visitors a question with a few options and show the results. Every visitor has one vote per poll.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/polls",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/polls",
+  "Type": "polls",
+  "Example": {
+    "Key": "polls",
+    "Title": "Polls",
+    "Code": "app.Use(polls.Module(\"polls\", \"Polls\"))"
+  },
+  "Guide": "\u003cp\u003ePolls appear on any page through a template function, for example on the home page or beside an article. Placing the instance on a page is optional; that page lists every poll.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(polls.Module(\u0026quot;polls\u0026quot;, \u0026quot;Polls\u0026quot;))\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003epolls\u003c/code\u003e) is the instance's name in URLs and template functions and must be unique on the site. The title (\u003ccode\u003ePolls\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"write-a-poll\"\u003eWrite a poll\u003c/h2\u003e\n\u003cp\u003eIn the admin, open the instance (\u003ccode\u003e/admin/polls\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) and choose \u003cstrong\u003eNew poll\u003c/strong\u003e:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eQuestion\u003c/strong\u003e, and an optional \u003cstrong\u003eShort name\u003c/strong\u003e, a name for templates such as \u003ccode\u003efavourite-colour\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eOptions\u003c/strong\u003e: one per line, at least two and at most 20.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eCloses at\u003c/strong\u003e: when voting ends, in the site's timezone. Leave it empty to keep the poll open.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eShow results before voting\u003c/strong\u003e: otherwise visitors see the results after voting or once the poll is closed.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003ePublish the poll when it is ready. It appears in each language that has a question and at least two options.\u003c/p\u003e\n\u003cp\u003eOptions are matched by line in every language, so translate them in the same order and add new options at the end. Changing the text of a line renames that option and keeps its votes. Options that have votes cannot be removed until the votes are reset.\u003c/p\u003e\n\u003cp\u003eNew polls go to the top of the list, and editors can move them up and down. That order is the order of the \u003ccode\u003epolls\u003c/code\u003e function, and the top poll is the one \u003ccode\u003e{{pollBox \u0026quot;polls\u0026quot; \u0026quot;\u0026quot;}}\u003c/code\u003e shows. The list shows the number of votes per poll and which polls are closed.\u003c/p\u003e\n\u003cp\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a poll to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e with its votes, where it can be restored or deleted for good. Restoring is refused when another poll has taken its short name meanwhile.\u003c/p\u003e\n\u003ch2 id=\"show-a-poll-on-any-page\"\u003eShow a poll on any page\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{pollBox \u0026quot;polls\u0026quot; \u0026quot;favourite-colour\u0026quot;}}\n{{pollBox \u0026quot;polls\u0026quot; \u0026quot;\u0026quot;}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003epollBox\u003c/code\u003e renders a published poll by short name or ID, or for \u003ccode\u003e\u0026quot;\u0026quot;\u003c/code\u003e the top poll of the list, the newest one unless editors moved the polls: the question, the vote form, the results with bars when they may be shown, and a notice after voting. Without such a poll it renders nothing.\u003c/p\u003e\n\u003cp\u003eThe box comes with plain, accessible default markup. A theme replaces it with \u003ccode\u003e\u0026lt;key\u0026gt;/box.gohtml\u003c/code\u003e, or \u003ccode\u003epolls/box.gohtml\u003c/code\u003e for every instance; \u003ccode\u003etask templates -- polls\u003c/code\u003e writes the default to start from. It uses stable \u003ccode\u003ewt-*\u003c/code\u003e classes (\u003ccode\u003ewt-poll\u003c/code\u003e, \u003ccode\u003ewt-poll__results\u003c/code\u003e, \u003ccode\u003ewt-poll__bar\u003c/code\u003e, …), laid out by the optional stylesheet \u003ccode\u003ewebthings.css\u003c/code\u003e, which the layout links with \u003ccode\u003e{{styles \u0026quot;webthings.css\u0026quot; \u0026quot;site.css\u0026quot;}}\u003c/code\u003e (see \u003ca href=\"wt-docs:/go-webthings/themes#the-base-stylesheet\"\u003eThe base stylesheet\u003c/a\u003e). A result's bar is a \u003ccode\u003e\u0026lt;meter class=\u0026quot;wt-poll__bar\u0026quot; min=\u0026quot;0\u0026quot; max=\u0026quot;100\u0026quot; aria-hidden=\u0026quot;true\u0026quot;\u0026gt;\u003c/code\u003e whose value is the result's percentage, which also shows as text; it has no \u003ccode\u003estyle\u003c/code\u003e attribute. \u003ccode\u003ewebthings.css\u003c/code\u003e draws it as a \u003ccode\u003e--wt-bar\u003c/code\u003e track filled with \u003ccode\u003e--wt-accent\u003c/code\u003e. go-form renders the options with the site's form theme, as a \u003ccode\u003efieldset\u003c/code\u003e with the question as its \u003ccode\u003elegend\u003c/code\u003e, by default \u003ccode\u003ewt-form__field wt-form__fieldset\u003c/code\u003e around \u003ccode\u003ewt-form__options\u003c/code\u003e with a \u003ccode\u003ewt-form__option\u003c/code\u003e each. Its texts go through \u003ccode\u003etl\u003c/code\u003e, so the site's translations translate them.\u003c/p\u003e\n\u003cp\u003eFor markup of your own, \u003ccode\u003epoll\u003c/code\u003e returns one poll (or nil), \u003ccode\u003epolls\u003c/code\u003e the first published polls (\u003ccode\u003e{{polls \u0026quot;polls\u0026quot; 0}}\u003c/code\u003e for all) and \u003ccode\u003epollURL\u003c/code\u003e the address votes are posted to:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{with poll \u0026quot;polls\u0026quot; \u0026quot;favourite-colour\u0026quot;}}\n    \u0026lt;section id=\u0026quot;{{.Anchor}}\u0026quot;\u0026gt;\n        \u0026lt;h2\u0026gt;{{.Question}}\u0026lt;/h2\u0026gt;\n        {{if eq .Result \u0026quot;voted\u0026quot;}}\u0026lt;p\u0026gt;Thanks for voting.\u0026lt;/p\u0026gt;{{end}}\n\n        {{if .CanVote}}\n            {{form_open .Form}}\n                {{form_field .Form \u0026quot;poll\u0026quot; nil}}\n                {{form_field .Form \u0026quot;option\u0026quot; nil}}\n                \u0026lt;button\u0026gt;Vote\u0026lt;/button\u0026gt;\n            {{form_close}}\n        {{end}}\n\n        {{if .ShowResults}}\n            {{range .Options}}\n                \u0026lt;p\u0026gt;{{.Label}}: {{.Percent}}%{{if .Chosen}} (your vote){{end}}\u0026lt;/p\u0026gt;\n                \u0026lt;meter min=\u0026quot;0\u0026quot; max=\u0026quot;100\u0026quot; value=\u0026quot;{{.Percent}}\u0026quot;\u0026gt;{{.Percent}}%\u0026lt;/meter\u0026gt;\n            {{end}}\n            \u0026lt;p\u0026gt;{{.Total}} votes\u0026lt;/p\u0026gt;\n        {{end}}\n    \u0026lt;/section\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eCanVote\u003c/code\u003e is set while the poll is open and the visitor has not voted. \u003ccode\u003ePercent\u003c/code\u003e is rounded, \u003ccode\u003eClosesAt\u003c/code\u003e is in the site's timezone and zero for a poll that stays open.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e.Form\u003c/code\u003e is the vote form: \u003ccode\u003eform_open\u003c/code\u003e writes the form tag, posting to \u003ccode\u003e.Action\u003c/code\u003e, with the spam trap and the page to return to, the element whose id is \u003ccode\u003e.Anchor\u003c/code\u003e (\u003ccode\u003e\u0026lt;key\u0026gt;-\u0026lt;poll ID\u0026gt;\u003c/code\u003e), so several polls can share a page. \u003ccode\u003epoll\u003c/code\u003e is a hidden field with the poll's ID. \u003ccode\u003eoption\u003c/code\u003e renders the poll's options as radio buttons, required, in a \u003ccode\u003efieldset\u003c/code\u003e with the question as its \u003ccode\u003elegend\u003c/code\u003e, in the site's form theme; the ids start with \u003ccode\u003e.Anchor\u003c/code\u003e. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e. Radio inputs written by hand, named \u003ccode\u003eoption\u003c/code\u003e with an option's \u003ccode\u003e.ID\u003c/code\u003e as value, work too.\u003c/p\u003e\n\u003ch2 id=\"poll-page\"\u003ePoll page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page renders \u003ccode\u003epolls/list.gohtml\u003c/code\u003e with a \u003ccode\u003epolls.ListView\u003c/code\u003e: the page's published title, the instance key and every published poll in the editors' order. \u003ccode\u003etask templates -- polls\u003c/code\u003e writes a starting point for it too. The box works here:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/polls.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{range .Polls}}\n    {{pollBox $.Key .ID}}\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"voting\"\u003eVoting\u003c/h2\u003e\n\u003cp\u003eThe vote form posts to \u003ccode\u003e/_/\u0026lt;key\u0026gt;/vote\u003c/code\u003e (\u003ccode\u003e{{pollURL \u0026quot;polls\u0026quot;}}\u003c/code\u003e) with the fields of \u003ccode\u003epolls.VoteInput\u003c/code\u003e, \u003ccode\u003epoll\u003c/code\u003e (the poll's ID) and \u003ccode\u003eoption\u003c/code\u003e (an option's ID), plus the spam trap and the way back that \u003ccode\u003eform_open\u003c/code\u003e adds. The visitor returns to the poll's \u003ccode\u003e.Anchor\u003c/code\u003e on the page with \u003ccode\u003e?\u0026lt;key\u0026gt;=\u0026lt;result\u0026gt;\u0026amp;\u0026lt;key\u0026gt;_poll=\u0026lt;poll ID\u0026gt;\u003c/code\u003e. Only that poll gets the result as \u003ccode\u003e.Result\u003c/code\u003e, so other polls on the page show none; unknown results are ignored:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003evoted\u003c/code\u003e: the vote was counted;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ealready\u003c/code\u003e: this visitor already voted on this poll;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eclosed\u003c/code\u003e: the poll is closed or no longer published;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003einvalid\u003c/code\u003e: no option, or an option of another poll, was chosen;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ethrottled\u003c/code\u003e: more than 20 votes in a minute from this visitor; nothing was counted.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eWith \u003ccode\u003einvalid\u003c/code\u003e, the poll shows the vote form again with the message in the page's language at its options. The box and \u003ccode\u003eform_field\u003c/code\u003e do this without a change to the template; inputs written by hand do not. See \u003ca href=\"wt-docs:/go-webthings/visitor-forms#a-post-with-mistakes\"\u003eA post with mistakes\u003c/a\u003e. A vote that fails for another reason, such as an unreachable database, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eBots that fill in the spam trap are told their vote counted; nothing is stored.\u003c/p\u003e\n\u003cp\u003eThe first vote sets a \u003ccode\u003ewt_poll\u003c/code\u003e cookie that recognises the visitor for a year. Visitors without it are recognised by their IP address, so scripts that drop cookies get one vote per address; behind a reverse proxy, list it in \u003ccode\u003eConfig.TrustedProxies\u003c/code\u003e. When someone else on that address already voted, the visitor gets a cookie of their own and can vote next time. Only a hash of the visitor's ID is stored, and addresses are keyed with a secret of the instance first, so votes cannot be traced back to addresses.\u003c/p\u003e\n\u003cp\u003eOnly the cookie marks a poll as voted on a page. The module names it to the site's output cache (\u003ccode\u003eEnv.PersonalCookie\u003c/code\u003e), which keeps pages apart for each value of \u003ccode\u003ewt_poll\u003c/code\u003e, so a visitor who voted sees their choice and others the vote form; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e. Only a vote that counted makes the cache render the pages again: every other result tells it that nothing changed (\u003ccode\u003efrontend.NothingChanged\u003c/code\u003e).\u003c/p\u003e\n\u003ch2 id=\"results\"\u003eResults\u003c/h2\u003e\n\u003cp\u003e\u003cstrong\u003eResults\u003c/strong\u003e on the instance's admin page (\u003ccode\u003e/admin/polls/results\u003c/code\u003e) shows every poll with its status (draft, open or closed), the votes and percentage per option and the total. \u003cstrong\u003eReset votes\u003c/strong\u003e removes all votes of a poll after confirmation; it needs the delete right.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003epolls.Of(app, \u0026quot;polls\u0026quot;)\u003c/code\u003e returns the instance once the app has started. \u003ccode\u003eLatest\u003c/code\u003e and \u003ccode\u003eFind\u003c/code\u003e take the visitor's request, or nil, to mark what that visitor chose; \u003ccode\u003eLatest\u003c/code\u003e with a limit of 0 or less returns all polls:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003esurvey := polls.Of(app, \u0026quot;polls\u0026quot;)\n\nnewest, err := survey.Latest(ctx, nil, \u0026quot;en\u0026quot;, 1)\npoll, err := survey.Find(ctx, r, \u0026quot;en\u0026quot;, \u0026quot;favourite-colour\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eVote\u003c/code\u003e counts a vote for any visitor ID, such as a member number, and returns \u003ccode\u003eErrAlreadyVoted\u003c/code\u003e, \u003ccode\u003eErrClosed\u003c/code\u003e or \u003ccode\u003eErrInvalidOption\u003c/code\u003e; \u003ccode\u003eResetVotes\u003c/code\u003e clears a poll. \u003ccode\u003eStore()\u003c/code\u003e gives write access for seed data. Votes and resets made from Go, and writes through \u003ccode\u003eStore()\u003c/code\u003e, show at once, also on pages in the site's output cache; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e. Code may choose its own option IDs, unique in the poll and at most 36 bytes:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003estore := survey.Store()\n\nsaved, err := store.Save(ctx, content.Draft[polls.Fields, polls.Text]{\n    Fields: polls.Fields{Options: polls.Lines{\u0026quot;red\u0026quot;, \u0026quot;green\u0026quot;, \u0026quot;blue\u0026quot;}},\n    Translations: content.SetText(nil, \u0026quot;en\u0026quot;, polls.Text{\n        Question: \u0026quot;Which colour should the new logo have?\u0026quot;,\n        Slug:     \u0026quot;logo-colour\u0026quot;,\n        Options:  polls.Lines{\u0026quot;Red\u0026quot;, \u0026quot;Green\u0026quot;, \u0026quot;Blue\u0026quot;},\n    }),\n})\n\nerr = store.Publish(ctx, saved.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/forms\"\u003eForms\u003c/a\u003e asks longer questions, with an inbox for the answers.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/comments\"\u003eComments\u003c/a\u003e lets visitors say more than a vote.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*polls.Service"
+  },
+  "Admin": [
+    {
+      "ID": "polls",
+      "Title": "Polls",
+      "Path": "/admin/polls",
+      "Permission": "polls",
+      "Icon": "check",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New poll",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "action",
+      "Name": "polls.vote",
+      "Method": "POST",
+      "Path": "/_/polls/vote"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "poll",
+      "Signature": "poll(key, slugOrID string) *Poll",
+      "Doc": "\u003cp\u003efind returns one published poll for the current visitor, for example\n{{with poll \u0026quot;survey\u0026quot; \u0026quot;favourite-colour\u0026quot;}}, or nil.\n"
+    },
+    {
+      "Name": "pollBox",
+      "Signature": "pollBox(key, slugOrID string) (template.HTML, error)",
+      "Doc": "\u003cp\u003epollBox renders the box component of one published poll, by slug or ID,\nor of the newest one when slugOrID is empty, for example {{pollBox\n\u0026quot;survey\u0026quot; \u0026quot;favourite-colour\u0026quot;}}. Without such a poll it renders nothing.\n"
+    },
+    {
+      "Name": "pollURL",
+      "Signature": "pollURL(key string) string",
+      "Doc": "\u003cp\u003eactionURL is the address vote forms post to, for example\n\u0026lt;form method=\u0026quot;post\u0026quot; action=\u0026quot;{{pollURL \u0026quot;survey\u0026quot;}}\u0026quot;\u0026gt;, or \u0026quot;\u0026quot; for an unknown\ninstance.\n"
+    },
+    {
+      "Name": "polls",
+      "Signature": "polls(key string, limit int) []Poll",
+      "Doc": "\u003cp\u003elatest returns up to limit published polls, newest first unless editors\nreordered them, for example {{range polls \u0026quot;survey\u0026quot; 1}} on the home page; a\nlimit of 0 or less returns all of them.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "polls/list.gohtml",
+        "polls/list.gohtml"
+      ],
+      "DataType": "polls.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key, for {{pollBox .Key .ID}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Polls",
+          "Type": "[]polls.Poll",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Question",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Options",
+              "Type": "[]polls.Option",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Label",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Votes",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Percent",
+                  "Type": "int",
+                  "Doc": "Percent is the share of all votes, rounded.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Chosen",
+                  "Type": "bool",
+                  "Doc": "",
+                  "Fields": null
+                }
+              ]
+            },
+            {
+              "Name": "Total",
+              "Type": "int",
+              "Doc": "Total is the number of votes.",
+              "Fields": null
+            },
+            {
+              "Name": "ClosesAt",
+              "Type": "time.Time",
+              "Doc": "ClosesAt is when voting ends, in the site's timezone; zero when the poll stays open.",
+              "Fields": null
+            },
+            {
+              "Name": "Closed",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Voted",
+              "Type": "bool",
+              "Doc": "Voted is set when the current visitor voted; Option.Chosen marks their choice.",
+              "Fields": null
+            },
+            {
+              "Name": "CanVote",
+              "Type": "bool",
+              "Doc": "CanVote is set when the poll is open and the visitor has not voted.",
+              "Fields": null
+            },
+            {
+              "Name": "ShowResults",
+              "Type": "bool",
+              "Doc": "ShowResults is set when results may be shown: after voting, when the poll is closed, or always when editors chose so.",
+              "Fields": null
+            },
+            {
+              "Name": "Action",
+              "Type": "string",
+              "Doc": "Action is the address the vote form posts to.",
+              "Fields": null
+            },
+            {
+              "Name": "Anchor",
+              "Type": "string",
+              "Doc": "Anchor is the id of the element the vote form returns the visitor to, \u003ckey\u003e-\u003cID\u003e, for the element around the form and its result.",
+              "Fields": null
+            },
+            {
+              "Name": "Form",
+              "Type": "form.RenderModel",
+              "Doc": "Form is the vote form's model (VoteInput, with the poll's ID) for go-form's template functions, such as {{form_open .Form}}; the ids of its fields start with Anchor.",
+              "Fields": null
+            },
+            {
+              "Name": "Result",
+              "Type": "string",
+              "Doc": "Result is the outcome of the visitor's last vote on this poll: \"voted\", \"already\", \"closed\", \"invalid\", \"throttled\" or empty.",
+              "Fields": null
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/polls.ListView */}}\n{{/* Starting point generated by WebThings: every published poll, each with the box component. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{range .Polls}}\n        {{pollBox $.Key .ID}}\n    {{else}}\n        \u003cp\u003eNo polls yet.\u003c/p\u003e\n    {{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [
+    {
+      "Name": "box",
+      "Files": [
+        "polls/box.gohtml",
+        "polls/box.gohtml"
+      ],
+      "DataType": "polls.Poll",
+      "Fields": [
+        {
+          "Name": "ID",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Slug",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Question",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Options",
+          "Type": "[]polls.Option",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Label",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Votes",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Percent",
+              "Type": "int",
+              "Doc": "Percent is the share of all votes, rounded.",
+              "Fields": null
+            },
+            {
+              "Name": "Chosen",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Total",
+          "Type": "int",
+          "Doc": "Total is the number of votes.",
+          "Fields": null
+        },
+        {
+          "Name": "ClosesAt",
+          "Type": "time.Time",
+          "Doc": "ClosesAt is when voting ends, in the site's timezone; zero when the poll stays open.",
+          "Fields": null
+        },
+        {
+          "Name": "Closed",
+          "Type": "bool",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Voted",
+          "Type": "bool",
+          "Doc": "Voted is set when the current visitor voted; Option.Chosen marks their choice.",
+          "Fields": null
+        },
+        {
+          "Name": "CanVote",
+          "Type": "bool",
+          "Doc": "CanVote is set when the poll is open and the visitor has not voted.",
+          "Fields": null
+        },
+        {
+          "Name": "ShowResults",
+          "Type": "bool",
+          "Doc": "ShowResults is set when results may be shown: after voting, when the poll is closed, or always when editors chose so.",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the vote form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Anchor",
+          "Type": "string",
+          "Doc": "Anchor is the id of the element the vote form returns the visitor to, \u003ckey\u003e-\u003cID\u003e, for the element around the form and its result.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the vote form's model (VoteInput, with the poll's ID) for go-form's template functions, such as {{form_open .Form}}; the ids of its fields start with Anchor.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is the outcome of the visitor's last vote on this poll: \"voted\", \"already\", \"closed\", \"invalid\", \"throttled\" or empty.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/polls.Poll */}}\n{{/* One poll: the vote form, then the results when they may be shown: {{pollBox \"survey\" \"slug\"}}. */}}\n\u003csection class=\"wt-poll\" id=\"{{.Anchor}}\" aria-labelledby=\"{{.Anchor}}-question\"\u003e\n    \u003ch3 class=\"wt-poll__question\" id=\"{{.Anchor}}-question\"\u003e{{.Question}}\u003c/h3\u003e\n\n    {{with .Result}}\n        \u003cp class=\"wt-notice\" role=\"status\"\u003e\n            {{if eq . \"voted\"}}{{tl localizer \"Thank you for voting.\"}}\n            {{else if eq . \"already\"}}{{tl localizer \"You already voted on this question.\"}}\n            {{else if eq . \"closed\"}}{{tl localizer \"This poll is closed.\"}}\n            {{else if eq . \"throttled\"}}{{tl localizer \"Too many votes. Please try again later.\"}}\n            {{else}}{{tl localizer \"Please choose one of the options.\"}}{{end}}\n        \u003c/p\u003e\n    {{end}}\n\n    {{if .CanVote}}\n        {{/* The form returns the visitor to the element with the id {{.Anchor}}. */}}\n        {{form_open .Form}}\n            {{form_field .Form \"poll\" nil}}\n            {{/* The options as radio buttons, labelled with the question. */}}\n            {{form_field .Form \"option\" nil}}\n\n            \u003cbutton class=\"wt-button\" type=\"submit\"\u003e{{tl localizer \"Vote\"}}\u003c/button\u003e\n        {{form_close}}\n    {{end}}\n\n    {{if .ShowResults}}\n        \u003cul class=\"wt-poll__results\"\u003e\n            {{range .Options}}\n                \u003cli class=\"wt-poll__result{{if .Chosen}} wt-poll__result--chosen{{end}}\"\u003e\n                    \u003cspan class=\"wt-poll__label\"\u003e{{.Label}}{{if .Chosen}} \u003cspan class=\"wt-meta\"\u003e({{tl localizer \"your choice\"}})\u003c/span\u003e{{end}}\u003c/span\u003e\n                    \u003cspan class=\"wt-poll__percent\"\u003e{{.Percent}}%\u003c/span\u003e\n                    \u003cmeter class=\"wt-poll__bar\" min=\"0\" max=\"100\" value=\"{{.Percent}}\" aria-hidden=\"true\"\u003e{{.Percent}}%\u003c/meter\u003e\n                \u003c/li\u003e\n            {{end}}\n        \u003c/ul\u003e\n\n        \u003cp class=\"wt-poll__total wt-meta\"\u003e{{tl localizer \"Votes: %d\" .Total}}\u003c/p\u003e\n    {{end}}\n\n    {{if .Closed}}\n        \u003cp class=\"wt-meta\"\u003e{{tl localizer \"Voting has closed.\"}}\u003c/p\u003e\n    {{else if not .ClosesAt.IsZero}}\n        \u003cp class=\"wt-meta\"\u003e{{tl localizer \"Voting closes on %s.\" (date .ClosesAt)}}\u003c/p\u003e\n    {{end}}\n\u003c/section\u003e"
+    }
+  ],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Polls are a collection (see package content). Option IDs are a JSON array\n-- shared by all languages (UUIDs from the editor, or any IDs of at most 36\n-- characters from code); each translation holds the option labels in the\n-- same order.\nCREATE TABLE wt_poll (\n    id           UUID PRIMARY KEY,\n    instance     VARCHAR(64) NOT NULL,\n    published    BOOLEAN NOT NULL DEFAULT FALSE,\n    position     INTEGER NOT NULL DEFAULT 0,\n    created_at   TIMESTAMPTZ NOT NULL,\n    created_by   UUID,\n    updated_at   TIMESTAMPTZ NOT NULL,\n    updated_by   UUID,\n    deleted_at   TIMESTAMPTZ,\n    deleted_by   UUID,\n    option_ids   TEXT NOT NULL DEFAULT '[]',\n    closes_at    TIMESTAMPTZ,\n    show_results BOOLEAN NOT NULL DEFAULT FALSE\n);\n\nCREATE INDEX wt_poll_instance ON wt_poll (instance, position);\n\nCREATE TABLE wt_poll_translation (\n    item_id       UUID NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE,\n    locale        VARCHAR(35) NOT NULL,\n    question      VARCHAR(500) NOT NULL DEFAULT '',\n    slug          VARCHAR(190) NOT NULL DEFAULT '',\n    option_labels TEXT NOT NULL DEFAULT '[]',\n    PRIMARY KEY (item_id, locale)\n);\n\nCREATE INDEX wt_poll_slug ON wt_poll_translation (locale, slug);\n\n-- One vote per visitor and poll. visitor is the SHA-256 of the visitor's id\n-- (see package polls), never the id or address itself.\nCREATE TABLE wt_poll_vote (\n    poll_id    UUID NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE,\n    instance   VARCHAR(64) NOT NULL,\n    option_id  VARCHAR(36) NOT NULL,\n    visitor    CHAR(64) NOT NULL,\n    created_at TIMESTAMPTZ NOT NULL,\n    PRIMARY KEY (poll_id, visitor)\n);\n\nCREATE INDEX wt_poll_vote_instance ON wt_poll_vote (instance, visitor);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Polls are a collection (see package content). Option IDs are a JSON array\n-- shared by all languages (UUIDs from the editor, or any IDs of at most 36\n-- characters from code); each translation holds the option labels in the\n-- same order.\nCREATE TABLE wt_poll (\n    id           TEXT PRIMARY KEY,\n    instance     TEXT NOT NULL,\n    published    BOOLEAN NOT NULL DEFAULT FALSE,\n    position     INTEGER NOT NULL DEFAULT 0,\n    created_at   TIMESTAMP NOT NULL,\n    created_by   TEXT,\n    updated_at   TIMESTAMP NOT NULL,\n    updated_by   TEXT,\n    deleted_at   TIMESTAMP,\n    deleted_by   TEXT,\n    option_ids   TEXT NOT NULL DEFAULT '[]',\n    closes_at    TIMESTAMP,\n    show_results BOOLEAN NOT NULL DEFAULT FALSE\n);\n\nCREATE INDEX wt_poll_instance ON wt_poll (instance, position);\n\nCREATE TABLE wt_poll_translation (\n    item_id       TEXT NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE,\n    locale        TEXT NOT NULL,\n    question      TEXT NOT NULL DEFAULT '',\n    slug          TEXT NOT NULL DEFAULT '',\n    option_labels TEXT NOT NULL DEFAULT '[]',\n    PRIMARY KEY (item_id, locale)\n);\n\nCREATE INDEX wt_poll_slug ON wt_poll_translation (locale, slug);\n\n-- One vote per visitor and poll. visitor is the SHA-256 of the visitor's id\n-- (see package polls), never the id or address itself.\nCREATE TABLE wt_poll_vote (\n    poll_id    TEXT NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE,\n    instance   TEXT NOT NULL,\n    option_id  TEXT NOT NULL,\n    visitor    TEXT NOT NULL,\n    created_at TIMESTAMP NOT NULL,\n    PRIMARY KEY (poll_id, visitor)\n);\n\nCREATE INDEX wt_poll_vote_instance ON wt_poll_vote (instance, visitor);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Polls are a collection (see package content). Option IDs are a JSON array\n-- shared by all languages (UUIDs from the editor, or any IDs of at most 36\n-- characters from code); each translation holds the option labels in the\n-- same order.\nCREATE TABLE wt_poll (\n    id           VARCHAR(36) PRIMARY KEY,\n    instance     VARCHAR(64) NOT NULL,\n    published    BOOLEAN NOT NULL DEFAULT FALSE,\n    position     INTEGER NOT NULL DEFAULT 0,\n    created_at   DATETIME(6) NOT NULL,\n    created_by   VARCHAR(36) NULL,\n    updated_at   DATETIME(6) NOT NULL,\n    updated_by   VARCHAR(36) NULL,\n    deleted_at   DATETIME(6) NULL,\n    deleted_by   VARCHAR(36) NULL,\n    option_ids   TEXT NOT NULL,\n    closes_at    DATETIME(6) NULL,\n    show_results BOOLEAN NOT NULL DEFAULT FALSE,\n    INDEX wt_poll_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_poll_translation (\n    item_id       VARCHAR(36) NOT NULL,\n    locale        VARCHAR(35) NOT NULL,\n    question      VARCHAR(500) NOT NULL DEFAULT '',\n    slug          VARCHAR(190) NOT NULL DEFAULT '',\n    option_labels TEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    INDEX wt_poll_slug (locale, slug),\n    FOREIGN KEY (item_id) REFERENCES wt_poll (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- One vote per visitor and poll. visitor is the SHA-256 of the visitor's id\n-- (see package polls), never the id or address itself.\nCREATE TABLE wt_poll_vote (\n    poll_id    VARCHAR(36) NOT NULL,\n    instance   VARCHAR(64) NOT NULL,\n    option_id  VARCHAR(36) NOT NULL,\n    visitor    CHAR(64) NOT NULL,\n    created_at DATETIME(6) NOT NULL,\n    PRIMARY KEY (poll_id, visitor),\n    INDEX wt_poll_vote_instance (instance, visitor),\n    FOREIGN KEY (poll_id) REFERENCES wt_poll (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_poll",
+      "Note": "Polls are a collection (see package content). Option IDs are a JSON array shared by all languages (UUIDs from the editor, or any IDs of at most 36 characters from code); each translation holds the option labels in the same order.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "option_ids",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT '[]'"
+        },
+        {
+          "Name": "closes_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "show_results",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_poll_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_poll_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "question",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "option_labels",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT '[]'"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)",
+        "INDEX wt_poll_slug (locale, slug)"
+      ]
+    },
+    {
+      "Name": "wt_poll_vote",
+      "Note": "One vote per visitor and poll. visitor is the SHA-256 of the visitor's id (see package polls), never the id or address itself.",
+      "Columns": [
+        {
+          "Name": "poll_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_poll (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "option_id",
+          "Type": "VARCHAR(36)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "visitor",
+          "Type": "CHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (poll_id, visitor)",
+        "INDEX wt_poll_vote_instance (instance, visitor)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Find",
+        "Signature": "func (s *Service) Find(ctx context.Context, r *http.Request, locale, slugOrID string) (Poll, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Latest",
+        "Signature": "func (s *Service) Latest(ctx context.Context, r *http.Request, locale string, limit int) ([]Poll, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "ResetVotes",
+        "Signature": "func (s *Service) ResetVotes(ctx context.Context, pollID string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      },
+      {
+        "Name": "Vote",
+        "Signature": "func (s *Service) Vote(ctx context.Context, pollID, optionID, visitor string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of a poll. Options are the option\nIDs in their order; votes refer to them. The editor makes UUIDs; code that\nwrites polls through Store may use any IDs that are unique in the poll,\nnot empty and at most 36 bytes, and must keep them once there are votes.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tOptions Lines `db:\"option_ids\"`\n\t// ClosesAt is when voting ends, in UTC; nil keeps the poll open.\n\tClosesAt    *time.Time `db:\"closes_at\"`\n\tShowResults bool       `db:\"show_results\"`\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a stored poll with its translations.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "Lines",
+        "Doc": "\u003cp\u003eLines is a list of strings stored as a JSON array in one column.\n",
+        "Fields": null,
+        "Decl": "type Lines []string"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of polls/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is mounted on.\n\tTitle string\n\t// Key is the instance key, for {{pollBox .Key .ID}}.\n\tKey   string\n\tPolls []Poll\n}"
+      },
+      {
+        "Name": "Poll",
+        "Doc": "\u003cp\u003ePoll is a poll as templates see it, with the results and what the current\nvisitor did.\n",
+        "Fields": null,
+        "Decl": "type Poll struct {\n\tID       string\n\tSlug     string\n\tQuestion string\n\tOptions  []Option\n\t// Total is the number of votes.\n\tTotal int\n\t// ClosesAt is when voting ends, in the site's timezone; zero when the poll\n\t// stays open.\n\tClosesAt time.Time\n\tClosed   bool\n\t// Voted is set when the current visitor voted; Option.Chosen marks their choice.\n\tVoted bool\n\t// CanVote is set when the poll is open and the visitor has not voted.\n\tCanVote bool\n\t// ShowResults is set when results may be shown: after voting, when the\n\t// poll is closed, or always when editors chose so.\n\tShowResults bool\n\t// Action is the address the vote form posts to.\n\tAction string\n\t// Anchor is the id of the element the vote form returns the visitor\n\t// to, \u003ckey\u003e-\u003cID\u003e, for the element around the form and its result.\n\tAnchor string\n\t// Form is the vote form's model (VoteInput, with the poll's ID) for\n\t// go-form's template functions, such as {{form_open .Form}}; the ids\n\t// of its fields start with Anchor.\n\tForm form.RenderModel\n\t// Result is the outcome of the visitor's last vote on this poll:\n\t// \"voted\", \"already\", \"closed\", \"invalid\", \"throttled\" or empty.\n\tResult string\n}"
+      },
+      {
+        "Name": "ResultRow",
+        "Doc": "\u003cp\u003eResultRow is one poll with its options and their votes.\n",
+        "Fields": null,
+        "Decl": "type ResultRow struct {\n\tQuestion string\n\tEditURL  string\n\t// Status is \"Draft\", \"Open\" or \"Closed\".\n\tStatus  string\n\tOptions []Option\n\tTotal   int\n\t// Reset removes the votes; nil without the Delete permission.\n\tReset *form.RenderModel\n}"
+      },
+      {
+        "Name": "ResultsView",
+        "Doc": "\u003cp\u003eResultsView is the data of templates/admin/results.gohtml: the votes of\nevery poll.\n",
+        "Fields": null,
+        "Decl": "type ResultsView struct {\n\tTitle   string\n\tBackURL string\n\tPolls   []ResultRow\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Polls instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a poll in one language. Options are the labels of Fields.Options,\nin the same order.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tQuestion string `db:\"question\"`\n\tSlug     string `db:\"slug\"`\n\tOptions  Lines  `db:\"option_labels\"`\n}"
+      },
+      {
+        "Name": "VoteInput",
+        "Doc": "\u003cp\u003eVoteInput is the vote a visitor posts to /_/\u0026lt;key\u0026gt;/vote: the poll\u0026apos;s ID\nand the chosen option\u0026apos;s ID. Poll.Form is its model for a poll, with the\npoll\u0026apos;s options (RenderModel.Options) and its question as the label of the\noptions: form_open, {{form_field .Form \u0026quot;poll\u0026quot; nil}} and {{form_field .Form\n\u0026quot;option\u0026quot; nil}} render the form, the options as radio buttons. A poll that\ndoes not exist answers \u0026quot;closed\u0026quot;; a vote without an option, or with one\nthe poll does not have, answers \u0026quot;invalid\u0026quot;, and the poll shows the vote\nagain with the message at its options (frontend.KeepForm).\n",
+        "Fields": null,
+        "Decl": "type VoteInput struct {\n\tPoll   string `form:\"input,hidden\" name:\"poll\"   maxLength:\"64\" line:\"true\"`\n\tOption string `form:\"radios\"       name:\"option\"                            required:\"true\"`\n}"
+      }
+    ]
+  }
+}

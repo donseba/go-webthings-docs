@@ -10,10 +10,11 @@
     Updates bool `name:"updates" form:"checkbox" label:"Email updates"`
 }</code></pre>
 <h2>Control types</h2>
-<table><thead><tr><th>Tag</th><th>Typical value</th></tr></thead><tbody><tr><td><code>input,text</code>, <code>input,email</code>, <code>input,password</code></td><td>String</td></tr><tr><td><code>input,number</code>, <code>input,range</code></td><td>Numeric field</td></tr><tr><td><code>textarea</code></td><td>String with rows, columns and length</td></tr><tr><td><code>checkbox</code></td><td>Boolean</td></tr><tr><td><code>dropdown</code>, <code>radios</code></td><td>A permitted option key</td></tr><tr><td><code>multicheckbox</code></td><td>Multiple options supported by the model</td></tr><tr><td><code>input,date</code>, <code>input,datetime-local</code> and other HTML input types</td><td>A type and parsing policy matching the submitted value</td></tr></tbody></table>
+<table><thead><tr><th>Tag</th><th>Typical value</th></tr></thead><tbody><tr><td><code>input,text</code>, <code>input,email</code>, <code>input,password</code></td><td>String, or <code>*string</code></td></tr><tr><td><code>input,number</code>, <code>input,range</code></td><td>Any int, uint or float kind, or a pointer to one, which is nil when nothing is filled in</td></tr><tr><td><code>textarea</code></td><td>String with rows, columns and length</td></tr><tr><td><code>checkbox</code></td><td>Boolean</td></tr><tr><td><code>dropdown</code></td><td>A string or integer option key, or a <code>SortedSelect</code></td></tr><tr><td><code>radios</code></td><td>A string or integer option key, with <code>values</code> or <code>RenderModel.Options</code>; or a struct whose bool fields carry the struct’s <code>name</code>, a radio button each (a struct radio group)</td></tr><tr><td><code>multicheckbox</code></td><td>A slice of strings or integers (<code>[]string</code>, <code>[]int</code>), or a <code>SortedMultiSelect</code></td></tr><tr><td><code>input,date</code>, <code>input,time</code>, <code>input,month</code>, <code>input,week</code>, <code>input,datetime-local</code></td><td><code>time.Time</code> or <code>*time.Time</code></td></tr><tr><td><code>input,file</code></td><td><code>*multipart.FileHeader</code>, or <code>[]*multipart.FileHeader</code> for several files</td></tr><tr><td><code>input,hidden</code></td><td>Any value; it renders without a label, description or placeholder</td></tr></tbody></table>
 <h2>Common tags</h2>
 <p><code>name</code> overrides the HTML name and mapping key; otherwise the Go field name is used. <code>label</code>, <code>placeholder</code>, <code>description</code> and <code>class</code> control presentation. Tags are case-sensitive: use <code>minLength</code> and <code>maxLength</code> for string limits.</p>
-<p><code>required</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>pattern</code> and allowed <code>values</code> participate in validation. A <code>disabled</code> browser control is not normally submitted; application permissions still belong in the handler or service.</p>
+<p><code>required</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>minLength</code>, <code>maxLength</code>, <code>pattern</code> and allowed <code>values</code> participate in validation. All but <code>values</code> also render as attributes, so the browser checks them before sending. A <code>pattern</code> renders only when browsers read it the same way: anchored with <code>^</code> and <code>$</code>, without Go-only syntax and without a top-level <code>|</code>. <code>readonly</code>, <code>autocomplete</code>, <code>accept</code> and <code>multiple</code> render as the attributes of the same name.</p>
+<p><code>disabled:"true"</code> renders the control disabled. Browsers do not submit disabled controls, so mapping leaves such a field as it was, except that a checkbox becomes <code>false</code> and, on a POST, a multicheckbox empty. Use <code>readonly:"true"</code> for a text field whose value must be sent. Application permissions still belong in the handler or service.</p>
 <h2>Nested input</h2>
 <pre><code>type Address struct {
     City string `name:"city" form:"input,text" label:"City"`
@@ -29,6 +30,27 @@ func (Status) Enum() []any { return []any{"draft", "published"} }
 type ArticleInput struct {
     Status Status `name:"status" form:"dropdown" label:"Status"`
 }</code></pre>
-<p><code>Enumerator</code>, <code>Mapper</code> and <code>SortedMapper</code> supply allowed choices. Sorted selections and multi-selections provide key setters for mapping typed values. Validate the submitted selection against its allowed values before using it.</p>
-<p>File controls render as HTML inputs, but application code must parse multipart requests, inspect <code>FormFile</code>, apply upload limits and manage storage. <code>MapForm</code> is not an upload-storage API.</p>
+<p><code>Enumerator</code>, <code>Mapper</code> and <code>SortedMapper</code> supply allowed choices. Sorted selections and multi-selections provide key setters for mapping typed values. Validation checks that a submitted selection is one of the allowed values.</p>
+<p><code>SortedSelect</code> lists its options by key. <code>NewOrderedSelect(form.Option[T]{Value: …, Label: …}, …)</code> keeps the order given, such as pages in tree order, and <code>SortByLabel()</code> sorts them by label; <code>Selected(v)</code> selects a value. <code>NewOrderedMultiSelect</code> does the same for <code>SortedMultiSelect</code>. A <code>placeholder</code> tag on a dropdown renders an empty first option.</p>
+<h2>Choices known at render time</h2>
+<pre><code>model := form.WithInfo(VoteInput{Poll: poll.ID}, info)
+model.Options = form.FieldOptions{"option": choices} // []types.FieldValue</code></pre>
+<p><code>RenderModel.Options</code> gives the choices of fields that are only known when the form renders, such as the answers of a poll, by field name. They replace a <code>values</code> tag: a <code>radios</code> field renders them as a group of radio buttons, a <code>multicheckbox</code> field as a checkbox each and any other field as a dropdown. Labels show as written unless an option sets <code>Translate</code>. Validate with the same <code>RenderModel</code> (<code>ValidateForm</code> or <code>Bind</code>) to check that a submitted value is one of them.</p>
+<h2>Limits that change at runtime</h2>
+<pre><code>func (in BookingInput) FormOverrides() form.Overrides {
+    return form.Overrides{"adults": {"max": strconv.Itoa(in.left)}}
+}</code></pre>
+<p><code>form.Overrides</code> replace struct tags by field name, such as a maximum that depends on the places left, for rendering and validation alike, so the browser and the server check the same limit. A model that implements <code>Overrider</code> gets them when it renders, in <code>ValidateForm</code> and in <code>Bind</code>; <code>RenderModel.Overrides</code> set them for one render and win over the model’s. An empty value removes a tag; the <code>name</code> tag cannot be replaced.</p>
+<h2>File uploads</h2>
+<pre><code>Document *multipart.FileHeader `name:"document" form:"input,file" label:"Document" required:"true" accept:".pdf,image/*" maxSize:"10MB"`</code></pre>
+<p>A form with a file input gets <code>enctype="multipart/form-data"</code> automatically, and <code>MapForm</code> maps the uploaded files to <code>*multipart.FileHeader</code> and <code>[]*multipart.FileHeader</code> fields. <code>accept</code> and <code>maxSize</code> are checked on the server too; the file name and media type come from the browser, so check the content itself where it matters. Limit the request body with <code>http.MaxBytesReader</code>, and keep storage in your application.</p>
+<h2>Forms defined at runtime</h2>
+<pre><code>schema := form.Schema{Fields: []form.Spec{
+    {Name: "name", Label: "Name", Required: true, MaxLength: 100},
+    {Name: "email", Label: "Email", InputType: types.InputFieldTypeEmail, Required: true},
+}}
+values := form.MapValues(r, schema)
+errs := renderer.ValidateSchemaLocalized(schema, values, loc)
+model := form.WithRequestInfo(r, schema.Bind(values), form.Info{Target: "/contact", Method: "post"})</code></pre>
+<p>A form put together at runtime, such as a contact form an editor builds, is a <code>form.Schema</code> of <code>Spec</code> values. It renders through the same themes and checks the same rules as a struct with tags. <code>MapValues</code> returns the submitted values of its fields as <code>url.Values</code>, trimmed.</p>
 </article>

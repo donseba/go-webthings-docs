@@ -1,0 +1,348 @@
+{
+  "Slug": "stats",
+  "Name": "Stats",
+  "Group": "Site",
+  "Summary": "Page view statistics without cookies: views and visitors per day and per page, referring sites, devices and languages, and \"most read\" lists for templates.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/stats",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/stats",
+  "Type": "stats",
+  "Example": {
+    "Key": "stats",
+    "Title": "Statistics",
+    "Code": "app.Use(stats.Module())"
+  },
+  "Guide": "\u003cp\u003eIt is a site feature: one instance counts the whole public site. It sets no cookies and stores no IP addresses or visitor IDs, only totals per day.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(stats.Module())\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe instance gets the key \u003ccode\u003estats\u003c/code\u003e and the title Statistics, translated in the admin; its dashboard is at \u003ccode\u003e/admin/stats\u003c/code\u003e (\u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e). \u003ccode\u003eNamed\u003c/code\u003e chooses another key and title; the template functions then take that key:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(stats.Module(stats.Named(\u0026quot;visits\u0026quot;, \u0026quot;Visits\u0026quot;)))\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"what-is-counted\"\u003eWhat is counted\u003c/h2\u003e\n\u003cp\u003eEvery public HTML page that answers a GET request with 200 counts as a view. Per day the module keeps the views and visitors of the site and of each page, with the page's title, and of:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003ereferring sites, by host without \u003ccode\u003ewww.\u003c/code\u003e; links within the site do not count, also behind a proxy listed in \u003ccode\u003eConfig.TrustedProxies\u003c/code\u003e, which names the site's host;\u003c/li\u003e\n\u003cli\u003edevice classes: desktop, mobile or tablet, from the user agent;\u003c/li\u003e\n\u003cli\u003elanguages: the first segment of the path, such as \u003ccode\u003een\u003c/code\u003e.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eA day is a date in the site's timezone (\u003cstrong\u003eSite settings › Timezone\u003c/strong\u003e), also on a day its clocks skip midnight. The days of the dashboard, of \u003ccode\u003epopular\u003c/code\u003e and of \u003cstrong\u003eKeep statistics for (days)\u003c/strong\u003e count back from today's date there.\u003c/p\u003e\n\u003cp\u003eNot counted are the paths WebThings serves itself: the admin, visitor actions (\u003ccode\u003e/_/\u003c/code\u003e), \u003ccode\u003e/media/\u003c/code\u003e, \u003ccode\u003e/assets/\u003c/code\u003e, \u003ccode\u003e/theme/\u003c/code\u003e, \u003ccode\u003e/sitemap.xml\u003c/code\u003e, \u003ccode\u003e/robots.txt\u003c/code\u003e, \u003ccode\u003e/healthz\u003c/code\u003e, \u003ccode\u003e/readyz\u003c/code\u003e and \u003ccode\u003e/metrics\u003c/code\u003e. Nor are other paths with a file extension; HEAD requests, prefetches and htmx fragments (boosted links do count); bots, link previews, monitors and scripts, recognised by their user agent, and requests without one; and editors who are signed in to the admin.\u003c/p\u003e\n\u003cp\u003ePages that ask not to be kept do not count either: answers with \u003ccode\u003eX-Robots-Tag: noindex\u003c/code\u003e or \u003ccode\u003enone\u003c/code\u003e, also for a single crawler, with \u003ccode\u003eCache-Control: private\u003c/code\u003e, or with \u003ccode\u003e\u0026lt;meta name=\u0026quot;robots\u0026quot; content=\u0026quot;noindex\u0026quot;\u0026gt;\u003c/code\u003e in the page. Search results and registrations looked up by their code are such pages, so their addresses never show up in the dashboard or in \u0026quot;most read\u0026quot; lists. A bare \u003ccode\u003eCache-Control: no-store\u003c/code\u003e still counts.\u003c/p\u003e\n\u003ch2 id=\"visitors-and-privacy\"\u003eVisitors and privacy\u003c/h2\u003e\n\u003cp\u003eA visitor is recognised by a hash of a random salt, the IP address and the user agent. The salt lives in memory only and changes every day, in the site's timezone, so a visitor cannot be followed from one day to the next. Neither the address nor the hash is stored. Visitors over a period are therefore the sum of each day's visitors.\u003c/p\u003e\n\u003cp\u003eEach process has its own salt: after a restart, or on another server behind a load balancer, the same visitor counts again that day. Behind a reverse proxy, list it in \u003ccode\u003eConfig.TrustedProxies\u003c/code\u003e; otherwise every visitor has the proxy's address.\u003c/p\u003e\n\u003ch2 id=\"show-it-on-any-page\"\u003eShow it on any page\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003epageViews\u003c/code\u003e is how often a path was viewed in the kept statistics; an empty path is the current page:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e\u0026lt;p\u0026gt;Read {{pageViews \u0026quot;stats\u0026quot; \u0026quot;\u0026quot;}} times\u0026lt;/p\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003epopular\u003c/code\u003e lists the most viewed pages in the current language, without the home page. Its arguments are the number of pages, where 0 or less lists all, and the number of days, today included. An optional last argument limits the list to the pages below a module instance's page (\u003ccode\u003e\u0026quot;news\u0026quot;\u003c/code\u003e) or below a path without the language prefix (\u003ccode\u003e\u0026quot;/blog\u0026quot;\u003c/code\u003e), without that page itself:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e\u0026lt;h2\u0026gt;Most read\u0026lt;/h2\u0026gt;\n{{range popular \u0026quot;stats\u0026quot; 5 30 \u0026quot;news\u0026quot;}}\n    \u0026lt;a href=\u0026quot;{{.Path}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eTitle\u003c/code\u003e is the page's HTML \u003ccode\u003e\u0026lt;title\u0026gt;\u003c/code\u003e without the site name the head region adds: \u003ccode\u003eHello · My site\u003c/code\u003e is kept as \u003ccode\u003eHello\u003c/code\u003e. The separators \u003ccode\u003e·\u003c/code\u003e, \u003ccode\u003e|\u003c/code\u003e, \u003ccode\u003e-\u003c/code\u003e, \u003ccode\u003e–\u003c/code\u003e, \u003ccode\u003e—\u003c/code\u003e, \u003ccode\u003e::\u003c/code\u003e and \u003ccode\u003e/\u003c/code\u003e are recognised. A page whose title changed shows the title of the last day it was viewed. An instance that is not placed on a page has no popular pages.\u003c/p\u003e\n\u003ch2 id=\"in-the-admin\"\u003eIn the admin\u003c/h2\u003e\n\u003cp\u003eThe dashboard shows the last 7, 30 or 90 days: the totals, a chart of the page views per day, the top 10 pages, the top 10 referring sites, the devices and the languages. It writes the views counted in memory first, so its numbers are up to date.\u003c/p\u003e\n\u003cp\u003eEditors who may edit the instance set \u003cstrong\u003eKeep statistics for (days)\u003c/strong\u003e. Older days are deleted right away and then once a day; 0 keeps everything.\u003c/p\u003e\n\u003ch2 id=\"how-it-works\"\u003eHow it works\u003c/h2\u003e\n\u003cp\u003eThe module wraps the public site and counts a view after the page was sent, in memory. It runs before the site's output cache, so pages the cache answers without rendering them count too (see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e), and it reads the head of a compressed page unpacked. Views are written to the database at most 30 seconds later, so a page never waits for it; closing the app writes what is left. \u003ccode\u003epageViews\u003c/code\u003e includes the views that are not written yet.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003estats.Of(app, \u0026quot;stats\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003ecounter := stats.Of(app, \u0026quot;stats\u0026quot;)\n\nreport, err := counter.Report(ctx, 30)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eReport\u003c/code\u003e sums up the last days as the dashboard shows them. \u003ccode\u003ePopular\u003c/code\u003e, \u003ccode\u003ePopularIn\u003c/code\u003e and \u003ccode\u003eViews\u003c/code\u003e are what the template functions use. \u003ccode\u003eFlush\u003c/code\u003e writes the views counted in memory, for example in tests, and \u003ccode\u003eSetRetention\u003c/code\u003e sets how many days are kept.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/publishing\"\u003ePublishing\u003c/a\u003e posts make good \u0026quot;most read\u0026quot; lists.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/redirects\"\u003eRedirects\u003c/a\u003e lists the paths visitors asked for that do not exist.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "Named",
+      "Signature": "func Named(key, title string) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": false,
+    "Actions": false,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": true,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": true,
+    "Service": "*stats.Service"
+  },
+  "Admin": [
+    {
+      "ID": "stats",
+      "Title": "Statistics",
+      "Path": "/admin/stats",
+      "Permission": "stats",
+      "Icon": "numbers",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": false,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": null,
+  "Funcs": [
+    {
+      "Name": "pageViews",
+      "Signature": "pageViews(key, path string) int",
+      "Doc": "\u003cp\u003epageViews is how often path was viewed, for example\n{{pageViews \u0026quot;stats\u0026quot; .URL}}. An empty path is the page being rendered.\n"
+    },
+    {
+      "Name": "popular",
+      "Signature": "popular(key string, limit, days int, within ...string) []Page",
+      "Doc": "\u003cp\u003epopular returns the limit most viewed pages in the current language of the\nlast days days, for example {{range popular \u0026quot;stats\u0026quot; 5 30}}; a limit of 0\nor less lists all of them. An optional\npath or module instance key limits it to the pages below that page, for\nexample {{range popular \u0026quot;stats\u0026quot; 5 30 \u0026quot;news\u0026quot;}}; see Service.PopularIn.\n"
+    }
+  ],
+  "Templates": [],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Page views are counted per day and stored only as totals: no addresses,\n-- visitor hashes or cookies. Days are YYYY-MM-DD in the site's timezone.\nCREATE TABLE wt_stats_day (\n    instance VARCHAR(64) NOT NULL,\n    day      CHAR(10) NOT NULL,\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day)\n);\n\n-- Title is the page's HTML title when it was last viewed that day.\nCREATE TABLE wt_stats_page (\n    instance VARCHAR(64) NOT NULL,\n    day      CHAR(10) NOT NULL,\n    path     VARCHAR(500) NOT NULL,\n    title    VARCHAR(300) NOT NULL DEFAULT '',\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, path)\n);\n\nCREATE INDEX wt_stats_page_path ON wt_stats_page (instance, path);\n\n-- Dimension is \"referrer\" (host), \"device\" (desktop, mobile, tablet) or\n-- \"locale\" (the page's language).\nCREATE TABLE wt_stats_dimension (\n    instance  VARCHAR(64) NOT NULL,\n    day       CHAR(10) NOT NULL,\n    dimension VARCHAR(20) NOT NULL,\n    name      VARCHAR(255) NOT NULL,\n    views     INTEGER NOT NULL DEFAULT 0,\n    visitors  INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, dimension, name)\n);\n\n-- Retention 0 keeps every day.\nCREATE TABLE wt_stats_setting (\n    instance       VARCHAR(64) PRIMARY KEY,\n    retention_days INTEGER NOT NULL DEFAULT 0,\n    updated_at     TIMESTAMPTZ NOT NULL,\n    updated_by     UUID\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Page views are counted per day and stored only as totals: no addresses,\n-- visitor hashes or cookies. Days are YYYY-MM-DD in the site's timezone.\nCREATE TABLE wt_stats_day (\n    instance TEXT NOT NULL,\n    day      TEXT NOT NULL,\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day)\n);\n\n-- Title is the page's HTML title when it was last viewed that day.\nCREATE TABLE wt_stats_page (\n    instance TEXT NOT NULL,\n    day      TEXT NOT NULL,\n    path     TEXT NOT NULL,\n    title    TEXT NOT NULL DEFAULT '',\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, path)\n);\n\nCREATE INDEX wt_stats_page_path ON wt_stats_page (instance, path);\n\n-- Dimension is \"referrer\" (host), \"device\" (desktop, mobile, tablet) or\n-- \"locale\" (the page's language).\nCREATE TABLE wt_stats_dimension (\n    instance  TEXT NOT NULL,\n    day       TEXT NOT NULL,\n    dimension TEXT NOT NULL,\n    name      TEXT NOT NULL,\n    views     INTEGER NOT NULL DEFAULT 0,\n    visitors  INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, dimension, name)\n);\n\n-- Retention 0 keeps every day.\nCREATE TABLE wt_stats_setting (\n    instance       TEXT PRIMARY KEY,\n    retention_days INTEGER NOT NULL DEFAULT 0,\n    updated_at     TIMESTAMP NOT NULL,\n    updated_by     TEXT\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Page views are counted per day and stored only as totals: no addresses,\n-- visitor hashes or cookies. Days are YYYY-MM-DD in the site's timezone.\nCREATE TABLE wt_stats_day (\n    instance VARCHAR(64) NOT NULL,\n    day      CHAR(10) NOT NULL,\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day)\n) ENGINE=InnoDB;\n\n-- Title is the page's HTML title when it was last viewed that day.\nCREATE TABLE wt_stats_page (\n    instance VARCHAR(64) NOT NULL,\n    day      CHAR(10) NOT NULL,\n    path     VARCHAR(500) NOT NULL,\n    title    VARCHAR(300) NOT NULL DEFAULT '',\n    views    INTEGER NOT NULL DEFAULT 0,\n    visitors INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, path),\n    INDEX wt_stats_page_path (instance, path)\n) ENGINE=InnoDB;\n\n-- Dimension is \"referrer\" (host), \"device\" (desktop, mobile, tablet) or\n-- \"locale\" (the page's language).\nCREATE TABLE wt_stats_dimension (\n    instance  VARCHAR(64) NOT NULL,\n    day       CHAR(10) NOT NULL,\n    dimension VARCHAR(20) NOT NULL,\n    name      VARCHAR(255) NOT NULL,\n    views     INTEGER NOT NULL DEFAULT 0,\n    visitors  INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY (instance, day, dimension, name)\n) ENGINE=InnoDB;\n\n-- Retention 0 keeps every day.\nCREATE TABLE wt_stats_setting (\n    instance       VARCHAR(64) PRIMARY KEY,\n    retention_days INTEGER NOT NULL DEFAULT 0,\n    updated_at     DATETIME(6) NOT NULL,\n    updated_by     VARCHAR(36) NULL\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_stats_day",
+      "Note": "Page views are counted per day and stored only as totals: no addresses, visitor hashes or cookies. Days are YYYY-MM-DD in the site's timezone.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "day",
+          "Type": "CHAR(10)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "views",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "visitors",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, day)"
+      ]
+    },
+    {
+      "Name": "wt_stats_page",
+      "Note": "Title is the page's HTML title when it was last viewed that day.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "day",
+          "Type": "CHAR(10)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "path",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(300)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "views",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "visitors",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, day, path)",
+        "INDEX wt_stats_page_path (instance, path)"
+      ]
+    },
+    {
+      "Name": "wt_stats_dimension",
+      "Note": "Dimension is \"referrer\" (host), \"device\" (desktop, mobile, tablet) or \"locale\" (the page's language).",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "day",
+          "Type": "CHAR(10)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "dimension",
+          "Type": "VARCHAR(20)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(255)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "views",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "visitors",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, day, dimension, name)"
+      ]
+    },
+    {
+      "Name": "wt_stats_setting",
+      "Note": "Retention 0 keeps every day.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "retention_days",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": null
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Flush",
+        "Signature": "func (s *Service) Flush(ctx context.Context) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Popular",
+        "Signature": "func (s *Service) Popular(ctx context.Context, locale string, limit, days int) ([]Page, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "PopularIn",
+        "Signature": "func (s *Service) PopularIn(ctx context.Context, locale, within string, limit, days int) ([]Page, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Prune",
+        "Signature": "func (s *Service) Prune(ctx context.Context) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Report",
+        "Signature": "func (s *Service) Report(ctx context.Context, days int) (Report, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Retention",
+        "Signature": "func (s *Service) Retention(ctx context.Context) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SetRetention",
+        "Signature": "func (s *Service) SetRetention(ctx context.Context, days int) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Views",
+        "Signature": "func (s *Service) Views(ctx context.Context, path string) (int, error)",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Bar",
+        "Doc": "\u003cp\u003eBar is one day of the chart. Height is a percentage of the busiest day.\n",
+        "Fields": null,
+        "Decl": "type Bar struct {\n\t// Date is the day in the admin language, such as \"5 okt 2026\".\n\tDate     string\n\tViews    int\n\tVisitors int\n\tHeight   int\n}"
+      },
+      {
+        "Name": "Count",
+        "Doc": "\u003cp\u003eCount is the number of views by one referrer host, device class (desktop,\nmobile or tablet) or language.\n",
+        "Fields": null,
+        "Decl": "type Count struct {\n\tName     string `db:\"name\"`\n\tViews    int    `db:\"views\"`\n\tVisitors int    `db:\"visitors\"`\n}"
+      },
+      {
+        "Name": "DashboardView",
+        "Doc": "\u003cp\u003eDashboardView is the data of the admin dashboard.\n",
+        "Fields": null,
+        "Decl": "type DashboardView struct {\n\tTitle    string\n\tDays     int\n\tRanges   []RangeLink\n\tViews    int\n\tVisitors int\n\t// From and To are the first and last day of the chart, in the admin\n\t// language.\n\tFrom      string\n\tTo        string\n\tBars      []Bar\n\tPages     []Row\n\tReferrers []Row\n\tDevices   []Row\n\tLocales   []Row\n\t// Settings is the retention form, for users who may edit.\n\tSettings       *form.RenderModel\n\tSettingsErrors form.FieldErrors\n}"
+      },
+      {
+        "Name": "Day",
+        "Doc": "\u003cp\u003eDay is one day of a report.\n",
+        "Fields": null,
+        "Decl": "type Day struct {\n\t// Date is YYYY-MM-DD.\n\tDate     string `db:\"day\"`\n\tViews    int    `db:\"views\"`\n\tVisitors int    `db:\"visitors\"`\n}"
+      },
+      {
+        "Name": "Page",
+        "Doc": "\u003cp\u003ePage is a path with its number of views.\n",
+        "Fields": null,
+        "Decl": "type Page struct {\n\t// Path is the page's address, for example /en/news/hello.\n\tPath string `db:\"path\"`\n\t// Title is the page's HTML title when it was last viewed, without the\n\t// site name.\n\tTitle    string `db:\"title\"`\n\tViews    int    `db:\"views\"`\n\tVisitors int    `db:\"visitors\"`\n}"
+      },
+      {
+        "Name": "RangeLink",
+        "Doc": "\u003cp\u003eRangeLink switches the dashboard\u0026apos;s period.\n",
+        "Fields": null,
+        "Decl": "type RangeLink struct {\n\tDays   int\n\tURL    string\n\tActive bool\n}"
+      },
+      {
+        "Name": "Report",
+        "Doc": "\u003cp\u003eReport is the statistics of the last Days days, including today.\n",
+        "Fields": null,
+        "Decl": "type Report struct {\n\tDays int\n\t// Views and Visitors are the totals. A visitor is recognised for one day\n\t// only, so Visitors adds up the visitors of each day.\n\tViews     int\n\tVisitors  int\n\tDaily     []Day\n\tPages     []Page\n\tReferrers []Count\n\tDevices   []Count\n\tLocales   []Count\n}"
+      },
+      {
+        "Name": "Row",
+        "Doc": "\u003cp\u003eRow is a line of a top list. Share is a percentage of the list\u0026apos;s first row.\n",
+        "Fields": null,
+        "Decl": "type Row struct {\n\tName     string\n\tDetail   string\n\tURL      string\n\tViews    int\n\tVisitors int\n\tShare    int\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Stats instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      }
+    ]
+  }
+}

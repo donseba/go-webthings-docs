@@ -14,6 +14,9 @@
 <p><code>*</code> allows all origins. Entries like <code>*.example.com</code> allow subdomains but not the bare apex host.</p>
 
 <h2>Credentials and preflight</h2>
-<p>When credentials are enabled with an all-origin policy, the middleware echoes a valid request origin instead of returning <code>*</code>. Preflight requests are checked against configured methods and headers before returning <code>204 No Content</code>.</p>
+<p>When credentials are enabled with an all-origin policy, the middleware echoes a valid request origin instead of returning <code>*</code>. Preflight requests are checked against configured methods and headers before returning <code>204 No Content</code>. Origins that are not allowed, and preflights with methods or headers outside the configured ones, get <code>403 Forbidden</code>.</p>
+
+<h2>Shared caches</h2>
+<p>Every response says <code>Vary: Origin</code>, also one to a request without an <code>Origin</code> header, so a shared cache keeps that answer, without CORS headers, apart from the answers to the allowed origins. A preflight also varies by <code>Access-Control-Request-Method</code> and <code>Access-Control-Request-Headers</code>.</p>
 </article>
 

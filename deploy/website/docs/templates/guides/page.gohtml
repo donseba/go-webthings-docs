@@ -1,0 +1,17 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.GuidePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    {{ .Body }}
+
+    <nav class="module-pager" aria-label="Guides">
+        {{ with .Previous }}
+            <a href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true"><span>previous</span>{{ .Label }}</a>
+        {{ else }}
+            <span></span>
+        {{ end }}
+        {{ with .Next }}
+            <a class="module-pager-next" href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true"><span>next</span>{{ .Label }}</a>
+        {{ end }}
+    </nav>
+</article>

@@ -9,15 +9,12 @@
         var input Contact
         var errs form.FieldErrors
         if r.Method == http.MethodPost {
-            if err := r.ParseForm(); err != nil {
-                http.Error(w, "Invalid form", http.StatusBadRequest)
-                return
-            }
-            if err := form.MapForm(r, &amp;input); err != nil {
+            var err error
+            errs, err = renderer.Bind(r, &amp;input, form.MapOptions{TrimSpace: true}, nil)
+            if err != nil {
                 http.Error(w, "Invalid input", http.StatusBadRequest)
                 return
             }
-            errs = renderer.ValidateForm(&amp;input)
             if len(errs) == 0 {
                 if err := save(r.Context(), input); err != nil {
                     http.Error(w, "Could not save", http.StatusInternalServerError)
@@ -37,9 +34,33 @@
         }
     }))
 }</code></pre>
+<h2>Bind: map and validate</h2>
+<p><code>Bind(r, dst, options, loc)</code> maps the submission onto <code>dst</code>, strictly, validates it with messages for <code>loc</code> (nil for the default localizer), and returns the field errors of both. A field whose value could not be read, such as <code>abc</code> for a number, has that error only (rule <code>invalid</code>), rather than what validation says about the value it was left with. <code>err</code> is only set when <code>dst</code> is not a pointer to a struct. <code>dst</code> may also be the <code>RenderModel</code> the form rendered with, when its <code>Model</code> is a pointer: its <code>Overrides</code> and <code>Options</code> then apply to validation.</p>
+<p>The two steps are also available on their own: <code>form.MapForm(r, &amp;input)</code> maps and <code>renderer.ValidateForm(&amp;input)</code> (or <code>ValidateFormLocalized</code>) validates. <code>renderer.MapFormLocalized(r, &amp;input, options, loc)</code> maps strictly and returns the unreadable values as field errors.</p>
 <h2>What mapping guarantees</h2>
-<p><code>MapForm</code> requires a non-nil pointer to a struct. It maps exported fields by <code>name</code>, recurses into nested structs, and supports primitive values plus specialized key setters. Parse the request explicitly first, especially for checkbox handling and request parsing errors.</p>
-<p>Mapping and validation are distinct. Several primitive conversions leave the existing value unchanged when parsing fails, and empty submitted values are skipped. Start with a fresh input value for a create command; for strict numeric parsing or partial updates, define the conversion and omission policy in the application.</p>
+<p><code>MapForm</code> requires a non-nil pointer to a struct and parses the request itself when the handler has not; parse it first to handle a parse error yourself. It maps exported fields by <code>name</code> and recurses into nested structs. It supports strings, numbers, booleans, pointers to strings and numbers (nil when the value is empty), slices of strings and integers (a value per ticked box), <code>time.Time</code>, selects and uploaded files.</p>
+<p>A checkbox that was not sent becomes <code>false</code>, and on a POST a slice that was not sent becomes empty. A submitted empty value clears a string, a time or a pointer, and leaves a number as it was. Without the <code>Strict</code> option, a value that cannot be read as its field’s type is skipped and the field keeps its value; <code>MapFormErrorHandler</code> receives such values. A key a select or multi-select does not offer leaves nothing selected, so <code>required:"true"</code> reports it. Start with a fresh input value for a create command. <code>MapForm</code> maps every exported field, so map into a struct with only the form’s fields: a slice field that the form does not render is cleared on every POST.</p>
+<h2>Mapping options</h2>
+<table><thead><tr><th><code>MapOptions</code> field</th><th>Effect</th></tr></thead><tbody><tr><td><code>Prefix</code></td><td>Goes before every form key, like the prefix argument of <code>MapForm</code>.</td></tr><tr><td><code>TrimSpace</code></td><td>Removes white space around submitted strings, except in password inputs and fields with <code>trim:"false"</code>. <code>trim:"true"</code> trims one field without the option.</td></tr><tr><td><code>Strict</code></td><td>Reports values that cannot be read: <code>MapFormWith</code> returns an <code>*InvalidValuesError</code>, and still maps every other value. <code>Bind</code> and <code>MapFormLocalized</code> always map strictly.</td></tr><tr><td><code>NormalizeNewlines</code></td><td>Reads the line breaks of submitted strings as <code>\n</code>, so <code>maxLength</code> counts them as the browser does.</td></tr><tr><td><code>Location</code></td><td>The time zone <code>datetime-local</code> values are read in; nil reads them as UTC.</td></tr></tbody></table>
+<pre><code>err := form.MapFormWith(r, &amp;event, form.MapOptions{Location: site.Location, TrimSpace: true})</code></pre>
+<p>Render such a form with a localizer that also has a <code>Location() *time.Location</code> method (<code>form.TimeLocalizer</code>), so <code>datetime-local</code> values show in the same zone. Date, time, month and week values hold no instant and are read and shown as they are. A field with <code>wallclock:"true"</code> holds a time on the clock, read as UTC whatever the location; <code>form.WallTime(t, zone)</code> turns it into an instant, and <code>form.ParseDateTimeLocal(value, zone)</code> reads a <code>datetime-local</code> value as <code>MapFormWith</code> does.</p>
+<h2>Show a failed submission after a redirect</h2>
+<pre><code>errs, err := renderer.Bind(r, &amp;input, form.MapOptions{TrimSpace: true}, loc)
+// handle err
+if len(errs) &gt; 0 {
+    carry, err := form.NewCarry(form.WithInfo(input, info), r.PostForm, errs)
+    // handle err
+    data, err := carry.Encode(4096) // at most 4096 bytes
+    // handle err; store data, for example in an encrypted cookie
+    http.Redirect(w, r, backURL, http.StatusSeeOther)
+    return
+}</code></pre>
+<pre><code>carry, err := form.DecodeCarry(data)
+// handle err
+model := form.WithInfo(Contact{}, info)
+model.Carry = &amp;carry</code></pre>
+<p>A <code>form.Carry</code> keeps a failed submission to show it on the page a redirect leads to: the submitted values of the form’s fields and the messages per field. It never keeps the value of a password input, a file input or the honeypot, nor values that are not a field of the form, such as a CSRF token. <code>Encode(limit)</code> returns compact JSON of at most <code>limit</code> bytes, leaving out the longest values first, and <code>ErrCarryTooLarge</code> when the errors alone do not fit.</p>
+<p>With <code>RenderModel.Carry</code> set, <code>form_render</code> and <code>form_field</code> show the carried values in place of the model’s; hidden inputs keep the model’s values. The carried errors show when the template passes no errors of its own, and <code>Carry.FieldErrors()</code> returns them. A carry only applies when the model’s hidden inputs hold the values it was submitted with, so of several forms of one kind on a page only the one that was sent shows it. Values can be personal data: keep the encoding out of reach of others, for example encrypted or on the server.</p>
 <h2>Request boundaries</h2>
 <p>Register this handler only for the methods you support. Limit the request body before the CSRF middleware parses it, normalize application-specific values, and save only after validation and authorization succeed. A successful ordinary form should redirect with 303 so refreshing the page does not repeat the command.</p>
 </article>

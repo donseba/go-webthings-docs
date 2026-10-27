@@ -4,7 +4,7 @@
 
 <pre><code>im.WithPackages([]library.Package{
     {
-        Name: "htmx", Version: "2.0.4",
+        Name: "htmx", Version: "4.0.0",
         Require: library.Includes{{"{{"}}File: "htmx.esm.min.js", As: "htmx"}},
     },
     {
@@ -12,16 +12,17 @@
         Require: library.Includes{{"{{"}}File: "css/bootstrap.min.css", As: "bootstrap"}},
     },
 })</code></pre>
-<table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>Name</code></td><td>The provider’s package identifier</td></tr><tr><td><code>Version</code></td><td>An explicit version; empty delegates resolution to the provider</td></tr><tr><td><code>Require</code></td><td>File paths to include in the public asset tree</td></tr><tr><td><code>Include.As</code></td><td>The import name or stylesheet key</td></tr><tr><td><code>Package.Provider</code></td><td>An optional provider override for this package</td></tr></tbody></table>
+<table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>Name</code></td><td>The provider’s package identifier</td></tr><tr><td><code>Version</code></td><td>An explicit version; empty delegates resolution to the provider</td></tr><tr><td><code>Require</code></td><td>Files to include in the public asset tree; without it every file of the package</td></tr><tr><td><code>Include.As</code></td><td>The import name or stylesheet key</td></tr><tr><td><code>Include.Raw</code></td><td>A URL to map the name to instead of a provider file</td></tr><tr><td><code>Package.Provider</code></td><td>An optional provider override for this package</td></tr><tr><td><code>Package.License</code></td><td>The licence text <code>Vendor</code> copies: a file of the package or a URL</td></tr><tr><td><code>Package.Local</code></td><td>Files the application builds itself, recorded in the lock by <code>Vendor</code> and left out by <code>Fetch</code> and <code>CacheOrFetch</code></td></tr></tbody></table>
+<p>Name the fields in <code>library.Package</code> literals: since v1.5.0 the struct has <code>License</code> and <code>Local</code>, so literals without field names no longer compile. <a href="{{ basePath }}/vendoring" hx-get="{{ basePath }}/vendoring" hx-target="#content" hx-push-url="true">Vendoring</a> covers both fields.</p>
 <h2>File paths and module names</h2>
-<p>Required paths match the provider’s file listing. Use exact package-relative paths when getting started. The alias <code>htmx</code> lets browser code write <code>import htmx from "htmx"</code> independently of the original filename.</p>
+<p>Required paths match the provider’s file listing. Use exact package-relative paths when getting started; <code>**</code> in a path matches any part of it, slashes included. Without <code>As</code>, the name is the file's base name up to its first dot; a local package's file is only mapped when it has <code>As</code>. The alias <code>htmx</code> lets browser code write <code>import htmx from "htmx"</code> independently of the original filename.</p>
 <p>A JavaScript file is not automatically an ES module. Choose an ESM distribution for <code>type="module"</code> imports. Classic global scripts and CommonJS distributions need a compatible loading strategy.</p>
 <h2>Append or replace the package list</h2>
 <pre><code>im.WithPackage(library.Package{
     Name: "bootstrap", Version: "5.3.3",
     Require: library.Includes{{"{{"}}File: "css/bootstrap.min.css", As: "bootstrap"}},
 })</code></pre>
-<p><code>WithPackages</code> replaces the configured list. <code>WithPackage</code> appends one entry. Prepare the final set before generating output; changing dependencies after serving starts requires a new preparation cycle.</p>
+<p><code>WithPackages</code> replaces the configured list with a copy, so later changes to the caller's slice do not reach the map. <code>WithPackage</code> appends one entry. Prepare the final set before generating output; changing dependencies after serving starts requires a new preparation cycle.</p>
 <h2>What the package does not build</h2>
-<p>It downloads and publishes files. It does not transpile TypeScript, bundle JavaScript, compile Tailwind, or rewrite every import in an arbitrary dependency graph. Choose provider outputs whose module imports remain resolvable in your browser setup.</p>
+<p>It downloads and publishes files. It does not transpile TypeScript, bundle JavaScript, compile Tailwind, or rewrite every import in an arbitrary dependency graph. Choose provider outputs whose module imports remain resolvable in your browser setup. A bundle your build makes, for example with esbuild, can still be recorded in the lock as a local package.</p>
 </article>

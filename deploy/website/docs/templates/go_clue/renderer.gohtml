@@ -14,7 +14,9 @@
     <li>Parse and execute the template with regular <code>html/template</code>.</li>
 </ol>
 
-<pre><code>tmpl := template.New("main.gohtml")
+<pre><code>import "github.com/donseba/go-clue/renderer"
+
+tmpl := template.New("main.gohtml")
 contractRenderer, _ := renderer.New(renderer.Config{
     Mode:  renderer.Development,
     Files: []string{"templates/main.gohtml"},
@@ -30,11 +32,15 @@ _ = tmpl.ExecuteTemplate(w, "main.gohtml", nil)</code></pre>
 
 <p>After registration, <code>{{`{{ Page.Title }}`}}</code> works because <code>Page</code> exists as a template function that returns the registered <code>page</code> value. Without that registration, <code>html/template</code> cannot resolve <code>Page</code>.</p>
 
+<h2>Matching values</h2>
+<p><code>Register</code> matches values by type. It returns an error when a typed root declared in <code>Config.Files</code> gets no value of its type, or more than one. For two roots of the same type, register them by name with <code>renderer.Register(tmpl, renderer.Root("Owner", owner), renderer.Root("Viewer", viewer))</code>. A name declared with two different types is an error too.</p>
+<p>The renderer only reads declarations that name a type, and it does not read <code>.go-clue/config.json</code>. Register roots that take their type from <code>symbolAnnotations</code>, such as <code>@interaction LikesPoll</code>, in your own <code>FuncMap</code>.</p>
+
 <h2>When to use dot instead</h2>
 <p>If your template is executed with a single value, keep it simple: use <code>@dot</code> in the contract and access fields with <code>{{`{{ .Title }}`}}</code>. Use <code>@model</code> plus the renderer when you want named roots such as <code>Page</code>, <code>Selected</code>, or project-specific values that are available from anywhere in the template.</p>
 
 <h2>Development and production</h2>
-<p>Development mode can re-read template contracts while you are working. Production mode resolves contracts at startup for predictable runtime behavior.</p>
+<p>Development mode can re-read template contracts while you are working. Production mode resolves contracts at startup for predictable runtime behavior. An empty <code>Mode</code> is Production.</p>
 
 <h2>Default functions</h2>
 <p><code>Config.Funcs</code> registers app-wide helpers before parsing templates. Use the same names in <code>.go-clue/config.json</code> when you also want editor completion and diagnostics for those helpers. The config teaches the editor; <code>Config.Funcs</code> teaches the runtime.</p>

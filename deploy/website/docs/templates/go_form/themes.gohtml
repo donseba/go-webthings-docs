@@ -6,23 +6,25 @@
 <pre><code>renderer.SetTheme("plain")</code></pre>
 <p>Class-based themes need the matching stylesheet supplied by your website. With Tailwind, make sure the generated classes used by the form templates are included in your build or safelist. Switching the Go theme does not compile a stylesheet.</p>
 <h2>Register a custom theme</h2>
-<pre><code>theme := templates.RegisterTheme("website", templates.ThemeClasses{
+<pre><code>theme, err := templates.RegisterClassTheme("website", templates.ThemeClasses{
     Wrapper: templates.StyleOption{Class: "form-field"},
-    Error: templates.StyleOption{Class: "field-error"},
-}, nil)
-if err := theme.LoadTemplatesFS(templates.TemplateFS, "gohtml"); err != nil {
-    return err
-}
-if _, err := theme.Templates.New("label").Parse(customLabel); err != nil {
+    Label:   templates.StyleOption{Class: "form-label"},
+    Input:   templates.StyleOption{Class: "control"},
+    Error:   templates.StyleOption{Class: "field-error"},
+})
+if err != nil {
     return err
 }
 renderer.SetTheme("website")</code></pre>
-<p>Import <code>github.com/donseba/go-form/v2/templates</code>. This starts with the embedded field templates and replaces one named template. <code>LoadTemplates</code> loads from disk; <code>LoadTemplatesFS</code> accepts an embedded or other filesystem.</p>
-<h2>A translated required marker</h2>
-<pre><code>&lt;label for="{{"{{"}} .Field.Id }}"&gt;
-    {{"{{"}} form_print .Loc .Field.Label }}
-    {{"{{"}} if .Field.Required }}{{"{{"}} form_print .Loc "(required)" }}{{"{{"}} end }}
-&lt;/label&gt;</code></pre>
-<p>The released built-in label fixes its screen-reader required marker in English. A custom label can translate that marker through <code>form_print</code> while preserving the relationship between label and input.</p>
+<p>Import <code>github.com/donseba/go-form/v2/templates</code>. <code>RegisterClassTheme</code> registers a theme with your CSS classes and go-form’s markup. Registering the same name with the same classes again returns the theme as it is, so the call can run where the renderer is created. Use a name of your own: the built-in names are registered again when the first form renders.</p>
+<h2>Templates of your own</h2>
+<p><code>RegisterTheme</code> with <code>LoadTemplates</code> (from disk) or <code>LoadTemplatesFS</code> (from an embedded or other filesystem) loads a complete template set of your own, such as a copy of go-form’s templates with changed markup for <code>label.gohtml</code>, <code>input.gohtml</code> or <code>form-buttons.gohtml</code>. Your templates use the same functions as go-form’s, such as <code>themeClass</code>, <code>themeStyle</code>, <code>form_print</code>, <code>form_described_by</code> and <code>form_class</code>, which joins the classes that are not empty, so an attribute without classes can be left out:</p>
+<pre><code>{{"{{"}}with form_class (themeClass "input") .Field.Class}}class="{{"{{"}}.}}"{{"{{"}}end}}</code></pre>
+<p>The opening form tag comes from <code>form-open.gohtml</code>, which <code>form_open</code> renders and <code>form_render</code> too. A <code>form-open.gohtml</code> of your own renders <code>form_open_class</code> and <code>form_open_style</code> (the classes and inline style of <code>Info.Attributes</code> and <code>form_open</code>, besides the theme’s), <code>form_attributes .Field.Attributes</code> (the other attributes of <code>Info.Attributes</code>) and <code>form_open_attributes</code> (the other attributes a template gave <code>form_open</code>), as go-form’s own does. Leaving one out drops those attributes.</p>
+<h2>Groups of options</h2>
+<p>Groups of radio buttons and multicheckboxes render as a <code>&lt;fieldset&gt;</code> with the field’s label as its <code>&lt;legend&gt;</code> (<code>fieldset.gohtml</code>, <code>legend.gohtml</code>), so the question names the group for screen readers. The fieldset gets the classes of <code>Wrapper</code> and <code>ThemeClasses.Fieldset</code>, the legend those of <code>Label</code> and <code>Legend</code>. Use <code>Fieldset</code> and <code>Legend</code> for what only the group needs, such as a reset of the browser’s fieldset border and padding, and style <code>legend</code> wherever your CSS styles a field’s <code>label</code>. A theme whose templates all come from its own folder without <code>fieldset.gohtml</code> keeps a <code>&lt;div&gt;</code> and a label.</p>
+<h2>The required marker</h2>
+<p>A required field’s label shows an asterisk, hidden from screen readers, and a text for screen readers only: <code>{{"{{"}} form_required_label .Loc }}</code>, the translation key <code>form||(required)</code> (<code>form.TranslationKeyRequiredLabel</code>). When nothing translates it, it shows in the localizer’s language when go-form has a catalogue for it, such as <code>(verplicht)</code> for Dutch, and in English otherwise. A label of your own keeps it by calling <code>form_required_label</code> too.</p>
+<p><code>ThemeClasses.VisuallyHidden</code> hides that text from sight: Bootstrap’s <code>visually-hidden</code>, Tailwind’s <code>sr-only</code> and, in the plain theme, the inline style <code>templates.VisuallyHiddenStyle</code>. A theme without a <code>VisuallyHidden</code> class renders the class <code>sr-only</code> (<code>templates.VisuallyHiddenClass</code>), so the CSS of a theme of your own needs a rule for it. A label template of your own writes the span with <code>themeClass "visually-hidden"</code> and <code>themeStyle "visually-hidden"</code>.</p>
 <p>Register and finish custom themes at startup. Do not mutate a theme template set while requests render it. Preserve labels, error feedback, CSRF inputs and keyboard-accessible controls when changing markup.</p>
 </article>

@@ -1,0 +1,578 @@
+{
+  "Slug": "forms",
+  "Name": "Forms",
+  "Group": "Visitors",
+  "Summary": "Contact forms, quote requests and other forms that editors build in the admin, with an inbox for the answers and an optional e-mail for each one.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/forms",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/forms",
+  "Type": "forms",
+  "Example": {
+    "Key": "contact",
+    "Title": "Contact",
+    "Code": "app.Use(forms.Module(\"contact\", \"Contact\"))"
+  },
+  "Guide": "\u003cp\u003eEach instance holds one form. Add an instance per form: a site can have \u003ccode\u003econtact\u003c/code\u003e and \u003ccode\u003equote\u003c/code\u003e side by side, each with its own fields, inbox and template.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    forms.Module(\u0026quot;contact\u0026quot;, \u0026quot;Contact\u0026quot;),\n    forms.Module(\u0026quot;quote\u0026quot;, \u0026quot;Quote request\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003econtact\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eContact\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"build-the-form\"\u003eBuild the form\u003c/h2\u003e\n\u003cp\u003eIn the admin, open the instance (\u003ccode\u003e/admin/contact\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) and choose \u003cstrong\u003eNew form\u003c/strong\u003e. An instance has one form, so the button disappears once it exists. The form has a title, an introduction and a success message (both Markdown), its fields, and an optional \u003cstrong\u003eNotification e-mail\u003c/strong\u003e.\u003c/p\u003e\n\u003cp\u003eFields are written as text, one per line: \u003ccode\u003ename | type | label | placeholder | help\u003c/code\u003e. A \u003ccode\u003e*\u003c/code\u003e after the name makes the field required; placeholder and help are optional. The options of a select follow on their own lines, starting with \u003ccode\u003e-\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003ename* | text | Name\nemail* | email | E-mail | you@example.com\ntopic | select | Topic\n- sales | Sales\n- support | Support\nmessage* | textarea | Message | | Tell us what you need.\nterms* | checkbox | I agree to the privacy statement\n\u003c/code\u003e\u003c/pre\u003e\n\u003cul\u003e\n\u003cli\u003eTypes: \u003ccode\u003etext\u003c/code\u003e, \u003ccode\u003eemail\u003c/code\u003e, \u003ccode\u003etextarea\u003c/code\u003e, \u003ccode\u003eselect\u003c/code\u003e, \u003ccode\u003echeckbox\u003c/code\u003e, \u003ccode\u003enumber\u003c/code\u003e and \u003ccode\u003edate\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003eNames use lowercase letters, digits and underscores, start with a letter, and are unique. \u003ccode\u003ewebsite\u003c/code\u003e is taken by the spam trap.\u003c/li\u003e\n\u003cli\u003eA form has at most 50 fields, a select at most 100 options.\u003c/li\u003e\n\u003cli\u003eNames, types and options are shared by all languages; labels, placeholders, help and option labels belong to the language being edited. A field without a label in the visitor's language shows its name.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003ePublish the form when it is ready. It is shown in each language that has a title, a success message and field labels.\u003c/p\u003e\n\u003cp\u003eWhile the form is on a page, links to addresses on the site in its introduction and success message count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the form when it links there, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists its links that lead nowhere.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page shows the form at its own address and receives it there too, with \u003ccode\u003econtact/form.gohtml\u003c/code\u003e, or \u003ccode\u003eforms/form.gohtml\u003c/code\u003e for every form without a design of its own. Generate a complete working starting point, with every kind of field:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- contact\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal template:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/forms.FormView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{if .Sent}}\n    {{.Success}}\n{{else}}\n    {{.Intro}}\n\n    {{if .Throttled}}\u0026lt;p\u0026gt;You sent this form several times already. Please try again later.\u0026lt;/p\u0026gt;{{end}}\n    {{if .Invalid}}\u0026lt;p\u0026gt;Please check the marked fields.\u0026lt;/p\u0026gt;{{end}}\n\n    {{form_render .Form .Errors}}\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Form\u003c/code\u003e is the form as the editor built it, in the page's language. \u003ccode\u003eform_render\u003c/code\u003e renders all of it with go-form: each field with its label, placeholder, help text and limits, the visitor's answers and the errors of a post at their fields, the spam trap and a \u003cstrong\u003eSend\u003c/strong\u003e button, translated with the site's translations and in the site's form theme. The fields' ids start with the instance key, such as \u003ccode\u003econtact-email\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eTo lay out the fields yourself, write the form with \u003ccode\u003eform_open\u003c/code\u003e, \u003ccode\u003eform_field\u003c/code\u003e per name in \u003ccode\u003e.Fields\u003c/code\u003e and \u003ccode\u003eform_close\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{form_open .Form}}\n    {{range .Fields}}\n        {{form_field $.Form . $.Errors}}\n    {{end}}\n    \u0026lt;button type=\u0026quot;submit\u0026quot;\u0026gt;Send\u0026lt;/button\u0026gt;\n{{form_close}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eform_field\u003c/code\u003e renders a field by its name, \u003ccode\u003eemail\u003c/code\u003e for example, so a template can also place the fields one by one. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eThe form posts to the page itself (\u003ccode\u003e.Action\u003c/code\u003e), not to a visitor action under \u003ccode\u003e/_/\u003c/code\u003e, but it is protected the same way.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eWith errors, the page shows the form again with status 422, the visitor's answers, \u003ccode\u003e.Invalid\u003c/code\u003e set and \u003ccode\u003e.Errors\u003c/code\u003e: go-form's messages in the page's language, which \u003ccode\u003eform_render\u003c/code\u003e and \u003ccode\u003eform_field\u003c/code\u003e show at their fields.\u003c/li\u003e\n\u003cli\u003eAfter a valid submission the visitor returns to the page with \u003ccode\u003e?sent=1\u003c/code\u003e, such as \u003ccode\u003e/en/contact?sent=1\u003c/code\u003e, and \u003ccode\u003e.Sent\u003c/code\u003e is set: show \u003ccode\u003e.Success\u003c/code\u003e instead of the form.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eform_open\u003c/code\u003e and \u003ccode\u003eform_render\u003c/code\u003e add the spam trap. Bots that fill it in are told the form was sent; nothing is stored.\u003c/li\u003e\n\u003cli\u003ePosts from other sites are refused by cross-origin protection. The form needs no token or cookie, so it never expires, however long it stays open.\u003c/li\u003e\n\u003cli\u003eEach visitor may send the form 10 times in 10 minutes, posts with errors included. After that the form is shown again with \u003ccode\u003e.Throttled\u003c/code\u003e set and their answers kept, with status 429; nothing is stored.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eValues are checked by type, with go-form's validation: a \u003ccode\u003etext\u003c/code\u003e is one line of at most 500 characters, a \u003ccode\u003etextarea\u003c/code\u003e at most 10,000, an \u003ccode\u003eemail\u003c/code\u003e one address mail can be sent to, as the site's other forms check it (\u003ccode\u003email.Rule\u003c/code\u003e, see \u003ca href=\"wt-docs:/go-webthings/mail#addresses-in-forms\"\u003eAddresses in forms\u003c/a\u003e), so \u003ccode\u003eanna@localhost\u003c/code\u003e is refused, a \u003ccode\u003enumber\u003c/code\u003e a number, a \u003ccode\u003edate\u003c/code\u003e a \u003ccode\u003eYYYY-MM-DD\u003c/code\u003e date and a \u003ccode\u003eselect\u003c/code\u003e one of its options. A checkbox is stored as \u003ccode\u003eyes\u003c/code\u003e or \u003ccode\u003eno\u003c/code\u003e.\u003c/p\u003e\n\u003ch2 id=\"inbox\"\u003eInbox\u003c/h2\u003e\n\u003cp\u003e\u003cstrong\u003eSubmissions\u003c/strong\u003e on the form's admin page opens the inbox (\u003ccode\u003e/admin/contact/inbox\u003c/code\u003e), with tabs for new, archived and all submissions, dated in the site's timezone. The badge in the navigation counts the new ones.\u003c/p\u003e\n\u003cp\u003eA submission keeps the answers with the labels the visitor saw and the language they used, so later changes to the form leave it unchanged. Editors archive a handled submission or move it back to new; \u003cstrong\u003eMove to trash\u003c/strong\u003e moves it to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good. Archiving needs the edit right, deleting the delete right. \u003cstrong\u003eTrash\u003c/strong\u003e on the inbox lists the deleted submissions.\u003c/p\u003e\n\u003ch2 id=\"e-mail\"\u003eE-mail\u003c/h2\u003e\n\u003cp\u003eWhen the form has a notification address, every submission is mailed there in the admin's language. By default the subject is the form's title in the visitor's language; the text lists each answer under its label, followed by a link to the submission in the admin. Replying goes to the first address the visitor gave in an \u003ccode\u003eemail\u003c/code\u003e field.\u003c/p\u003e\n\u003cp\u003eThe mail is the template \u003ccode\u003enotify\u003c/code\u003e, with a \u003ccode\u003eforms.NotifyView\u003c/code\u003e. A theme replaces it with \u003ccode\u003email/contact/notify.gohtml\u003c/code\u003e, or \u003ccode\u003email/forms/notify.gohtml\u003c/code\u003e for every form; \u003ccode\u003etask templates -- contact\u003c/code\u003e writes the default there. The submission is stored first; a mail that fails is only logged.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003eforms.Of(app, \u0026quot;contact\u0026quot;)\u003c/code\u003e returns the instance once the app has started. It reads and handles submissions the way the inbox does:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003econtact := forms.Of(app, \u0026quot;contact\u0026quot;)\n\nwaiting, err := contact.Count(ctx, forms.StatusNew)\nlatest, more, err := contact.SubmissionsByStatus(ctx, forms.StatusNew, 0, 20)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eAn empty status lists or counts every submission. \u003ccode\u003eSubmission\u003c/code\u003e reads one, and \u003ccode\u003eArchive\u003c/code\u003e, \u003ccode\u003eUnarchive\u003c/code\u003e, \u003ccode\u003eDeleteSubmission\u003c/code\u003e, \u003ccode\u003eUndeleteSubmission\u003c/code\u003e and \u003ccode\u003ePurgeSubmission\u003c/code\u003e take a submission ID; the last three move a submission to the trash, bring it back or remove it for good. For seed data, \u003ccode\u003eParseFields\u003c/code\u003e reads fields in the editor's syntax and \u003ccode\u003eStore()\u003c/code\u003e saves the form:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003efields, labels, err := forms.ParseFields(\u0026quot;name* | text | Name\\nemail* | email | E-mail\\nmessage* | textarea | Message\\n\u0026quot;)\n\nform, err := contact.Store().Save(ctx, content.Draft[forms.Definition, forms.Text]{\n    Fields: forms.Definition{Fields: fields, Notify: \u0026quot;info@example.com\u0026quot;},\n    Translations: content.SetText(nil, \u0026quot;en\u0026quot;, forms.Text{\n        Title:   \u0026quot;Contact\u0026quot;,\n        Success: \u0026quot;Thank you. We reply within two working days.\u0026quot;,\n        Labels:  labels,\n    }),\n})\n\nerr = contact.Store().Publish(ctx, form.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/registrations\"\u003eRegistrations\u003c/a\u003e handles sign-ups for events, with places, prices and a confirmation mail.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/submissions\"\u003eSubmissions\u003c/a\u003e lets visitors send in news that editors accept as a draft post.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/newsletter\"\u003eNewsletter\u003c/a\u003e collects e-mail addresses with double opt-in.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": false,
+    "Links": true,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*forms.Service"
+  },
+  "Admin": [
+    {
+      "ID": "contact",
+      "Title": "Contact",
+      "Path": "/admin/contact",
+      "Permission": "contact",
+      "Icon": "form",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": true,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "form",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "submit",
+      "Method": "POST",
+      "Path": "/"
+    }
+  ],
+  "Funcs": [],
+  "Templates": [
+    {
+      "Name": "form",
+      "Files": [
+        "contact/form.gohtml",
+        "forms/form.gohtml"
+      ],
+      "DataType": "forms.FormView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Intro",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the URL the form posts to: the page itself.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the form's model: its fields as the editor defined them, in the page's language, with the visitor's answers after a post with errors, for go-form's template functions, such as {{form_render .Form .Errors}}, or {{form_open .Form}} with {{form_field .Form name .Errors}} per name of Fields. form_open adds the spam trap (frontend.Honeypot), and the fields' ids start with the instance key.",
+          "Fields": null
+        },
+        {
+          "Name": "Fields",
+          "Type": "[]string",
+          "Doc": "Fields are the names of the form's fields, in order, for form_field.",
+          "Fields": null
+        },
+        {
+          "Name": "Errors",
+          "Type": "form.FieldErrors",
+          "Doc": "Errors are the problems of a post per field, with messages in the page's language, which form_field and form_render show at their fields; empty otherwise.",
+          "Fields": null
+        },
+        {
+          "Name": "Invalid",
+          "Type": "bool",
+          "Doc": "Invalid is set when a submission has errors; see Errors.",
+          "Fields": null
+        },
+        {
+          "Name": "Throttled",
+          "Type": "bool",
+          "Doc": "Throttled is set when the visitor sent the form too often in a short time. Nothing was stored; the form is shown with their answers, to send again later.",
+          "Fields": null
+        },
+        {
+          "Name": "Sent",
+          "Type": "bool",
+          "Doc": "Sent is set after a successful submission; show Success instead of the form.",
+          "Fields": null
+        },
+        {
+          "Name": "Success",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/forms.FormView */}}\n{{/* Starting point generated by WebThings: a complete working form. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{if .Sent}}\n        \u003cdiv\u003e{{.Success}}\u003c/div\u003e\n    {{else}}\n        \u003cdiv\u003e{{.Intro}}\u003c/div\u003e\n\n        {{if .Throttled}}\u003cp\u003eYou sent this form several times already. Please try again later.\u003c/p\u003e{{end}}\n        {{if .Invalid}}\u003cp\u003ePlease check the marked fields.\u003c/p\u003e{{end}}\n\n        {{form_render .Form .Errors}}\n    {{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [
+    {
+      "Name": "notify",
+      "Files": [
+        "mail/contact/notify.gohtml",
+        "mail/forms/notify.gohtml"
+      ],
+      "DataType": "forms.NotifyView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the form's title in the language the visitor used.",
+          "Fields": null
+        },
+        {
+          "Name": "Locale",
+          "Type": "string",
+          "Doc": "Locale is the language the visitor used.",
+          "Fields": null
+        },
+        {
+          "Name": "Answers",
+          "Type": "forms.Answers",
+          "Doc": "Answers are the submitted values, each with the label the visitor saw.",
+          "Fields": [
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Label",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Value",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ReplyTo",
+          "Type": "string",
+          "Doc": "ReplyTo is the first address the visitor gave in an email field; empty when there is none.",
+          "Fields": null
+        },
+        {
+          "Name": "SubmissionURL",
+          "Type": "string",
+          "Doc": "SubmissionURL opens the submission in the admin.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/forms.NotifyView */}}\n{{/* Sent to the form's notification address for every submission, in the admin's language. */}}\n{{define \"subject\"}}{{.Title}}{{end}}\n\n{{define \"text\"}}\n{{range .Answers -}}\n{{.Label}}:\n{{or .Value \"-\"}}\n\n{{end -}}\n{{.SubmissionURL}}\n{{end}}"
+    }
+  ],
+  "Forms": [
+    {
+      "Type": "form.RenderModel",
+      "Doc": "",
+      "Fields": null
+    }
+  ],
+  "Migrations": [
+    {
+      "Version": "20261004000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261004000000_init.postgres.sql",
+          "SQL": "-- Form definitions are a collection (see package content); an instance holds\n-- one form. Fields and labels are JSON; notify is the address that receives\n-- new submissions.\nCREATE TABLE wt_forms_form (\n    id          UUID PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    published   BOOLEAN NOT NULL DEFAULT FALSE,\n    position    INTEGER NOT NULL DEFAULT 0,\n    created_at  TIMESTAMPTZ NOT NULL,\n    created_by  UUID,\n    updated_at  TIMESTAMPTZ NOT NULL,\n    updated_by  UUID,\n    deleted_at  TIMESTAMPTZ,\n    deleted_by  UUID,\n    form_fields TEXT NOT NULL DEFAULT '[]',\n    notify      VARCHAR(254) NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_forms_form_instance ON wt_forms_form (instance);\n\nCREATE TABLE wt_forms_form_translation (\n    item_id      UUID NOT NULL REFERENCES wt_forms_form (id) ON DELETE CASCADE,\n    locale       VARCHAR(35) NOT NULL,\n    title        VARCHAR(200) NOT NULL DEFAULT '',\n    intro        TEXT NOT NULL DEFAULT '',\n    success      TEXT NOT NULL DEFAULT '',\n    field_labels TEXT NOT NULL DEFAULT '{}',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- Submissions belong to the instance, so they outlive changes to the form.\n-- Answers are JSON with the labels the visitor saw. Status is new or archived.\nCREATE TABLE wt_forms_submission (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    locale     VARCHAR(35) NOT NULL,\n    status     VARCHAR(16) NOT NULL DEFAULT 'new',\n    answers    TEXT NOT NULL,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID\n);\n\nCREATE INDEX wt_forms_submission_instance ON wt_forms_submission (instance, created_at);\n\nCREATE INDEX wt_forms_submission_status ON wt_forms_submission (instance, status, created_at);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261004000000_init.sqlite.sql",
+          "SQL": "-- Form definitions are a collection (see package content); an instance holds\n-- one form. Fields and labels are JSON; notify is the address that receives\n-- new submissions.\nCREATE TABLE wt_forms_form (\n    id          TEXT PRIMARY KEY,\n    instance    TEXT NOT NULL,\n    published   BOOLEAN NOT NULL DEFAULT FALSE,\n    position    INTEGER NOT NULL DEFAULT 0,\n    created_at  TIMESTAMP NOT NULL,\n    created_by  TEXT,\n    updated_at  TIMESTAMP NOT NULL,\n    updated_by  TEXT,\n    deleted_at  TIMESTAMP,\n    deleted_by  TEXT,\n    form_fields TEXT NOT NULL DEFAULT '[]',\n    notify      TEXT NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_forms_form_instance ON wt_forms_form (instance);\n\nCREATE TABLE wt_forms_form_translation (\n    item_id      TEXT NOT NULL REFERENCES wt_forms_form (id) ON DELETE CASCADE,\n    locale       TEXT NOT NULL,\n    title        TEXT NOT NULL DEFAULT '',\n    intro        TEXT NOT NULL DEFAULT '',\n    success      TEXT NOT NULL DEFAULT '',\n    field_labels TEXT NOT NULL DEFAULT '{}',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- Submissions belong to the instance, so they outlive changes to the form.\n-- Answers are JSON with the labels the visitor saw. Status is new or archived.\nCREATE TABLE wt_forms_submission (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    locale     TEXT NOT NULL,\n    status     TEXT NOT NULL DEFAULT 'new',\n    answers    TEXT NOT NULL,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT\n);\n\nCREATE INDEX wt_forms_submission_instance ON wt_forms_submission (instance, created_at);\n\nCREATE INDEX wt_forms_submission_status ON wt_forms_submission (instance, status, created_at);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261004000000_init.mysql.sql",
+          "SQL": "-- Form definitions are a collection (see package content); an instance holds\n-- one form. Fields and labels are JSON; notify is the address that receives\n-- new submissions.\nCREATE TABLE wt_forms_form (\n    id          VARCHAR(36) PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    published   BOOLEAN NOT NULL DEFAULT FALSE,\n    position    INTEGER NOT NULL DEFAULT 0,\n    created_at  DATETIME(6) NOT NULL,\n    created_by  VARCHAR(36) NULL,\n    updated_at  DATETIME(6) NOT NULL,\n    updated_by  VARCHAR(36) NULL,\n    deleted_at  DATETIME(6) NULL,\n    deleted_by  VARCHAR(36) NULL,\n    form_fields TEXT NOT NULL,\n    notify      VARCHAR(254) NOT NULL DEFAULT '',\n    INDEX wt_forms_form_instance (instance)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_forms_form_translation (\n    item_id      VARCHAR(36) NOT NULL,\n    locale       VARCHAR(35) NOT NULL,\n    title        VARCHAR(200) NOT NULL DEFAULT '',\n    intro        TEXT NOT NULL,\n    success      TEXT NOT NULL,\n    field_labels TEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_forms_form (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- Submissions belong to the instance, so they outlive changes to the form.\n-- Answers are JSON with the labels the visitor saw. Status is new or archived.\nCREATE TABLE wt_forms_submission (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    locale     VARCHAR(35) NOT NULL,\n    status     VARCHAR(16) NOT NULL DEFAULT 'new',\n    answers    MEDIUMTEXT NOT NULL,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    INDEX wt_forms_submission_instance (instance, created_at),\n    INDEX wt_forms_submission_status (instance, status, created_at)\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_forms_form",
+      "Note": "Form definitions are a collection (see package content); an instance holds one form. Fields and labels are JSON; notify is the address that receives new submissions.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "form_fields",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT '[]'"
+        },
+        {
+          "Name": "notify",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_forms_form_instance (instance)"
+      ]
+    },
+    {
+      "Name": "wt_forms_form_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_forms_form (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "intro",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "success",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "field_labels",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT '{}'"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    },
+    {
+      "Name": "wt_forms_submission",
+      "Note": "Submissions belong to the instance, so they outlive changes to the form. Answers are JSON with the labels the visitor saw. Status is new or archived.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "status",
+          "Type": "VARCHAR(16)",
+          "Notes": "NOT NULL DEFAULT 'new'"
+        },
+        {
+          "Name": "answers",
+          "Type": "TEXT",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_forms_submission_instance (instance, created_at)",
+        "INDEX wt_forms_submission_status (instance, status, created_at)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "ParseFields",
+        "Signature": "func ParseFields(source string) (FieldList, Labels, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Archive",
+        "Signature": "func (s *Service) Archive(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Count",
+        "Signature": "func (s *Service) Count(ctx context.Context, status string) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "DeleteSubmission",
+        "Signature": "func (s *Service) DeleteSubmission(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "PurgeSubmission",
+        "Signature": "func (s *Service) PurgeSubmission(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Definition, Text]",
+        "Doc": ""
+      },
+      {
+        "Name": "Submission",
+        "Signature": "func (s *Service) Submission(ctx context.Context, id string) (Submission, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SubmissionsByStatus",
+        "Signature": "func (s *Service) SubmissionsByStatus(ctx context.Context, status string, offset, limit int) ([]Submission, bool, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "TrashedSubmissions",
+        "Signature": "func (s *Service) TrashedSubmissions(ctx context.Context, limit, offset int) ([]Submission, int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Unarchive",
+        "Signature": "func (s *Service) Unarchive(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "UndeleteSubmission",
+        "Signature": "func (s *Service) UndeleteSubmission(ctx context.Context, id string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Answer",
+        "Doc": "\u003cp\u003eAnswer is one submitted value, with the label the visitor saw.\n",
+        "Fields": null,
+        "Decl": "type Answer struct {\n\tName  string `json:\"name\"`\n\tLabel string `json:\"label\"`\n\tValue string `json:\"value\"`\n}"
+      },
+      {
+        "Name": "Answers",
+        "Doc": "\u003cp\u003eAnswers is stored as JSON in one column.\n",
+        "Fields": null,
+        "Decl": "type Answers []Answer"
+      },
+      {
+        "Name": "Definition",
+        "Doc": "\u003cp\u003eDefinition is the language-independent part of a form. Notify is the\naddress new submissions are mailed to; empty sends no mail.\n",
+        "Fields": null,
+        "Decl": "type Definition struct {\n\tFields FieldList `db:\"form_fields\"`\n\tNotify string    `db:\"notify\"`\n}"
+      },
+      {
+        "Name": "Field",
+        "Doc": "\u003cp\u003eField is one input of the form. Labels are translated; see Label.\n",
+        "Fields": null,
+        "Decl": "type Field struct {\n\tName     string   `json:\"name\"`\n\tType     string   `json:\"type\"`\n\tRequired bool     `json:\"required,omitempty\"`\n\tOptions  []string `json:\"options,omitempty\"`\n}"
+      },
+      {
+        "Name": "FieldList",
+        "Doc": "\u003cp\u003eFieldList is stored as JSON in one column.\n",
+        "Fields": null,
+        "Decl": "type FieldList []Field"
+      },
+      {
+        "Name": "FormView",
+        "Doc": "\u003cp\u003eFormView is the data of forms/form.gohtml.\n",
+        "Fields": null,
+        "Decl": "type FormView struct {\n\tTitle string\n\tIntro template.HTML\n\t// Action is the URL the form posts to: the page itself.\n\tAction string\n\t// Form is the form's model: its fields as the editor defined them, in\n\t// the page's language, with the visitor's answers after a post with\n\t// errors, for go-form's template functions, such as {{form_render\n\t// .Form .Errors}}, or {{form_open .Form}} with {{form_field .Form name\n\t// .Errors}} per name of Fields. form_open adds the spam trap\n\t// (frontend.Honeypot), and the fields' ids start with the instance key.\n\tForm form.RenderModel\n\t// Fields are the names of the form's fields, in order, for form_field.\n\tFields []string\n\t// Errors are the problems of a post per field, with messages in the\n\t// page's language, which form_field and form_render show at their\n\t// fields; empty otherwise.\n\tErrors form.FieldErrors\n\t// Invalid is set when a submission has errors; see Errors.\n\tInvalid bool\n\t// Throttled is set when the visitor sent the form too often in a short\n\t// time. Nothing was stored; the form is shown with their answers, to send\n\t// again later.\n\tThrottled bool\n\t// Sent is set after a successful submission; show Success instead of the form.\n\tSent    bool\n\tSuccess template.HTML\n}"
+      },
+      {
+        "Name": "InboxRow",
+        "Doc": "\u003cp\u003eInboxRow is one submission in the inbox; Summary shows its first\nanswers.\n",
+        "Fields": null,
+        "Decl": "type InboxRow struct {\n\tURL      string\n\tDate     string\n\tLocale   string\n\tSummary  string\n\tArchived bool\n}"
+      },
+      {
+        "Name": "InboxView",
+        "Doc": "\u003cp\u003eInboxView is the data of templates/admin/inbox.gohtml: the submissions of a\nform, filtered by status.\n",
+        "Fields": null,
+        "Decl": "type InboxView struct {\n\tTitle   string\n\tBackURL string\n\t// TrashURL shows the deleted submissions in the admin's trash.\n\tTrashURL string\n\t// Filters switch between new, archived and all submissions.\n\tFilters admin.Tabs\n\tRows    []InboxRow\n\tPager   admin.Pager\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a stored form with its translations.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Definition, Text]"
+      },
+      {
+        "Name": "Label",
+        "Doc": "\u003cp\u003eLabel is the text of one field in one language. Options maps option values\nto their labels.\n",
+        "Fields": null,
+        "Decl": "type Label struct {\n\tLabel       string            `json:\"label\"`\n\tPlaceholder string            `json:\"placeholder,omitempty\"`\n\tHelp        string            `json:\"help,omitempty\"`\n\tOptions     map[string]string `json:\"options,omitempty\"`\n}"
+      },
+      {
+        "Name": "Labels",
+        "Doc": "\u003cp\u003eLabels maps field names to their text; stored as JSON in one column.\n",
+        "Fields": null,
+        "Decl": "type Labels map[string]Label"
+      },
+      {
+        "Name": "NotifyView",
+        "Doc": "\u003cp\u003eNotifyView is the data of the mail template notify, sent to the form\u0026apos;s\nnotification address in the admin\u0026apos;s language. Replying answers the\nvisitor when the form has an email field.\n",
+        "Fields": null,
+        "Decl": "type NotifyView struct {\n\t// Title is the form's title in the language the visitor used.\n\tTitle string\n\t// Locale is the language the visitor used.\n\tLocale string\n\t// Answers are the submitted values, each with the label the visitor saw.\n\tAnswers Answers\n\t// ReplyTo is the first address the visitor gave in an email field; empty\n\t// when there is none.\n\tReplyTo string\n\t// SubmissionURL opens the submission in the admin.\n\tSubmissionURL string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one form, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Submission",
+        "Doc": "\u003cp\u003eSubmission is one sent form. DeletedAt and DeletedBy are set for\nsubmissions in the trash (see TrashedSubmissions).\n",
+        "Fields": null,
+        "Decl": "type Submission struct {\n\tID        string     `db:\"id\"`\n\tLocale    string     `db:\"locale\"`\n\tStatus    string     `db:\"status\"`\n\tAnswers   Answers    `db:\"answers\"`\n\tCreatedAt time.Time  `db:\"created_at\"`\n\tDeletedAt *time.Time `db:\"deleted_at\"`\n\tDeletedBy db.Ref     `db:\"deleted_by\"`\n}"
+      },
+      {
+        "Name": "SubmissionView",
+        "Doc": "\u003cp\u003eSubmissionView is the data of templates/admin/submission.gohtml: one\nsubmission with every answer.\n",
+        "Fields": null,
+        "Decl": "type SubmissionView struct {\n\tTitle    string\n\tBackURL  string\n\tDate     string\n\tLocale   string\n\tArchived bool\n\tAnswers  Answers\n\t// Archive or Unarchive is set, depending on the status, for editors.\n\tArchive   *form.RenderModel\n\tUnarchive *form.RenderModel\n\tDelete    *form.RenderModel\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a form in one language. Intro and Success are Markdown.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tTitle   string `db:\"title\"`\n\tIntro   string `db:\"intro\"`\n\tSuccess string `db:\"success\"`\n\tLabels  Labels `db:\"field_labels\"`\n}"
+      }
+    ]
+  }
+}

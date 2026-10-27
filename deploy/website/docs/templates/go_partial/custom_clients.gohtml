@@ -25,7 +25,7 @@
 document.querySelector("#profile-card").outerHTML = await response.text()</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">Server setup</h2>
-    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">root := partial.New("shell.gohtml").SetConnector(connector.NewPartial(&connector.Config{UseURLQuery: true})).SetFileSystem(os.DirFS("web"))</code></pre>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">root := partial.New("shell.gohtml").SetConnector(connector.NewPartial(&amp;connector.Config{UseURLQuery: true})).SetFileSystem(os.DirFS("web"))</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">When to write your own connector</h2>
     <p class="leading-7 text-slate-400">If your client already has established headers, implement the connector interface and keep the rest of your rendering code unchanged.</p>
@@ -35,8 +35,15 @@ document.querySelector("#profile-card").outerHTML = await response.text()</code>
     GetTargetValue(r *http.Request) string
     GetSelectValue(r *http.Request) string
     GetActionValue(r *http.Request) string
+
+    GetTargetHeader() string
+    GetSelectHeader() string
+    GetActionHeader() string
+    InteractionAttrs(interaction connector.Interaction) map[string]string
     ResponseHeaders(response connector.Response) map[string]string
 }</code></pre>
+
+    <p class="leading-7 text-slate-400">A connector can implement more, optional interfaces of the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">connector</code> package: <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">RequestInspector</code> (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">IsRequest</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">IsBoosted</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">CurrentURL</code>), <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">HeaderVarier</code> for the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Vary</code> header, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">CurrentURLHeaderNamer</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Redirector</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">AttrWriter</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">OOBWriter</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">RequestTargeter</code>. The package functions, such as <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">connector.IsRequest</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">connector.Redirect</code>, also accept connectors that do not implement them. See <a href="{{ basePath }}/connectors" hx-get="{{ basePath }}/connectors" hx-target="#content" hx-push-url="true">Connectors</a>.</p>
 </article>
 
 

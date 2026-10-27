@@ -2,8 +2,9 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-<pre><code>go get github.com/donseba/go-translator@v1.4.0</code></pre>
-<p>These examples use v1.4.0. Create <code>translations/</code> and <code>templates/</code>, then save this as <code>translations/en_US.po</code>:</p>
+<pre><code>go get github.com/donseba/go-translator/v2@v2.0.0</code></pre>
+<p>Use the <code>/v2</code> import path; the package name stays <code>translator</code>. These examples use v2.0.0. Coming from v1, read the <a href="https://github.com/donseba/go-translator/tree/v2.0.0#upgrading">upgrading notes</a> first: <code>Tn</code> and <code>Ctn</code> changed signature, and some behaviour changed.</p>
+<p>Create <code>translations/</code> and <code>templates/</code>, then save this as <code>translations/en_US.po</code>:</p>
 <pre><code>msgid ""
 msgstr ""
 "Language: en_US\n"
@@ -12,10 +13,7 @@ msgstr ""
 
 msgid "Hello, World!"
 msgstr "Hello, World!"</code></pre>
-<p>Also create <code>translations/translations.pot</code> with this initial header. Lookups record newly used keys there:</p>
-<pre><code>msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"</code></pre>
+<p>A translator made with <code>NewTranslator</code> appends every non-empty key a lookup uses to <code>translations/translations.pot</code> when it is not there yet. It creates that file with a gettext header when it does not exist yet; the translations directory must exist.</p>
 <h2>A complete program</h2>
 <pre><code>package main
 
@@ -24,7 +22,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/donseba/go-translator"
+	"github.com/donseba/go-translator/v2"
 )
 
 type Locale string
@@ -43,6 +41,16 @@ func main() {
 		log.Fatal(err)
 	}
 }</code></pre>
-<p>The program prints a translated heading. Locale codes are exact catalogue identifiers: <code>en_US</code> loads <code>en_US.po</code>. A file needs a <code>Language</code> header to load successfully.</p>
-<p>The <a href="{{ basePath }}/extraction" hx-get="{{ basePath }}/extraction" hx-target="#content" hx-push-url="true">extraction workflow</a> shows how to discover literal template keys before rendering and merge them into your language catalogues.</p>
+<p>The program prints a translated heading. Locale codes are catalogue names: <code>en_US</code> loads <code>en_US.po</code>, and by default a lookup for <code>en_US</code> only uses that catalogue (see <a href="{{ basePath }}/locales" hx-get="{{ basePath }}/locales" hx-target="#content" hx-push-url="true">language fallback</a>). A catalogue without a <code>Language</code> header is loaded under the name it was loaded as.</p>
+<h2>A translator with options</h2>
+<pre><code>tr := translator.New(
+	translator.WithTranslationsDir("translations"),
+	translator.WithUntranslated(translator.ShowOriginal),
+	translator.WithLanguageFallback(true),
+)
+if err := tr.LoadLanguages(os.DirFS("translations")); err != nil {
+	log.Fatal(err)
+}</code></pre>
+<p><code>New</code> configures a translator in one call; each option does what the setter of the same name does. Unlike <code>NewTranslator</code>, it records nothing while translating unless you call <code>SetRecordMissing(true)</code>, so serving requests never writes to disk. The <a href="{{ basePath }}/api" hx-get="{{ basePath }}/api" hx-target="#content" hx-push-url="true">API reference</a> lists the options.</p>
+<p>The <a href="{{ basePath }}/extraction" hx-get="{{ basePath }}/extraction" hx-target="#content" hx-push-url="true">extraction workflow</a> shows how to discover literal template keys before rendering and merge them into your language catalogues. The <a href="{{ basePath }}/extract" hx-get="{{ basePath }}/extract" hx-target="#content" hx-push-url="true">extract package</a> writes the whole POT file and checks what each language still misses.</p>
 </article>

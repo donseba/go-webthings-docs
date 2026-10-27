@@ -2,22 +2,22 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-<ol><li>Pin versions in a preparation command.</li><li>Fetch or restore the package cache.</li><li>Generate published files and the dependency head.</li><li>Build or package the application with those assets.</li><li>Serve the local files without fetching during page requests.</li></ol>
-<pre><code>head, err := im.Render()
-if err != nil { return err }
-if err := os.WriteFile("assets/imports.html", []byte(head), 0o644); err != nil {
-    return err
-}</code></pre>
-<p>The example writes markup for later inclusion. It is not a complete HTML page. Your layout can read this prepared file or embed it into the binary alongside the asset tree.</p>
+<ol><li>Pin versions in <code>importmap.json</code>.</li><li>Vendor the packages with <code>importmap vendor</code>, for example through <code>go generate</code>, and commit the files and the lock.</li><li>Check them in CI with <code>importmap verify</code>, which needs no network.</li><li>Embed the directory and load it with <code>FromFS</code>.</li><li>Serve the files with <code>ServeFile</code>; nothing is fetched during page requests.</li></ol>
+<pre><code># when a pin changes
+go generate ./...
+
+# in CI
+go run github.com/donseba/go-importmap/cmd/importmap verify -out assets/vendor
+go build ./...</code></pre>
+<p><a href="{{ basePath }}/vendoring" hx-get="{{ basePath }}/vendoring" hx-target="#content" hx-push-url="true">Vendoring</a> describes the configuration, the flags and the lock file. <code>-timeout</code> bounds the downloads of <code>importmap vendor</code>; the default is <code>2m</code>.</p>
 <h2>Offline serving</h2>
-<p>A complete public asset tree and generated head are enough to serve the application. The provider and package cache belong to preparation; they need not be present in the deployed runtime. Check the head for a remote shim if all runtime assets must be local.</p>
+<p>With <code>FromFS</code> the binary holds every file, and the lock is checked when the import map is built, so a missing or changed file fails at start-up rather than in the browser. The provider and the package cache belong to the build; they need not be present in the deployed runtime. No module shim is loaded unless <code>ShimPath</code> sets one; a remote shim URL, <code>Raw</code> imports and remote imports inside module files still reach other hosts.</p>
 <h2>Reproducibility and updates</h2>
-<p>Keep package pins in source and rebuild when they change. Coordinate any versioned public prefix with the HTTP mount and generated head. Default public paths do not contain the package version, so application cache headers and deployment strategy determine how browsers receive replacements.</p>
-<h2>Context and diagnostics</h2>
+<p>The configuration pins versions and the lock records each file's source and SHA-384 integrity, so a diff of the lock shows what an update changed. Change a pin, vendor again, and commit the result. URLs carry each file's version (<code>?v=…</code>), so browsers may cache a file for a year and still receive the new one after a deploy.</p>
+<h2>Fetching at start-up</h2>
 <pre><code>ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 defer cancel()
 im.WithLogger(slog.Default())
 if err := im.CacheOrFetch(ctx); err != nil { return err }</code></pre>
-<p>A timeout bounds metadata requests and downloads. Return preparation failures to the build or startup command. Do not continue serving a newly prepared version after a failed preparation step.</p>
-<p>There is no package-owned CLI required: a small Go command using these APIs makes the build inputs, paths and error handling explicit.</p>
+<p>Without vendoring, the application prepares its assets at start-up. A timeout bounds metadata requests and downloads. Without the <code>.importmap</code> cache, start-up needs the network. Return preparation failures to the start-up command; do not continue serving a newly prepared version after a failed preparation step. Fingerprint the published files with <code>assets.Fingerprint</code> and pass the manifest to <code>WithAssets</code> to get versioned URLs on this path too.</p>
 </article>

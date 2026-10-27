@@ -10,10 +10,12 @@ msgstr[1] "%d berichten"</code></pre>
 <h2>Selection and formatting are separate arguments</h2>
 <pre><code>{{"{{"}} tn .Loc "%d message" "%d messages" .Count .Count }}</code></pre>
 <p>The first <code>.Count</code> selects a form. The second supplies the <code>%d</code> value. Counts 0, 1, and 2 should render “0 berichten”, “1 bericht”, and “2 berichten” with the Dutch catalogue above.</p>
-<h2>Go calls use count-only plural methods</h2>
-<pre><code>word := tr.Tn(loc, "message", "messages", count)
-text := fmt.Sprintf(tr.Tn(loc, "%d message", "%d messages", count), count)</code></pre>
-<p>Public <code>Tn</code> and <code>Ctn</code> do not accept extra formatting values. For the second line, PO entries must retain a valid <code>%d</code> placeholder. The template helpers accept those values directly.</p>
+<h2>Go calls take the same arguments</h2>
+<pre><code>text := tr.Tn(loc, "%d message", "%d messages", count, count)
+inbox := tr.Ctn(loc, "inbox", "%d message", "%d messages", count, count)</code></pre>
+<p><code>Tn</code> and <code>Ctn</code> choose the form with the count and format it with the arguments after it, as the template helpers do. In v1 they took no formatting arguments; calls without them still work.</p>
+<h2>Plurals without translation</h2>
+<p>A plural without translation shows the marker <code>*%d message/%d messages*</code> by default. With <code>SetUntranslated(translator.ShowOriginal)</code> it shows the singular for 1 and the plural for every other count, formatted: “2 messages”.</p>
 <h2>Contextual plurals</h2>
 <pre><code>{{"{{"}} ctn .Loc "inbox" "%d message" "%d messages" .Count .Count }}</code></pre>
 <p>This key belongs to the <code>inbox</code> context. Its PO entry needs both <code>msgctxt</code> and <code>msgid_plural</code>; see <a href="{{ basePath }}/contexts" hx-get="{{ basePath }}/contexts" hx-target="#content" hx-push-url="true">contexts</a>. Include zero, singular, plural and any language-specific boundaries in rendering checks.</p>

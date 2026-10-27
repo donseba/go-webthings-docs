@@ -23,9 +23,26 @@ msgstr "Hallo, wereld!"</code></pre>
 for _, language := range []string{"en_US", "nl_NL"} {
     if err := tr.SetLanguage(language); err != nil { return err }
 }</code></pre>
-<p><code>SetLanguage</code> loads a PO file into the translator. It does not select the language for later requests. Configure and load all languages before sharing the translator.</p>
+<p><code>SetLanguage</code> loads a PO file into the translator. It does not select the language for later requests. Configure and load all languages before sharing the translator. When a file cannot be read, the error matches both <code>translator.ErrorLanguageNotFound</code> and the cause, such as <code>fs.ErrNotExist</code>; compare with <code>errors.Is</code>.</p>
+<h2>Load from an fs.FS</h2>
+<pre><code>//go:embed translations
+var files embed.FS
+
+// One catalogue, under a name of your choice:
+if err := tr.SetLanguageFS("nl_NL", files, "translations/nl_NL.po"); err != nil { return err }
+
+// Every *.po file in the root of a file system, named after the file:
+sub, err := fs.Sub(files, "translations")
+if err != nil { return err }
+if err := tr.LoadLanguages(sub); err != nil { return err }</code></pre>
+<p><code>SetLanguageFS</code> loads one catalogue from any <code>fs.FS</code>, such as an <code>embed.FS</code>. <code>LoadLanguages</code> loads every <code>.po</code> file in the root of each source: <code>nl.po</code> as <code>nl</code>, <code>en_US.po</code> as <code>en_US</code>. It does not load the POT file.</p>
+<h2>Module defaults</h2>
+<pre><code>// The application's catalogues win over those of its modules.
+err := tr.LoadLanguages(os.DirFS("translations"), moduleA, moduleB)</code></pre>
+<p><code>LoadLanguages</code> takes several file systems as layers, the first one on top. The first source that has <code>&lt;lang&gt;.po</code> loads it; the same file in the sources after it fills in the messages it misses. An entry left empty, as after an update from the POT file in Poedit, counts as missing. Nil sources are skipped. A later file without a <code>Language</code> header counts as the language of its name. It must be in the same base language and, when it has plural messages, choose the same plural forms; otherwise <code>LoadLanguages</code> returns an error matching <code>ErrorInvalidCatalogue</code> that names the file.</p>
+<p>For a language that is already loaded, <code>MergeDefaults(language, files, name)</code> adds the messages of one more catalogue. Translated entries of the loaded catalogue win; contexts and all plural forms are kept. The catalogues must be in the same base language (<code>nl_NL</code> defaults merge into <code>nl</code>), the merged one needs a <code>Language</code> header, and when they have plural messages their plural rules must choose the same forms. Otherwise the error matches <code>ErrorInvalidCatalogue</code>. Merging never rewrites the PO file.</p>
 <h2>Create a missing language</h2>
 <pre><code>if err := tr.EnsureLanguage("fr"); err != nil { return err }</code></pre>
-<p><code>EnsureLanguage</code> creates a missing <code>fr.po</code> with generated language and plural headers, then loads it. It preserves existing files and requires the translations directory to exist. It does not populate the file with translated POT entries.</p>
+<p><code>EnsureLanguage</code> creates a missing <code>fr.po</code> with generated language and plural headers, then loads it. A regional locale without plural rules of its own gets those of its base language: <code>pl_PL</code> gets the Polish rules of <code>pl</code>. It preserves existing files and requires the translations directory to exist. It does not populate the file with translated POT entries.</p>
 <p><code>NewLanguage</code> creates an in-memory catalogue instead; use it with explicit headers and <a href="{{ basePath }}/editing" hx-get="{{ basePath }}/editing" hx-target="#content" hx-push-url="true">Write</a> when building a catalogue editor. <code>AddLanguage</code> is deprecated.</p>
 </article>

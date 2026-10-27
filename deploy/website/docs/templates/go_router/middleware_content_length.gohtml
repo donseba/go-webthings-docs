@@ -11,5 +11,6 @@
 
 <h2>When to avoid it</h2>
 <p>Do not use it for streaming, server-sent events, websockets, large downloads, or reverse-proxy style handlers. Buffering those responses changes the behavior and memory profile.</p>
+<p>A flush, with <code>http.NewResponseController(w).Flush()</code> or <code>http.Flusher</code>, switches it to streaming and skips the automatic <code>Content-Length</code>. Its writer cannot hijack the connection, so keep websocket handlers outside it.</p>
 </article>
 

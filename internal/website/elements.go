@@ -41,6 +41,9 @@ func fixedEnvironmentURL(req *http.Request, section Section, scheme, baseDomain,
 	if section == SectionShowcase {
 		host = "showcase." + baseDomain
 	}
+	if section == SectionModules {
+		host = "modules." + baseDomain
+	}
 	if port != "" {
 		host += ":" + port
 	}
@@ -54,6 +57,8 @@ func sectionFromHost(host string) Section {
 		return SectionDocs
 	case strings.HasPrefix(host, "showcase."):
 		return SectionShowcase
+	case strings.HasPrefix(host, "modules."):
+		return SectionModules
 	default:
 		return SectionMain
 	}
@@ -113,6 +118,14 @@ func docsHomeURL(req *http.Request) string {
 	return mainFamilyURL(req, "docs", "")
 }
 
+func modulesHomeURL(req *http.Request) string {
+	return mainFamilyURL(req, "modules", "")
+}
+
+func moduleURL(req *http.Request, slug string) string {
+	return mainFamilyURL(req, "modules", slug)
+}
+
 func mainWebsiteURL(req *http.Request) string {
 	return mainFamilyURL(req, "", "")
 }
@@ -121,13 +134,14 @@ func mainFamilyURL(req *http.Request, subdomain, path string) string {
 	host := hostWithoutPort(req.Host)
 	port := portFromHost(req.Host)
 	scheme := "https"
-	if strings.HasSuffix(host, "rocketweb.nl") || strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
+	if strings.HasSuffix(host, "rocketweb.nl") || strings.HasSuffix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
 		scheme = "http"
 	}
 
-	baseDomain := strings.TrimPrefix(host, "www.")
-	baseDomain = strings.TrimPrefix(baseDomain, "docs.")
-	baseDomain = strings.TrimPrefix(baseDomain, "showcase.")
+	baseDomain := host
+	for _, prefix := range []string{"www.", "docs.", "showcase.", "modules."} {
+		baseDomain = strings.TrimPrefix(baseDomain, prefix)
+	}
 	if baseDomain == "" {
 		baseDomain = "gowebthings.com"
 	}
@@ -197,7 +211,7 @@ func elementDescription(slug string) string {
 	case "go-form":
 		return "Typed HTML forms with mapping, validation, themes, and CSRF protection."
 	case "go-importmap":
-		return "CDN asset preparation, local caching, and browser import maps."
+		return "Vendored JavaScript and CSS, versioned asset serving, and browser import maps."
 	case "go-translator":
 		return "Gettext translations, plural forms, contexts, and template extraction."
 	default:
@@ -224,6 +238,8 @@ func title(section Section) string {
 		return "Docs"
 	case SectionShowcase:
 		return "Showcase"
+	case SectionModules:
+		return "Modules"
 	default:
 		return "Page"
 	}

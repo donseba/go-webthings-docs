@@ -11,7 +11,7 @@ msgid "Home"
 msgstr "Thuis"</code></pre>
 <pre><code>{{"{{"}} ctl .Loc "navigation" "Home" }}
 {{"{{"}} ctl .Loc "address" "Home" }}</code></pre>
-<p>The pair of context and key identifies an entry. Choose stable contexts describing the meaning of the text. A lookup without a context uses a different entry.</p>
+<p>The pair of context and key identifies an entry. Choose stable contexts describing the meaning of the text. A lookup with a context only finds entries with that context (<code>msgctxt</code>), never the entry without one. With an empty context, <code>ctl</code> and <code>ctn</code> behave exactly like <code>tl</code> and <code>tn</code>.</p>
 <h2>Plural entries in a context</h2>
 <pre><code>msgctxt "inbox"
 msgid "%d message"
@@ -19,7 +19,13 @@ msgid_plural "%d messages"
 msgstr[0] "%d bericht"
 msgstr[1] "%d berichten"</code></pre>
 <pre><code>label := tr.Ctl(loc, "navigation", "Home")
-word := tr.Ctn(loc, "inbox", "message", "messages", count)</code></pre>
+text := tr.Ctn(loc, "inbox", "%d message", "%d messages", count, count)</code></pre>
+<h2>A context with an optional translation</h2>
+<pre><code>pattern := "d MMM y"
+if own, ok := tr.LookupC(loc, "date", "medium"); ok {
+    pattern = own
+}</code></pre>
+<p><code>LookupC</code> also reports whether the context has a translation, so a language can replace a default without comparing strings.</p>
 <h2>Legacy prefixes</h2>
 <p>The default prefix separator is <code>__.</code>. The translator removes everything up to the last occurrence of that separator in translated output. <code>SetPrefixSeparator</code> changes it before use. This is output processing, not a replacement for a gettext <code>msgctxt</code> entry.</p>
 <pre><code>tr.SetPrefixSeparator("__.")</code></pre>

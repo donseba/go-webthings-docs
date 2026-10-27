@@ -179,5 +179,7 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => highlightAll());
-    document.addEventListener("htmx:afterSwap", (event) => highlightAll(event.target));
+    // htmx 4 fires htmx:after:swap on the element that made the request, once
+    // the target and the out-of-band regions are swapped: look at the page.
+    document.addEventListener("htmx:after:swap", () => highlightAll());
 })();

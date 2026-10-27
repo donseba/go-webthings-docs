@@ -1,0 +1,111 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsArticleData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" . }}
+
+<pre><code>import "github.com/donseba/go-translator/v2/extract"</code></pre>
+<p>The <code>extract</code> package finds the texts that templates translate with <code>tl</code>, <code>tn</code>, <code>ctl</code> and <code>ctn</code>, writes them to a POT file and checks which texts each language’s PO file still misses. <code>CheckMissingTranslations</code> only appends to the POT file; <code>extract</code> writes the whole file, with source references. It reads templates from any <code>fs.FS</code> or from memory and never needs a <code>Translator</code>, so it fits a build step or a small command.</p>
+<h2>A POT command</h2>
+<pre><code>package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/donseba/go-translator/v2/extract"
+)
+
+func main() {
+	sources, err := extract.Files(os.DirFS("templates"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	catalog, err := extract.Extract(sources...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, warning := range catalog.Warnings {
+		log.Println("warning:", warning)
+	}
+
+	// Texts that Go code translates with Tl are added by hand.
+	catalog.Add(extract.Texts("go:errors", "Not found", "Forbidden")...)
+
+	if err := catalog.WritePOTFile("translations/translations.pot"); err != nil {
+		log.Fatal(err)
+	}
+
+	reports, err := extract.Check(catalog, os.DirFS("translations"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, report := range reports {
+		for _, message := range report.Untranslated {
+			fmt.Printf("%s: %s\n", report.File, message)
+		}
+	}
+}</code></pre>
+<p>Save it as, for example, <code>cmd/pot/main.go</code> and run <code>go run ./cmd/pot</code> after changing templates. It prints one line per text a language still misses: the file, then the context, text, plural and first reference of the message.</p>
+<pre><code>nl.po: "Hello, %s" (default/layout.gohtml:2)
+nl.po: [button] "Open" (default/toolbar.gohtml:6)</code></pre>
+<h2>What Extract finds</h2>
+<p><code>Extract</code> returns a <code>Catalog</code>: one <code>Message</code> per context and text, with its plural and its references (<code>name:line</code>), in the order the texts first appear in the sources. The same sources always give the same catalog. Templates are parsed without their functions, so no helper needs to be registered, and texts on pages nobody visited are found too.</p>
+<p>A call whose text is not a literal, such as <code>{{"{{"}}tl localizer .Label}}</code>, or comes from a pipeline, such as <code>{{"{{"}}"Save" | tl localizer}}</code>, cannot be extracted and gives a <code>Warning</code>. Name each possible text in a literal call, for example in a <code>{{"{{"}}define}}</code> that is never used, or updating a PO file from the POT file drops its translations. A text with two different plurals also gives a warning, and the first plural is used; an empty text is left out with a warning. A template that does not parse is an error naming its source.</p>
+<h2>Sources</h2>
+<pre><code>sources, err := extract.Files(os.DirFS("web"), ".gohtml", ".html")
+if err != nil { return err }
+
+menu := extract.Source{Name: "generated/menu.gohtml", Text: menuTemplate}
+catalog, err := extract.Extract(append(sources, menu)...)</code></pre>
+<p>A <code>Source</code> is a name and a template text, so generated templates can be extracted too. <code>Files(fsys, extensions...)</code> reads every file with one of the extensions from an <code>fs.FS</code>, in lexical order and named by its path; without extensions it reads the <code>extract.DefaultExtension</code> (<code>.gohtml</code>) files.</p>
+<h2>Other functions and delimiters</h2>
+<pre><code>functions := extract.DefaultFunctions() // tl, tn, ctl, ctn
+functions["t"] = extract.Function{}     // [[t "Text"]], no localizer
+x := extract.Extractor{Functions: functions, LeftDelim: "[[", RightDelim: "]]"}
+catalog, err := x.Extract(sources...)</code></pre>
+<p>An <code>Extractor</code> looks for other function names or argument shapes, and other delimiters. A <code>Function</code> says which arguments hold the texts: <code>Skip</code> arguments before them (1 for the localizer of <code>tl</code>), then the context when <code>Context</code> is set, the text, and the plural when <code>Plural</code> is set. <code>Extract</code> uses the zero <code>Extractor</code>: <code>DefaultFunctions</code> between <code>{{"{{"}}</code> and <code>}}</code>.</p>
+<h2>Texts from Go code</h2>
+<pre><code>catalog.Add(extract.Texts("go:errors", "Not found", "Forbidden")...)
+catalog.Add(extract.Message{Context: "button", ID: "Open", References: []string{"go:toolbar"}})</code></pre>
+<p><code>Catalog.Add</code> adds texts that do not come from templates, such as texts that Go code translates with <code>Tl</code>. They are merged with the extracted ones as <code>Extract</code> merges calls: a text that is already in the catalog gets the new references. <code>extract.Texts(reference, ids...)</code> turns a list of plain texts into messages.</p>
+<h2>The POT file</h2>
+<pre><code>catalog.Header = extract.Header{
+    Comment:   "Made by go run ./cmd/pot; do not edit.",
+    ProjectID: "example 1.0",
+}
+err := catalog.WritePOTFile("translations/translations.pot")</code></pre>
+<pre><code># Made by go run ./cmd/pot; do not edit.
+msgid ""
+msgstr ""
+"Project-Id-Version: example 1.0\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: go-translator\n"
+
+#: default/layout.gohtml:2
+msgid "Hello, %s"
+msgstr ""
+
+#: default/inbox.gohtml:4
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] ""
+msgstr[1] ""</code></pre>
+<p><code>WritePOT(w)</code> writes the catalog to a writer, and <code>WritePOTFile(path)</code> replaces the file and creates its folder when needed. Texts that are no longer used are gone, and the header has no creation date, so the file only changes when the texts do. <code>Header</code> sets a comment above the header entry, the <code>Project-Id-Version</code> and the <code>X-Generator</code> (<code>extract.DefaultGenerator</code>, <code>go-translator</code>, by default).</p>
+<h2>Checking languages</h2>
+<pre><code>reports, err := extract.Check(catalog, os.DirFS("translations"))
+if err != nil { return err }
+for _, report := range reports {
+    if !report.Complete() {
+        fmt.Printf("%s: %d texts left\n", report.File, len(report.Untranslated))
+    }
+}</code></pre>
+<p><code>Check(catalog, fsys)</code> compares the catalog with every <code>.po</code> file in the root of <code>fsys</code> and returns a <code>Report</code> per file, in name order; use <code>fs.Sub</code> for a folder. <code>Missing</code> are the texts the file does not have, <code>Empty</code> those it has without translation, and <code>Untranslated</code> both, in the catalog’s order. A plural text needs every plural form of its language (<code>Forms</code>, from the <code>Plural-Forms</code> header): three for Polish, one for Japanese. <code>Complete()</code> reports whether nothing is left to translate, for example to fail a CI step. Texts that a PO file has and the catalog does not are not reported.</p>
+<h2>The workflow</h2>
+<ol><li>Extract the texts and write the POT file.</li><li>Open a language’s PO file in Poedit, choose “Translation → Update from POT File”, translate the new texts and save.</li><li>Run <code>Check</code> to list what each language still misses.</li><li>Load the reviewed PO files at startup, with runtime recording off.</li></ol>
+<p><code>CheckMissingTranslations</code> and <code>ScanFiles</code> use the same extraction; see <a href="{{ basePath }}/extraction" hx-get="{{ basePath }}/extraction" hx-target="#content" hx-push-url="true">key extraction</a>.</p>
+</article>

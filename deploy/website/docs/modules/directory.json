@@ -1,0 +1,1451 @@
+{
+  "Slug": "directory",
+  "Name": "Directory",
+  "Group": "Content",
+  "Summary": "A guide to organisations, shops, venues or services by category, with contact details, an address, opening hours, a search and CSV import.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/directory",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/directory",
+  "Type": "directory",
+  "Example": {
+    "Key": "directory",
+    "Title": "Directory",
+    "Code": "app.Use(directory.Module(\"directory\", \"Directory\"))"
+  },
+  "Guide": "\u003cp\u003eAn entry has the same name and address in every language; its summary, description, keywords and hours note are translated. Use one instance per guide.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    directory.Module(\u0026quot;directory\u0026quot;, \u0026quot;Directory\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003edirectory\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eDirectory\u003c/code\u003e) is what editors see in the admin navigation and the page editor. The module has no options.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. With the page at \u003ccode\u003e/directory\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/directory\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edirectory/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eall entries, grouped by category\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/directory?q=bakery\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edirectory/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe entries that match a search\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/directory?category=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edirectory/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe entries of one category\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/directory/\u0026lt;category\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edirectory/category.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone category with its entries\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/directory/\u0026lt;category\u0026gt;/\u0026lt;entry\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edirectory/entry.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone entry\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eEntries are sorted by name; groups and categories follow the order set in the admin. The search on the list needs every word in the entry's name, summary or keywords, ignoring case and accents, like the site search. An entry that moves to another category, or whose category gets a new web address, keeps working at its old address, which redirects.\u003c/p\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so a second instance \u003ccode\u003edirectory.Module(\u0026quot;shops\u0026quot;, \u0026quot;Shops\u0026quot;)\u003c/code\u003e uses \u003ccode\u003eshops/list.gohtml\u003c/code\u003e when it exists and \u003ccode\u003edirectory/list.gohtml\u003c/code\u003e otherwise. Generate starting points with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- directory\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal list with a search form:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/directory.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n\u0026lt;form action=\u0026quot;{{.URL}}\u0026quot;\u0026gt;\n    \u0026lt;input type=\u0026quot;search\u0026quot; name=\u0026quot;q\u0026quot; value=\u0026quot;{{.Query}}\u0026quot;\u0026gt;\n    \u0026lt;button\u0026gt;Search\u0026lt;/button\u0026gt;\n\u0026lt;/form\u0026gt;\n\n{{range .Categories}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}} ({{.Count}})\u0026lt;/a\u0026gt;\n{{end}}\n\n{{range .Groups}}\n    \u0026lt;h2\u0026gt;{{.Category.Name}}\u0026lt;/h2\u0026gt;\n    {{range .Entries}}\n        \u0026lt;p\u0026gt;\u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}}\u0026lt;/a\u0026gt;{{if .OpenNow}} · open now{{end}}\u0026lt;br\u0026gt;{{.Summary}}\u0026lt;/p\u0026gt;\n    {{end}}\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eentry.gohtml\u003c/code\u003e gets a single \u003ccode\u003edirectory.Entry\u003c/code\u003e. \u003ccode\u003e.Description\u003c/code\u003e is the rendered Markdown, \u003ccode\u003e.ImageURL\u003c/code\u003e the logo or image as pages show it, at most 1600 pixels wide, and \u003ccode\u003e.HasLocation\u003c/code\u003e tells whether \u003ccode\u003e.Latitude\u003c/code\u003e and \u003ccode\u003e.Longitude\u003c/code\u003e are known, for a map. \u003ccode\u003e.ImageSrcset\u003c/code\u003e, \u003ccode\u003e.ImageWidth\u003c/code\u003e and \u003ccode\u003e.ImageHeight\u003c/code\u003e complete the \u003ccode\u003eimg\u003c/code\u003e tag, and \u003ccode\u003e.ImageOriginalURL\u003c/code\u003e is the uploaded file:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{if .ImageURL}}\u0026lt;img src=\u0026quot;{{.ImageURL}}\u0026quot; srcset=\u0026quot;{{.ImageSrcset}}\u0026quot; sizes=\u0026quot;20rem\u0026quot; width=\u0026quot;{{.ImageWidth}}\u0026quot; height=\u0026quot;{{.ImageHeight}}\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eOpening hours:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{if .Hours.Known}}\n    \u0026lt;table\u0026gt;\n        {{range .Hours.Week}}\n            \u0026lt;tr\u0026gt;\u0026lt;th\u0026gt;{{weekday .Weekday}}\u0026lt;/th\u0026gt;\u0026lt;td\u0026gt;{{if .Closed}}closed{{else}}{{.Open}}–{{.Close}}{{end}}\u0026lt;/td\u0026gt;\u0026lt;/tr\u0026gt;\n        {{end}}\n    \u0026lt;/table\u0026gt;\n    \u0026lt;p\u0026gt;{{.HoursNote}}\u0026lt;/p\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Hours.Week\u003c/code\u003e runs from Monday to Sunday. \u003ccode\u003e.Hours.Known\u003c/code\u003e is false when no day has times, so such entries show no hours rather than \u0026quot;closed\u0026quot; every day. \u003ccode\u003e.OpenNow\u003c/code\u003e is worked out when the page renders, in the site's timezone.\u003c/p\u003e\n\u003ch2 id=\"show-entries-anywhere\"\u003eShow entries anywhere\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range directoryCategories \u0026quot;directory\u0026quot;}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}} ({{.Count}})\u0026lt;/a\u0026gt;\n{{end}}\n\n{{range directoryEntries \u0026quot;directory\u0026quot; \u0026quot;food\u0026quot; 5}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Name}}\u0026lt;/a\u0026gt;\n{{end}}\n\n{{with directoryEntry \u0026quot;directory\u0026quot; \u0026quot;bakery-jansen\u0026quot;}}\n    \u0026lt;p\u0026gt;{{.Name}}, {{.Street}}, {{.City}}{{if .OpenNow}} · open now{{end}}\u0026lt;/p\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003edirectoryEntries\u003c/code\u003e takes a category slug (\u003ccode\u003e\u0026quot;\u0026quot;\u003c/code\u003e for all categories) and a limit (\u003ccode\u003e0\u003c/code\u003e or less for all). \u003ccode\u003edirectoryCategories\u003c/code\u003e returns every published category, also those without entries. Links point to the page the instance is placed on; while it is on no page in the current language, \u003ccode\u003e.URL\u003c/code\u003e of entries and categories is empty.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/entries\u003c/code\u003e and \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/categories\u003c/code\u003e serve the published entries and categories as JSON, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003edirectory\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/directory/entries\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.directory.entries\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published entries of the published categories, by name, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/directory/entries?category=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe entries of one category; a category that does not exist or is not published answers 404 \u003ccode\u003enot_found\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/directory/entries?slug=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe entry with that slug\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/directory/entries/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.directory.entry\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne entry, with its description\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/directory/categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.directory.categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published categories, in the editors' order, as a list\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eAn entry has its \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003eslug\u003c/code\u003e and \u003ccode\u003ename\u003c/code\u003e, its \u003ccode\u003esummary\u003c/code\u003e, \u003ccode\u003ekeywords\u003c/code\u003e and \u003ccode\u003ehours_note\u003c/code\u003e in the language of the answer, its \u003ccode\u003ecategory\u003c/code\u003e and its \u003ccode\u003eimage\u003c/code\u003e as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e. The contact details, address, position and opening hours are those the entry's page shows, each \u003ccode\u003enull\u003c/code\u003e when not given:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ewebsite\u003c/code\u003e, \u003ccode\u003eemail\u003c/code\u003e, \u003ccode\u003ephone\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eAs the editors wrote them\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eaddress\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003estreet\u003c/code\u003e, \u003ccode\u003epostcode\u003c/code\u003e and \u003ccode\u003ecity\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003elocation\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003elatitude\u003c/code\u003e and \u003ccode\u003elongitude\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eopening_hours\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe days from Monday to Sunday, each with \u003ccode\u003eday\u003c/code\u003e, such as \u003ccode\u003emonday\u003c/code\u003e, and \u003ccode\u003eopen\u003c/code\u003e and \u003ccode\u003eclose\u003c/code\u003e, such as \u003ccode\u003e\u0026quot;08:00\u0026quot;\u003c/code\u003e, both \u003ccode\u003enull\u003c/code\u003e on a closed day\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003e\u003ccode\u003eurl\u003c/code\u003e is the entry's page, \u003ccode\u003enull\u003c/code\u003e while the instance is on no page; \u003ccode\u003eapi_url\u003c/code\u003e and \u003ccode\u003eupdated_at\u003c/code\u003e follow. \u003ccode\u003e/entries/{id}\u003c/code\u003e adds \u003ccode\u003edescription_html\u003c/code\u003e, when the entry has a description. The API has no \u003ccode\u003eopen_now\u003c/code\u003e, which changes with the time of day; work it out from \u003ccode\u003eopening_hours\u003c/code\u003e. A category has its \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003eslug\u003c/code\u003e, \u003ccode\u003ename\u003c/code\u003e and \u003ccode\u003esummary\u003c/code\u003e, \u003ccode\u003eentry_count\u003c/code\u003e, the number of its published entries, its page as \u003ccode\u003eurl\u003c/code\u003e and its entries in the API as \u003ccode\u003eentries_url\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/entries/{id}\u003c/code\u003e sends no \u003ccode\u003eLast-Modified\u003c/code\u003e, and neither do the lists: an entry's category holds \u003ccode\u003eentry_count\u003c/code\u003e, which another entry changes. The ETag answers \u003ccode\u003eIf-None-Match\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eThe admin section (\u003ccode\u003e/admin/directory\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) lists the entries by name, with their category, and links to \u003cstrong\u003eCategories\u003c/strong\u003e and \u003cstrong\u003eImport CSV\u003c/strong\u003e.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eAn entry has a name, a web address, a category, a logo or image, a website, e-mail, phone, an address with an optional latitude and longitude, and weekly opening hours. Per language it has a summary, a Markdown description, search keywords (separated by commas) and a note on the hours, such as \u0026quot;closed on public holidays\u0026quot;.\u003c/li\u003e\n\u003cli\u003eLatitude and longitude are number fields in decimal degrees, such as \u003ccode\u003e52.3731\u003c/code\u003e and \u003ccode\u003e4.8922\u003c/code\u003e, with a decimal point; a comma is not accepted. Fill in both or neither; the latitude lies between -90 and 90 and the longitude between -180 and 180, or the field gets an error.\u003c/li\u003e\n\u003cli\u003eAn empty \u003cstrong\u003eWeb address\u003c/strong\u003e, of an entry or a category, is made from the name and kept when the name changes later: lowercase letters and digits joined by dashes, accents dropped, at most 80 characters, so \u0026quot;Café Noord\u0026quot; becomes \u003ccode\u003ecafe-noord\u003c/code\u003e. A name without Latin letters or digits needs a web address typed by hand. Web addresses are unique per instance. The website must be a full address starting with \u003ccode\u003ehttp://\u003c/code\u003e or \u003ccode\u003ehttps://\u003c/code\u003e; anything else gets an error at its field.\u003c/li\u003e\n\u003cli\u003eOpening hours are an opening and a closing time per day; a day without times is closed. A closing time at or before the opening time runs past midnight (22:00–02:00), \u003ccode\u003e24:00\u003c/code\u003e closes at midnight and 00:00–00:00 is open all day.\u003c/li\u003e\n\u003cli\u003eCategories have a web address, and per language a name and summary. They are ordered by hand. A category that still has entries cannot be deleted. Deleted entries keep their category, so it can only be deleted for good after them.\u003c/li\u003e\n\u003cli\u003eEntries and categories are published one by one, without revisions. An entry only shows while its category is published. Entries show in each language they were saved in, categories in each language they have a name in.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves an entry or a category to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good. Its web address is free again meanwhile; restoring it is refused when another item has taken it.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix; categories and the import share the rights of their instance.\u003c/p\u003e\n\u003cp\u003eOnce the instance is on a page, published entries appear in the site search, found by name, summary, keywords and description, and every category and entry address appears in \u003ccode\u003esitemap.xml\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eAn entry's page describes the entry to search engines in its structured data, which core's head tags write with \u003ccode\u003e{{structuredData}}\u003c/code\u003e. The entry is a schema.org \u003ccode\u003eLocalBusiness\u003c/code\u003e when it has opening hours, with them as \u003ccode\u003eopeningHoursSpecification\u003c/code\u003e; a \u003ccode\u003ePlace\u003c/code\u003e when it has a street, a postcode, a city or a latitude and longitude, without the e-mail address, which a \u003ccode\u003ePlace\u003c/code\u003e does not have; and an \u003ccode\u003eOrganization\u003c/code\u003e otherwise. Each has the name, the summary as \u003ccode\u003edescription\u003c/code\u003e, the page as \u003ccode\u003eurl\u003c/code\u003e, the image, the phone number, the e-mail address, the website as \u003ccode\u003esameAs\u003c/code\u003e, the address as a \u003ccode\u003ePostalAddress\u003c/code\u003e and the latitude and longitude as \u003ccode\u003egeo\u003c/code\u003e, as far as the entry has them. The list and a category's page are an \u003ccode\u003eItemList\u003c/code\u003e of the entries they show, in their order. See \u003ca href=\"wt-docs:/go-webthings/search-and-seo#structured-data\"\u003eSearch and SEO\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the descriptions and websites of published entries count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the entries that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003cp\u003eThe editor of a published entry lists the published content that links to the entry and asks before it is unpublished or moved to the trash. With the \u003ca href=\"/redirects\"\u003eredirects module\u003c/a\u003e, editors who may create redirects also get \u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e, and saving a published entry with a new \u003cstrong\u003eWeb address\u003c/strong\u003e redirects its old address to the new one; see \u003ca href=\"wt-docs:/go-webthings/editing#links-to-an-item\"\u003eLinks to an item\u003c/a\u003e. The editor of a published category does the same for the category's page, such as \u003ccode\u003e/directory/food\u003c/code\u003e, and counts the links to its entries' addresses, such as \u003ccode\u003e/directory/food/bakery\u003c/code\u003e, apart from those: \u0026quot;1 published item links to an address below this item.\u0026quot;, since unpublishing the category takes its entries offline too; a category that still has entries cannot be moved to the trash. While only such links exist, it asks \u0026quot;Published items link to addresses below this item. Unpublish it anyway?\u0026quot;. \u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e redirects the entries' addresses too, to the same page. When the category gets a new \u003cstrong\u003eWeb address\u003c/strong\u003e, only its own address gets a redirect; its entries' old addresses lead to their new ones without one, as for an entry that moved to another category.\u003c/p\u003e\n\u003ch2 id=\"import-entries-from-csv\"\u003eImport entries from CSV\u003c/h2\u003e\n\u003cp\u003e\u003cstrong\u003eImport CSV\u003c/strong\u003e takes an uploaded file or pasted text. The file must be a CSV, TSV or plain-text file (\u003ccode\u003e.csv\u003c/code\u003e, \u003ccode\u003e.tsv\u003c/code\u003e, \u003ccode\u003e.txt\u003c/code\u003e); another kind gets an error at the field. The first row names the columns, in any order: \u003ccode\u003ename\u003c/code\u003e and \u003ccode\u003ecategory\u003c/code\u003e are required, \u003ccode\u003esummary\u003c/code\u003e, \u003ccode\u003ewebsite\u003c/code\u003e, \u003ccode\u003eemail\u003c/code\u003e, \u003ccode\u003ephone\u003c/code\u003e, \u003ccode\u003estreet\u003c/code\u003e, \u003ccode\u003epostcode\u003c/code\u003e, \u003ccode\u003ecity\u003c/code\u003e and \u003ccode\u003ekeywords\u003c/code\u003e are optional. Values are separated by commas, semicolons or tabs, whichever the first row uses most.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003ename;category;summary;website;city;keywords\nBakery Jansen;Food;Bread and cakes;bakery-jansen.example;Amsterdam;bread, cake\nTown Hall;Services;Passports and permits;;Amsterdam;passport\n\u003c/code\u003e\u003c/pre\u003e\n\u003cul\u003e\n\u003cli\u003eA row matches an existing entry by the web address made from its name. Existing entries are skipped, unless \u003cstrong\u003eUpdate entries that already exist\u003c/strong\u003e is checked; columns missing from the file then keep their values.\u003c/li\u003e\n\u003cli\u003eThe category is found by its name in the default language, ignoring case, or by its web address. Missing categories are created.\u003c/li\u003e\n\u003cli\u003eA website without a scheme gets \u003ccode\u003ehttps://\u003c/code\u003e: \u003ccode\u003ebakery-jansen.example\u003c/code\u003e becomes \u003ccode\u003ehttps://bakery-jansen.example\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003eThe summary, keywords and new category names are stored in the site's default language. Descriptions, images, coordinates and opening hours are not imported.\u003c/li\u003e\n\u003cli\u003eNew entries and categories stay unpublished unless \u003cstrong\u003ePublish new entries and categories\u003c/strong\u003e is checked. Existing categories keep their state, so entries imported into an unpublished category stay hidden until it is published.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThe result counts what was created, updated and skipped, and lists each skipped row with the reason. The import needs the create right; updating also needs the edit right and publishing the publish right.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003edirectory.Of(app, \u0026quot;directory\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eguide := directory.Of(app, \u0026quot;directory\u0026quot;)\n\nbakeries, err := guide.Entries(ctx, \u0026quot;en\u0026quot;, directory.Query{Search: \u0026quot;bread\u0026quot;, Category: \u0026quot;food\u0026quot;})\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eEntry(ctx, locale, slug)\u003c/code\u003e returns one entry and \u003ccode\u003eListCategories(ctx, locale)\u003c/code\u003e the categories. While the instance is on no page in that language, they still return the published entries and categories, with an empty \u003ccode\u003eURL\u003c/code\u003e. \u003ccode\u003eStore()\u003c/code\u003e and \u003ccode\u003eCategories()\u003c/code\u003e give write access for seed data, through the same rules the admin uses, so an entry without a category is refused. \u003ccode\u003eImport\u003c/code\u003e runs the CSV import on any \u003ccode\u003eio.Reader\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eoptions := directory.ImportOptions{Locale: \u0026quot;en\u0026quot;, Update: true, Publish: true}\n\nresult, err := guide.Import(ctx, file, options)\nif err != nil {\n    return err\n}\n\nlog.Printf(\u0026quot;%d created, %d updated, %d skipped\u0026quot;, result.Created, result.Updated, result.Skipped)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/people\"\u003ePeople\u003c/a\u003e presents the people of an organisation rather than organisations.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/events\"\u003eEvents\u003c/a\u003e keeps an agenda with locations.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/lists\"\u003eLists\u003c/a\u003e keeps short ordered lists, such as services, without addresses or hours.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": false,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": true,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*directory.Service"
+  },
+  "Admin": [
+    {
+      "ID": "directory",
+      "Title": "Directory",
+      "Path": "/admin/directory",
+      "Permission": "directory",
+      "Icon": "map",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New entry",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    },
+    {
+      "ID": "directory-categories",
+      "Title": "Categories",
+      "Path": "/admin/directory-categories",
+      "Permission": "directory",
+      "Icon": "",
+      "Hidden": true,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New category",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "category",
+      "Method": "GET",
+      "Path": "/{category}"
+    },
+    {
+      "Kind": "page",
+      "Name": "entry",
+      "Method": "GET",
+      "Path": "/{category}/{entry}"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.directory.categories",
+      "Method": "GET",
+      "Path": "/api/v1/directory/categories"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.directory.entries",
+      "Method": "GET",
+      "Path": "/api/v1/directory/entries"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.directory.entry",
+      "Method": "GET",
+      "Path": "/api/v1/directory/entries/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "directoryCategories",
+      "Signature": "directoryCategories(key string) []Category",
+      "Doc": "\u003cp\u003ecategories returns the published categories in their order, for example\n{{range directoryCategories \u0026quot;guide\u0026quot;}}{{.Name}} ({{.Count}}){{end}}.\n"
+    },
+    {
+      "Name": "directoryEntries",
+      "Signature": "directoryEntries(key, category string, limit int) []Entry",
+      "Doc": "\u003cp\u003eentries returns up to limit published entries of a category (a slug, or \u0026quot;\u0026quot;\nfor all), sorted by name; a limit of 0 or less returns all of them. For\nexample {{range directoryEntries \u0026quot;guide\u0026quot; \u0026quot;food\u0026quot; 5}}.\n"
+    },
+    {
+      "Name": "directoryEntry",
+      "Signature": "directoryEntry(key, slug string) *Entry",
+      "Doc": "\u003cp\u003eentry returns one published entry by slug, or nil, for example\n{{with directoryEntry \u0026quot;guide\u0026quot; \u0026quot;bakery-jansen\u0026quot;}}{{.Name}}{{end}}.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "directory/list.gohtml",
+        "directory/list.gohtml"
+      ],
+      "DataType": "directory.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the list's address, the action of a search form.",
+          "Fields": null
+        },
+        {
+          "Name": "Query",
+          "Type": "string",
+          "Doc": "Query is the search (?q=); empty shows every entry.",
+          "Fields": null
+        },
+        {
+          "Name": "Category",
+          "Type": "*directory.Category",
+          "Doc": "Category is set when the list is filtered (?category=).",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "Count is the number of published entries in the category.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "Active is set on the category the list is filtered by.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Categories",
+          "Type": "[]directory.Category",
+          "Doc": "Categories are all categories with entries, for a filter menu.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "Count is the number of published entries in the category.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "Active is set on the category the list is filtered by.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Groups",
+          "Type": "[]directory.Group",
+          "Doc": "Groups hold the matching entries per category, in category order.",
+          "Fields": [
+            {
+              "Name": "Category",
+              "Type": "directory.Category",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Slug",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Summary",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Count",
+                  "Type": "int",
+                  "Doc": "Count is the number of published entries in the category.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Active",
+                  "Type": "bool",
+                  "Doc": "Active is set on the category the list is filtered by.",
+                  "Fields": null
+                }
+              ]
+            },
+            {
+              "Name": "Entries",
+              "Type": "[]directory.Entry",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Slug",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Category",
+                  "Type": "directory.Category",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Summary",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Description",
+                  "Type": "template.HTML",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Keywords",
+                  "Type": "[]string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "ImageURL",
+                  "Type": "string",
+                  "Doc": "ImageURL is the entry's logo or image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the entry has none.",
+                  "Fields": null
+                },
+                {
+                  "Name": "ImageSrcset",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "ImageOriginalURL",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "ImageWidth",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "ImageHeight",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Website",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Email",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Phone",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Street",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Postcode",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "City",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "HasLocation",
+                  "Type": "bool",
+                  "Doc": "HasLocation is set when Latitude and Longitude are known.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Latitude",
+                  "Type": "float64",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Longitude",
+                  "Type": "float64",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Hours",
+                  "Type": "directory.OpeningHours",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "HoursNote",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "OpenNow",
+                  "Type": "bool",
+                  "Doc": "OpenNow is Hours.OpenNow at the time the page renders, in the site's timezone.",
+                  "Fields": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "Count",
+          "Type": "int",
+          "Doc": "Count is the number of matching entries.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/directory.ListView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n    {{with .Query}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Category}}\n        \u003csection\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{end}}\n    {{range .Categories}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{range .Groups}}\n        \u003carticle\u003e\n            {{with .Category}}\n                \u003csection\u003e\n                \u003c/section\u003e\n            {{end}}\n            {{range .Entries}}\n                \u003carticle\u003e\n                \u003c/article\u003e\n            {{end}}\n        \u003c/article\u003e\n    {{end}}\n    \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n\u003c/main\u003e"
+    },
+    {
+      "Name": "category",
+      "Files": [
+        "directory/category.gohtml",
+        "directory/category.gohtml"
+      ],
+      "DataType": "directory.CategoryView",
+      "Fields": [
+        {
+          "Name": "Category",
+          "Type": "directory.Category",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "Count is the number of published entries in the category.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "Active is set on the category the list is filtered by.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Entries",
+          "Type": "[]directory.Entry",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Category",
+              "Type": "directory.Category",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Slug",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Summary",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Count",
+                  "Type": "int",
+                  "Doc": "Count is the number of published entries in the category.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Active",
+                  "Type": "bool",
+                  "Doc": "Active is set on the category the list is filtered by.",
+                  "Fields": null
+                }
+              ]
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Description",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Keywords",
+              "Type": "[]string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageURL",
+              "Type": "string",
+              "Doc": "ImageURL is the entry's logo or image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the entry has none.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Website",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Phone",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Street",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Postcode",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "City",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "HasLocation",
+              "Type": "bool",
+              "Doc": "HasLocation is set when Latitude and Longitude are known.",
+              "Fields": null
+            },
+            {
+              "Name": "Latitude",
+              "Type": "float64",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Longitude",
+              "Type": "float64",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Hours",
+              "Type": "directory.OpeningHours",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "Open",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Close",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                }
+              ]
+            },
+            {
+              "Name": "HoursNote",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "OpenNow",
+              "Type": "bool",
+              "Doc": "OpenNow is Hours.OpenNow at the time the page renders, in the site's timezone.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ListURL",
+          "Type": "string",
+          "Doc": "ListURL links back to the whole directory.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/directory.CategoryView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    {{with .Category}}\n        \u003csection\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{end}}\n    {{range .Entries}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{with .Category}}\n                \u003csection\u003e\n                \u003c/section\u003e\n            {{end}}\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            \u003cdiv\u003e{{.Description}}\u003c/div\u003e\n            {{range .Keywords}}\u003cspan\u003e{{.}}\u003c/span\u003e{{end}}\n            {{if .ImageURL}}\u003cimg src=\"{{.ImageURL}}\"{{with .ImageSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n            {{/* ImageOriginalURL: {{.ImageOriginalURL}} — the uploaded file, for a download link */}}\n            {{with .Website}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Email}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Phone}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Street}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Postcode}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .City}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{if .HasLocation}}\u003cp\u003eHasLocation\u003c/p\u003e{{end}}\n            \u003cp\u003eLatitude: {{.Latitude}}\u003c/p\u003e\n            \u003cp\u003eLongitude: {{.Longitude}}\u003c/p\u003e\n            {{/* Hours (directory.OpeningHours) */}}\n            {{with .HoursNote}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{if .OpenNow}}\u003cp\u003eOpenNow\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{with .ListURL}}\u003ca href=\"{{.}}\"\u003eListURL\u003c/a\u003e{{end}}\n\u003c/main\u003e"
+    },
+    {
+      "Name": "entry",
+      "Files": [
+        "directory/entry.gohtml",
+        "directory/entry.gohtml"
+      ],
+      "DataType": "directory.Entry",
+      "Fields": [
+        {
+          "Name": "ID",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Slug",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Category",
+          "Type": "directory.Category",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "Count is the number of published entries in the category.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "Active is set on the category the list is filtered by.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Summary",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Description",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Keywords",
+          "Type": "[]string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the entry's logo or image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the entry has none.",
+          "Fields": null
+        },
+        {
+          "Name": "ImageSrcset",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageOriginalURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageWidth",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageHeight",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Website",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Email",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Phone",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Street",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Postcode",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "City",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "HasLocation",
+          "Type": "bool",
+          "Doc": "HasLocation is set when Latitude and Longitude are known.",
+          "Fields": null
+        },
+        {
+          "Name": "Latitude",
+          "Type": "float64",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Longitude",
+          "Type": "float64",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Hours",
+          "Type": "directory.OpeningHours",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "Open",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Close",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "HoursNote",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "OpenNow",
+          "Type": "bool",
+          "Doc": "OpenNow is Hours.OpenNow at the time the page renders, in the site's timezone.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/directory.Entry */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n    {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n    {{with .Category}}\n        \u003csection\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{end}}\n    {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    \u003cdiv\u003e{{.Description}}\u003c/div\u003e\n    {{range .Keywords}}\u003cspan\u003e{{.}}\u003c/span\u003e{{end}}\n    {{if .ImageURL}}\u003cimg src=\"{{.ImageURL}}\"{{with .ImageSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n    {{/* ImageOriginalURL: {{.ImageOriginalURL}} — the uploaded file, for a download link */}}\n    {{with .Website}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Email}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Phone}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Street}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .Postcode}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{with .City}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{if .HasLocation}}\u003cp\u003eHasLocation\u003c/p\u003e{{end}}\n    \u003cp\u003eLatitude: {{.Latitude}}\u003c/p\u003e\n    \u003cp\u003eLongitude: {{.Longitude}}\u003c/p\u003e\n    {{/* Hours (directory.OpeningHours) */}}\n    {{with .HoursNote}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    {{if .OpenNow}}\u003cp\u003eOpenNow\u003c/p\u003e{{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Categories and entries are collections (see package content). Slugs are not\n-- translated and are unique per instance.\nCREATE TABLE wt_directory_category (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    slug       VARCHAR(190) NOT NULL\n);\n\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_directory_category_slug ON wt_directory_category (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE TABLE wt_directory_category_translation (\n    item_id UUID NOT NULL REFERENCES wt_directory_category (id) ON DELETE CASCADE,\n    locale  VARCHAR(35) NOT NULL,\n    name    VARCHAR(200) NOT NULL DEFAULT '',\n    summary TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- A category with entries cannot be deleted: its entries would disappear from\n-- the site. Editors move or delete them first.\nCREATE TABLE wt_directory_entry (\n    id            UUID PRIMARY KEY,\n    instance      VARCHAR(64) NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    TIMESTAMPTZ NOT NULL,\n    created_by    UUID,\n    updated_at    TIMESTAMPTZ NOT NULL,\n    updated_by    UUID,\n    deleted_at    TIMESTAMPTZ,\n    deleted_by    UUID,\n    category_id   UUID REFERENCES wt_directory_category (id),\n    slug          VARCHAR(190) NOT NULL,\n    name          VARCHAR(200) NOT NULL DEFAULT '',\n    image_id      UUID,\n    website       VARCHAR(500) NOT NULL DEFAULT '',\n    email         VARCHAR(254) NOT NULL DEFAULT '',\n    phone         VARCHAR(50) NOT NULL DEFAULT '',\n    street        VARCHAR(200) NOT NULL DEFAULT '',\n    postcode      VARCHAR(20) NOT NULL DEFAULT '',\n    city          VARCHAR(100) NOT NULL DEFAULT '',\n    latitude      DOUBLE PRECISION,\n    longitude     DOUBLE PRECISION,\n    opening_hours TEXT NOT NULL DEFAULT ''\n);\n\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_directory_entry_slug ON wt_directory_entry (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE INDEX wt_directory_entry_category ON wt_directory_entry (category_id);\n\nCREATE TABLE wt_directory_entry_translation (\n    item_id     UUID NOT NULL REFERENCES wt_directory_entry (id) ON DELETE CASCADE,\n    locale      VARCHAR(35) NOT NULL,\n    summary     TEXT NOT NULL DEFAULT '',\n    description TEXT NOT NULL DEFAULT '',\n    keywords    TEXT NOT NULL DEFAULT '',\n    hours_note  VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Categories and entries are collections (see package content). Slugs are not\n-- translated and are unique per instance.\nCREATE TABLE wt_directory_category (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    slug       TEXT NOT NULL\n);\n\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_directory_category_slug ON wt_directory_category (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE TABLE wt_directory_category_translation (\n    item_id TEXT NOT NULL REFERENCES wt_directory_category (id) ON DELETE CASCADE,\n    locale  TEXT NOT NULL,\n    name    TEXT NOT NULL DEFAULT '',\n    summary TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- A category with entries cannot be deleted: its entries would disappear from\n-- the site. Editors move or delete them first.\nCREATE TABLE wt_directory_entry (\n    id            TEXT PRIMARY KEY,\n    instance      TEXT NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    TIMESTAMP NOT NULL,\n    created_by    TEXT,\n    updated_at    TIMESTAMP NOT NULL,\n    updated_by    TEXT,\n    deleted_at    TIMESTAMP,\n    deleted_by    TEXT,\n    category_id   TEXT REFERENCES wt_directory_category (id),\n    slug          TEXT NOT NULL,\n    name          TEXT NOT NULL DEFAULT '',\n    image_id      TEXT,\n    website       TEXT NOT NULL DEFAULT '',\n    email         TEXT NOT NULL DEFAULT '',\n    phone         TEXT NOT NULL DEFAULT '',\n    street        TEXT NOT NULL DEFAULT '',\n    postcode      TEXT NOT NULL DEFAULT '',\n    city          TEXT NOT NULL DEFAULT '',\n    latitude      REAL,\n    longitude     REAL,\n    opening_hours TEXT NOT NULL DEFAULT ''\n);\n\n-- Deleted rows keep no slug, so a new item can take it.\nCREATE UNIQUE INDEX wt_directory_entry_slug ON wt_directory_entry (instance, slug) WHERE deleted_at IS NULL;\n\nCREATE INDEX wt_directory_entry_category ON wt_directory_entry (category_id);\n\nCREATE TABLE wt_directory_entry_translation (\n    item_id     TEXT NOT NULL REFERENCES wt_directory_entry (id) ON DELETE CASCADE,\n    locale      TEXT NOT NULL,\n    summary     TEXT NOT NULL DEFAULT '',\n    description TEXT NOT NULL DEFAULT '',\n    keywords    TEXT NOT NULL DEFAULT '',\n    hours_note  TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Categories and entries are collections (see package content). Slugs are not\n-- translated and are unique per instance.\nCREATE TABLE wt_directory_category (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    slug       VARCHAR(190) NOT NULL,\n    -- Deleted rows keep no slug: MySQL has no partial indexes, but allows\n    -- many NULLs in a unique one.\n    live_slug  VARCHAR(190) AS (CASE WHEN deleted_at IS NULL THEN slug END) STORED,\n    UNIQUE INDEX wt_directory_category_slug (instance, live_slug)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_directory_category_translation (\n    item_id VARCHAR(36) NOT NULL,\n    locale  VARCHAR(35) NOT NULL,\n    name    VARCHAR(200) NOT NULL DEFAULT '',\n    summary TEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_directory_category (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- A category with entries cannot be deleted: its entries would disappear from\n-- the site. Editors move or delete them first.\nCREATE TABLE wt_directory_entry (\n    id            VARCHAR(36) PRIMARY KEY,\n    instance      VARCHAR(64) NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    DATETIME(6) NOT NULL,\n    created_by    VARCHAR(36) NULL,\n    updated_at    DATETIME(6) NOT NULL,\n    updated_by    VARCHAR(36) NULL,\n    deleted_at    DATETIME(6) NULL,\n    deleted_by    VARCHAR(36) NULL,\n    category_id   VARCHAR(36) NULL,\n    slug          VARCHAR(190) NOT NULL,\n    -- Deleted rows keep no slug: MySQL has no partial indexes, but allows\n    -- many NULLs in a unique one.\n    live_slug     VARCHAR(190) AS (CASE WHEN deleted_at IS NULL THEN slug END) STORED,\n    name          VARCHAR(200) NOT NULL DEFAULT '',\n    image_id      VARCHAR(36) NULL,\n    website       VARCHAR(500) NOT NULL DEFAULT '',\n    email         VARCHAR(254) NOT NULL DEFAULT '',\n    phone         VARCHAR(50) NOT NULL DEFAULT '',\n    street        VARCHAR(200) NOT NULL DEFAULT '',\n    postcode      VARCHAR(20) NOT NULL DEFAULT '',\n    city          VARCHAR(100) NOT NULL DEFAULT '',\n    latitude      DOUBLE NULL,\n    longitude     DOUBLE NULL,\n    opening_hours TEXT NOT NULL,\n    UNIQUE INDEX wt_directory_entry_slug (instance, live_slug),\n    INDEX wt_directory_entry_category (category_id),\n    FOREIGN KEY (category_id) REFERENCES wt_directory_category (id)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_directory_entry_translation (\n    item_id     VARCHAR(36) NOT NULL,\n    locale      VARCHAR(35) NOT NULL,\n    summary     TEXT NOT NULL,\n    description MEDIUMTEXT NOT NULL,\n    keywords    TEXT NOT NULL,\n    hours_note  VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_directory_entry (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_directory_category",
+      "Note": "Categories and entries are collections (see package content). Slugs are not translated and are unique per instance.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL"
+        }
+      ],
+      "Indexes": [
+        "UNIQUE INDEX wt_directory_category_slug (instance, slug)"
+      ]
+    },
+    {
+      "Name": "wt_directory_category_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_directory_category (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "summary",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    },
+    {
+      "Name": "wt_directory_entry",
+      "Note": "A category with entries cannot be deleted: its entries would disappear from the site. Editors move or delete them first.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "category_id",
+          "Type": "UUID",
+          "Notes": "REFERENCES wt_directory_category (id)"
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "image_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "website",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "phone",
+          "Type": "VARCHAR(50)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "street",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "postcode",
+          "Type": "VARCHAR(20)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "city",
+          "Type": "VARCHAR(100)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "latitude",
+          "Type": "DOUBLE PRECISION",
+          "Notes": ""
+        },
+        {
+          "Name": "longitude",
+          "Type": "DOUBLE PRECISION",
+          "Notes": ""
+        },
+        {
+          "Name": "opening_hours",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "UNIQUE INDEX wt_directory_entry_slug (instance, slug)",
+        "INDEX wt_directory_entry_category (category_id)"
+      ]
+    },
+    {
+      "Name": "wt_directory_entry_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_directory_entry (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "summary",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "description",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "keywords",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "hours_note",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Categories",
+        "Signature": "func (s *Service) Categories() content.Store[CategoryFields, CategoryText]",
+        "Doc": ""
+      },
+      {
+        "Name": "Entries",
+        "Signature": "func (s *Service) Entries(ctx context.Context, locale string, query Query) ([]Entry, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Entry",
+        "Signature": "func (s *Service) Entry(ctx context.Context, locale, slug string) (Entry, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Import",
+        "Signature": "func (s *Service) Import(ctx context.Context, source io.Reader, options ImportOptions) (ImportResult, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "ListCategories",
+        "Signature": "func (s *Service) ListCategories(ctx context.Context, locale string) ([]Category, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[EntryFields, EntryText]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APIAddress",
+        "Doc": "\u003cp\u003eAPIAddress is an entry\u0026apos;s postal address.\n",
+        "Fields": null,
+        "Decl": "type APIAddress struct {\n\tStreet   string `json:\"street\"`\n\tPostcode string `json:\"postcode\"`\n\tCity     string `json:\"city\"`\n}"
+      },
+      {
+        "Name": "APICategory",
+        "Doc": "\u003cp\u003eAPICategory is a published category in the content API, at\n/api/v1/\u0026lt;key\u0026gt;/categories and with each of its entries.\n",
+        "Fields": null,
+        "Decl": "type APICategory struct {\n\tID      string `json:\"id\"`\n\tSlug    string `json:\"slug\"`\n\tName    string `json:\"name\"`\n\tSummary string `json:\"summary\"`\n\t// EntryCount is the number of published entries in the category.\n\tEntryCount int `json:\"entry_count\"`\n\t// URL is the category's page, null while the directory is on no page;\n\t// EntriesURL its entries in the API.\n\tURL        *string `json:\"url\"`\n\tEntriesURL string  `json:\"entries_url\"`\n}"
+      },
+      {
+        "Name": "APIDay",
+        "Doc": "\u003cp\u003eAPIDay is one day of an entry\u0026apos;s opening hours: the weekday in English\nlower case, such as \u0026quot;monday\u0026quot;, and its opening and closing times as\n\u0026quot;15:04\u0026quot;, both null on a closed day (see Day).\n",
+        "Fields": null,
+        "Decl": "type APIDay struct {\n\tDay   string  `json:\"day\"`\n\tOpen  *string `json:\"open\"`\n\tClose *string `json:\"close\"`\n}"
+      },
+      {
+        "Name": "APIEntry",
+        "Doc": "\u003cp\u003eAPIEntry is a published entry in the content API (see package api), at\n/api/v1/\u0026lt;key\u0026gt;/entries/{id} and in the list of /api/v1/\u0026lt;key\u0026gt;/entries,\nwhich leaves out DescriptionHTML. The contact details, address, position\nand opening hours are those the entry\u0026apos;s page shows, also in its\nstructured data; each is null when not given.\n",
+        "Fields": null,
+        "Decl": "type APIEntry struct {\n\tID       string   `json:\"id\"`\n\tSlug     string   `json:\"slug\"`\n\tName     string   `json:\"name\"`\n\tSummary  string   `json:\"summary\"`\n\tKeywords []string `json:\"keywords\"`\n\t// DescriptionHTML is the entry's description as HTML (api.HTML); only\n\t// the entry's own endpoint has it.\n\tDescriptionHTML string      `json:\"description_html,omitempty\"`\n\tCategory        APICategory `json:\"category\"`\n\tImage           *api.Image  `json:\"image\"`\n\tWebsite         *string     `json:\"website\"`\n\tEmail           *string     `json:\"email\"`\n\tPhone           *string     `json:\"phone\"`\n\tAddress         *APIAddress `json:\"address\"`\n\tLocation        *APIPoint   `json:\"location\"`\n\t// OpeningHours are the days from Monday to Sunday, null for an entry\n\t// without opening hours; HoursNote is the editors' note about them.\n\tOpeningHours []APIDay `json:\"opening_hours\"`\n\tHoursNote    string   `json:\"hours_note\"`\n\t// URL is the entry's page, null while the directory is on no page;\n\t// APIURL the entry in the API.\n\tURL       *string   `json:\"url\"`\n\tAPIURL    string    `json:\"api_url\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "APIPoint",
+        "Doc": "\u003cp\u003eAPIPoint is an entry\u0026apos;s position on a map.\n",
+        "Fields": null,
+        "Decl": "type APIPoint struct {\n\tLatitude  float64 `json:\"latitude\"`\n\tLongitude float64 `json:\"longitude\"`\n}"
+      },
+      {
+        "Name": "Category",
+        "Doc": "\u003cp\u003eCategory is a published category as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Category struct {\n\tID      string\n\tName    string\n\tSlug    string\n\tSummary string\n\tURL     string\n\t// Count is the number of published entries in the category.\n\tCount int\n\t// Active is set on the category the list is filtered by.\n\tActive bool\n}"
+      },
+      {
+        "Name": "CategoryFields",
+        "Doc": "\u003cp\u003eCategoryFields are the language-independent parts of a category.\n",
+        "Fields": null,
+        "Decl": "type CategoryFields struct {\n\tSlug string `db:\"slug\"`\n}"
+      },
+      {
+        "Name": "CategoryItem",
+        "Doc": "\u003cp\u003eCategoryItem is a category with its translations, as the store keeps\nit.\n",
+        "Fields": null,
+        "Decl": "type CategoryItem = content.Item[CategoryFields, CategoryText]"
+      },
+      {
+        "Name": "CategoryText",
+        "Doc": "\u003cp\u003eCategoryText is a category in one language.\n",
+        "Fields": null,
+        "Decl": "type CategoryText struct {\n\tName    string `db:\"name\"`\n\tSummary string `db:\"summary\"`\n}"
+      },
+      {
+        "Name": "CategoryView",
+        "Doc": "\u003cp\u003eCategoryView is the data of directory/category.gohtml.\n",
+        "Fields": null,
+        "Decl": "type CategoryView struct {\n\tCategory Category\n\tEntries  []Entry\n\t// ListURL links back to the whole directory.\n\tListURL string\n}"
+      },
+      {
+        "Name": "Day",
+        "Doc": "\u003cp\u003eDay is the opening time of one weekday as \u0026quot;15:04\u0026quot; wall-clock times. A day\nwithout times is closed. A Close at or before Open means the entry closes\nafter midnight; \u0026quot;24:00\u0026quot; closes at midnight and \u0026quot;00:00\u0026quot;–\u0026quot;00:00\u0026quot; is open all\nday.\n",
+        "Fields": null,
+        "Decl": "type Day struct {\n\tOpen  string `json:\"open,omitempty\"`\n\tClose string `json:\"close,omitempty\"`\n}"
+      },
+      {
+        "Name": "Entry",
+        "Doc": "\u003cp\u003eEntry is a published entry as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Entry struct {\n\tID          string\n\tName        string\n\tSlug        string\n\tURL         string\n\tCategory    Category\n\tSummary     string\n\tDescription template.HTML\n\tKeywords    []string\n\t// ImageURL is the entry's logo or image as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); ImageSrcset lists smaller\n\t// copies for a srcset attribute, ImageWidth and ImageHeight are the\n\t// size of ImageURL and ImageOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the entry has none.\n\tImageURL         string\n\tImageSrcset      string\n\tImageOriginalURL string\n\tImageWidth       int\n\tImageHeight      int\n\tWebsite          string\n\tEmail            string\n\tPhone            string\n\tStreet           string\n\tPostcode         string\n\tCity             string\n\t// HasLocation is set when Latitude and Longitude are known.\n\tHasLocation bool\n\tLatitude    float64\n\tLongitude   float64\n\tHours       OpeningHours\n\tHoursNote   string\n\t// OpenNow is Hours.OpenNow at the time the page renders, in the site's\n\t// timezone.\n\tOpenNow bool\n}"
+      },
+      {
+        "Name": "EntryFields",
+        "Doc": "\u003cp\u003eEntryFields are the language-independent parts of an entry. Website is a\nfull http(s) URL. Latitude and Longitude are both set or both empty.\n",
+        "Fields": null,
+        "Decl": "type EntryFields struct {\n\tCategory  string          `db:\"category_id,null\"`\n\tSlug      string          `db:\"slug\"`\n\tName      string          `db:\"name\"`\n\tImage     string          `db:\"image_id,null\"`\n\tWebsite   string          `db:\"website\"`\n\tEmail     string          `db:\"email\"`\n\tPhone     string          `db:\"phone\"`\n\tStreet    string          `db:\"street\"`\n\tPostcode  string          `db:\"postcode\"`\n\tCity      string          `db:\"city\"`\n\tLatitude  sql.NullFloat64 `db:\"latitude\"`\n\tLongitude sql.NullFloat64 `db:\"longitude\"`\n\tHours     OpeningHours    `db:\"opening_hours\"`\n}"
+      },
+      {
+        "Name": "EntryItem",
+        "Doc": "\u003cp\u003eEntryItem is an entry with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type EntryItem = content.Item[EntryFields, EntryText]"
+      },
+      {
+        "Name": "EntryText",
+        "Doc": "\u003cp\u003eEntryText is an entry in one language. Description is Markdown; Keywords\nare comma-separated words the search also matches.\n",
+        "Fields": null,
+        "Decl": "type EntryText struct {\n\tSummary     string `db:\"summary\"`\n\tDescription string `db:\"description\"`\n\tKeywords    string `db:\"keywords\"`\n\tHoursNote   string `db:\"hours_note\"`\n}"
+      },
+      {
+        "Name": "Group",
+        "Doc": "\u003cp\u003eGroup is a category with its entries on the list page.\n",
+        "Fields": null,
+        "Decl": "type Group struct {\n\tCategory Category\n\tEntries  []Entry\n}"
+      },
+      {
+        "Name": "ImportOptions",
+        "Doc": "\u003cp\u003eImportOptions change what Import does with the rows.\n",
+        "Fields": null,
+        "Decl": "type ImportOptions struct {\n\t// Locale is the language of the summary, keywords and new category names.\n\tLocale string\n\t// Update changes entries whose slug already exists; otherwise such rows\n\t// are skipped.\n\tUpdate bool\n\t// Publish publishes the entries and categories the import creates.\n\t// Existing categories keep their state: an editor may hide a category on\n\t// purpose, so entries imported into an unpublished category stay off the\n\t// site until the category is published.\n\tPublish bool\n}"
+      },
+      {
+        "Name": "ImportProblem",
+        "Doc": "\u003cp\u003eImportProblem is a row that was skipped. Reason is an admin message key.\n",
+        "Fields": null,
+        "Decl": "type ImportProblem struct {\n\tRow    int\n\tReason string\n}"
+      },
+      {
+        "Name": "ImportResult",
+        "Doc": "\u003cp\u003eImportResult tells what an import did.\n",
+        "Fields": null,
+        "Decl": "type ImportResult struct {\n\tCreated    int\n\tUpdated    int\n\tSkipped    int\n\tCategories int\n\tProblems   []ImportProblem\n}"
+      },
+      {
+        "Name": "ImportView",
+        "Doc": "\u003cp\u003eImportView is the data of the import screen. The template lays out Form\nfield by field: Update and Publish only for editors who may use them.\n",
+        "Fields": null,
+        "Decl": "type ImportView struct {\n\tTitle      string\n\tBackURL    string\n\tColumns    string\n\tCanUpdate  bool\n\tCanPublish bool\n\tForm       form.RenderModel\n\tErrors     form.FieldErrors\n\tResult     *ImportResult\n}"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of directory/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is mounted on.\n\tTitle string\n\t// URL is the list's address, the action of a search form.\n\tURL string\n\t// Query is the search (?q=); empty shows every entry.\n\tQuery string\n\t// Category is set when the list is filtered (?category=).\n\tCategory *Category\n\t// Categories are all categories with entries, for a filter menu.\n\tCategories []Category\n\t// Groups hold the matching entries per category, in category order.\n\tGroups []Group\n\t// Count is the number of matching entries.\n\tCount int\n}"
+      },
+      {
+        "Name": "OpeningHours",
+        "Doc": "\u003cp\u003eOpeningHours is a weekly schedule indexed by time.Weekday, so\nhours[time.Monday] is Monday. It is stored as JSON in one column.\n",
+        "Fields": null,
+        "Decl": "type OpeningHours [7]Day"
+      },
+      {
+        "Name": "Query",
+        "Doc": "\u003cp\u003eQuery selects entries; the zero Query selects every published entry.\n",
+        "Fields": null,
+        "Decl": "type Query struct {\n\t// Search holds words that must all appear in the name, summary or\n\t// keywords. Case and accents are ignored, as in the site search.\n\tSearch string\n\t// Category is a category slug.\n\tCategory string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Directory instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "WeekDay",
+        "Doc": "\u003cp\u003eWeekDay is one row of a weekly schedule, for templates.\n",
+        "Fields": null,
+        "Decl": "type WeekDay struct {\n\tWeekday time.Weekday\n\tDay\n}"
+      }
+    ]
+  }
+}

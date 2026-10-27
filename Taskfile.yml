@@ -8,6 +8,16 @@ tasks:
     cmds:
       - task -l
 
+  modules:
+    desc: Regenerate the modules and go-webthings guides data from a go-webthings checkout (WEBTHINGS, default ../go-webthings)
+    dir: tools/moduledocs
+    cmds:
+      # Follow go-webthings' dependencies, which change with it.
+      - go mod tidy
+      - go run . -webthings "{{.WEBTHINGS}}" -out "{{.ROOT_DIR}}/deploy/website/docs/modules" -guides "{{.ROOT_DIR}}/deploy/website/docs/guides/go-webthings.json"
+    vars:
+      WEBTHINGS: '{{.WEBTHINGS | default (print .ROOT_DIR "/../go-webthings")}}'
+
   install-tailwind:
     desc: Install tailwindcss for the current OS
     cmds:

@@ -3,16 +3,33 @@
     {{ template "hero.gohtml" . }}
 
 <h2>What it logs</h2>
-<p><code>Logger</code> records method, request URI, status code, bytes written, duration, and request ID.</p>
-<pre><code>r.Use(middleware.RequestID)
-r.Use(middleware.Logger())</code></pre>
+<p><code>Logger</code> logs through <code>log/slog</code>: one record "request" at Info when a request is done, with <code>method</code>, <code>uri</code>, <code>status</code>, <code>bytes</code>, <code>duration</code>, <code>client_ip</code> and <code>request_id</code> (when there is one). A request whose panic passes through it is logged as well, with <code>panicked</code>, and status 500 when no status was written. It logs to <code>slog.Default()</code>.</p>
+<pre><code>r.UseAll(middleware.RequestID, middleware.Logger())</code></pre>
 
-<h2>Custom logger</h2>
-<pre><code>r.Use(middleware.Logger(middleware.LoggerOptions{
-    Logger: log.New(os.Stdout, "", log.LstdFlags),
+<h2>Options</h2>
+<p><code>Logger</code> and <code>Level</code> choose where the records go. <code>OmitQuery</code> logs the path without the query string, which may hold tokens, and <code>Attrs</code> adds attributes of your own, such as the route that served the request. <code>router.MatchedRoute</code> only knows that route when the router records it, with <code>TrackRoutes</code>.</p>
+<pre><code>r.TrackRoutes() // for router.MatchedRoute
+r.UseAll(middleware.Logger(middleware.LoggerOptions{
+    Logger:    slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+    OmitQuery: true,
+    Attrs: func(req *http.Request, info middleware.ResponseInfo) []slog.Attr {
+        route, _ := router.MatchedRoute(req)
+        return []slog.Attr{slog.String("route", route.Name)}
+    },
 }))</code></pre>
 
+<h2>Observe</h2>
+<p><code>Observe</code> is the hook underneath. It calls a function with the request and a <code>ResponseInfo</code> (status, bytes, duration, whether a panic passed through, and the response headers) when a request is done, for metrics and access logs.</p>
+<pre><code>r.UseAll(middleware.Observe(func(req *http.Request, info middleware.ResponseInfo) {
+    requests.WithLabelValues(req.Method, strconv.Itoa(info.Status)).Inc()
+}))</code></pre>
+
+<h2>Request IDs in every record</h2>
+<p><code>LogHandler</code> wraps a <code>slog.Handler</code> so every record logged with a request's context carries its <code>request_id</code>, also the records of code that knows nothing about requests.</p>
+<pre><code>logger := slog.New(middleware.LogHandler(slog.NewJSONHandler(os.Stderr, nil)))
+logger.InfoContext(req.Context(), "page saved") // ... "request_id": "..."</code></pre>
+
 <h2>Response writer support</h2>
-<p>The logging writer implements <code>Unwrap</code>, so middleware and tests can recover the underlying writer when needed.</p>
+<p>The logging writer passes every <code>WriteHeader</code> on, so the final status after <code>103 Early Hints</code> goes out. It supports <code>http.Flusher</code> and <code>http.Hijacker</code>, and implements <code>Unwrap</code>, so middleware and tests can recover the underlying writer when needed.</p>
 </article>
 

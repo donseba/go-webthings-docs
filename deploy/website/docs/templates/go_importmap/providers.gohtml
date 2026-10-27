@@ -6,12 +6,22 @@
 <table><thead><tr><th>Provider package</th><th>Construction</th></tr></thead><tbody><tr><td><code>client/cdnjs</code></td><td><code>cdnjs.New()</code></td></tr><tr><td><code>client/jsdelivr</code></td><td><code>jsdelivr.New()</code>, <code>jsdelivr.NewESM()</code></td></tr><tr><td><code>client/unpkg</code></td><td><code>unpkg.New()</code></td></tr><tr><td><code>client/skypack</code></td><td><code>skypack.New()</code></td></tr><tr><td><code>client/esmsh</code></td><td><code>esmsh.New()</code></td></tr><tr><td><code>client/raw</code></td><td><code>raw.New(url)</code></td></tr></tbody></table>
 <h2>Set a provider for all packages</h2>
 <pre><code>im := importmap.NewDefaults().WithProvider(jsdelivr.New())</code></pre>
+<p><code>New</code> sets no provider. A package without a provider of its own and without a default makes <code>Fetch</code> and <code>Vendor</code> return an error, and <code>CacheOrFetch</code> when the package has no cache. A package whose includes are all <code>Raw</code> URLs needs no provider.</p>
 <h2>Override one package</h2>
 <pre><code>im.WithPackage(library.Package{
-    Name: "htmx", Version: "2.0.4", Provider: cdnjs.New(),
+    Name: "htmx", Version: "4.0.0", Provider: cdnjs.New(),
     Require: library.Includes{{"{{"}}File: "htmx.esm.min.js", As: "htmx"}},
 })</code></pre>
 <p>Provider metadata and filenames differ. A file selection written for cdnjs may need another path when switching providers. Verify the chosen file is the browser format you expect; a provider adapter is not a universal module bundler.</p>
+<h2>Providers in the importmap command</h2>
+<pre><code>{
+  "provider": "cdnjs",
+  "packages": [
+    {"name": "htmx.org", "version": "4.0.0", "provider": "jsdelivr", "require": [{"file": "dist/htmx.esm.js", "as": "htmx"}]},
+    {"name": "lib.js", "url": "https://example.com/lib.js", "as": "lib"}
+  ]
+}</code></pre>
+<p>The configuration of the <a href="{{ basePath }}/vendoring" hx-get="{{ basePath }}/vendoring" hx-target="#content" hx-push-url="true">importmap command</a> names providers <code>cdnjs</code> (the default), <code>jsdelivr</code>, <code>jsdelivr-esm</code>, <code>unpkg</code>, <code>skypack</code> and <code>esmsh</code>, at the top for every package or per package. A package with <code>url</code> uses the raw provider. Custom providers need <code>Vendor</code> from Go.</p>
 <h2>Custom providers</h2>
 <pre><code>type Provider interface {
     FetchPackageFiles(ctx context.Context, name, version string) (library.Files, string, error)

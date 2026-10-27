@@ -1,0 +1,684 @@
+{
+  "Slug": "events",
+  "Name": "Events",
+  "Group": "Content",
+  "Summary": "An agenda of dated events with a location, an image and Markdown text, each in its own timezone, with drafts, previews and scheduled publishing.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/events",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/events",
+  "Type": "events",
+  "Example": {
+    "Key": "agenda",
+    "Title": "Agenda",
+    "Code": "app.Use(events.Module(\"agenda\", \"Agenda\"))"
+  },
+  "Guide": "\u003cp\u003eUse one instance per agenda. Upcoming and past events are listed separately, and other modules, such as Registrations and Comments, attach to an event by its ID.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    events.Module(\u0026quot;agenda\u0026quot;, \u0026quot;Agenda\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003eagenda\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eAgenda\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page then serves the events below its own address; with the page at \u003ccode\u003e/agenda\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/agenda\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eagenda/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe upcoming and running events, soonest first\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/agenda/past\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eagenda/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe past events, newest first\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/agenda/\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eagenda/event.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone event\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eAn event is past once its end has passed, or its start when it has no end. All-day events last until the end of their last day. Both lists use the same template: \u003ccode\u003e.Past\u003c/code\u003e tells them apart, and \u003ccode\u003e.UpcomingURL\u003c/code\u003e and \u003ccode\u003e.PastURL\u003c/code\u003e link between them. The lists are not paged.\u003c/p\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so \u003ccode\u003eevents/event.gohtml\u003c/code\u003e serves every Events instance that has no design of its own. Generate starting points with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- agenda\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal list:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/events.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{if .Past}}\n    \u0026lt;a href=\u0026quot;{{.UpcomingURL}}\u0026quot;\u0026gt;Upcoming events\u0026lt;/a\u0026gt;\n{{else}}\n    \u0026lt;a href=\u0026quot;{{.PastURL}}\u0026quot;\u0026gt;Past events\u0026lt;/a\u0026gt;\n{{end}}\n\n{{range .Events}}\n    \u0026lt;article\u0026gt;\n        \u0026lt;h2\u0026gt;\u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\u0026lt;/h2\u0026gt;\n        \u0026lt;p\u0026gt;\n            {{with .When}}\n                {{if .AllDay}}{{dateRange .Start .End \u0026quot;full\u0026quot;}}\n                {{else if .SameDay}}{{date .Start \u0026quot;full\u0026quot;}} · {{timeRange .Start .End}}\n                {{else}}{{date .Start \u0026quot;full\u0026quot;}}, {{time .Start}} – {{date .End \u0026quot;full\u0026quot;}}, {{time .End}}{{end}}\n            {{end}}\n            {{with .Location}} · {{.}}{{end}}\n        \u0026lt;/p\u0026gt;\n        {{with .Summary}}\u0026lt;p\u0026gt;{{.}}\u0026lt;/p\u0026gt;{{end}}\n    \u0026lt;/article\u0026gt;\n{{else}}\n    \u0026lt;p\u0026gt;No events planned.\u0026lt;/p\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eevent.gohtml\u003c/code\u003e gets a single \u003ccode\u003eevents.Event\u003c/code\u003e; its \u003ccode\u003eBody\u003c/code\u003e is the rendered Markdown, with media from the library already resolved. \u003ccode\u003eStart\u003c/code\u003e and \u003ccode\u003eEnd\u003c/code\u003e are in the event's own timezone (\u003ccode\u003e.Timezone\u003c/code\u003e), and the date functions show them in that zone, also for events in \u003ccode\u003eUTC\u003c/code\u003e. \u003ccode\u003eEnd\u003c/code\u003e is zero when the event has none; for all-day events it is the last day, so \u003ccode\u003e{{dateRange .Start .End}}\u003c/code\u003e reads \u0026quot;25–27 October 2026\u0026quot;.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e.When\u003c/code\u003e gives the start, end and all-day switch as a \u003ccode\u003efrontend.When\u003c/code\u003e, which a registration's subject gives too (\u003ccode\u003eregistrations.Subject.When\u003c/code\u003e), so one partial shows both:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/frontend.When */}}\n{{if .AllDay}}{{dateRange .Start .End \u0026quot;full\u0026quot;}}\n{{else if .SameDay}}{{date .Start \u0026quot;full\u0026quot;}} · {{timeRange .Start .End}}\n{{else}}{{date .Start \u0026quot;full\u0026quot;}}, {{time .Start}} – {{date .End \u0026quot;full\u0026quot;}}, {{time .End}}{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eSaved as \u003ccode\u003epartials/when.gohtml\u003c/code\u003e, it is \u003ccode\u003e{{template \u0026quot;partials/when.gohtml\u0026quot; .When}}\u003c/code\u003e in \u003ccode\u003eevent.gohtml\u003c/code\u003e. \u003ccode\u003e.SameDay\u003c/code\u003e is set when the event ends on the day it starts, or has no end. The starting points from \u003ccode\u003etask templates -- agenda\u003c/code\u003e show events the same way, in one line, in the list and on the event's page; there an event with times is followed by its timezone, such as \u0026quot;Monday 16 November 2026, 09:00 – Tuesday 17 November 2026, 18:00 (Europe/Amsterdam)\u0026quot;.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eImageURL\u003c/code\u003e is the event's image as pages show it, at most 1600 pixels wide, with \u003ccode\u003eImageSrcset\u003c/code\u003e, \u003ccode\u003eImageWidth\u003c/code\u003e and \u003ccode\u003eImageHeight\u003c/code\u003e for the \u003ccode\u003eimg\u003c/code\u003e tag, and \u003ccode\u003eImageOriginalURL\u003c/code\u003e is the uploaded file; all are empty for an event without one. Events in a list have the same fields:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{if .ImageURL}}\u0026lt;img src=\u0026quot;{{.ImageURL}}\u0026quot; srcset=\u0026quot;{{.ImageSrcset}}\u0026quot; sizes=\u0026quot;100vw\u0026quot; width=\u0026quot;{{.ImageWidth}}\u0026quot; height=\u0026quot;{{.ImageHeight}}\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eAn event appears in each language it has a title and slug for. Events are only reachable while the instance is placed on a page.\u003c/p\u003e\n\u003ch2 id=\"show-events-anywhere\"\u003eShow events anywhere\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003eevents\u003c/code\u003e template function returns up to a number of the next upcoming and running events in the current language, for a home page or a sidebar; 0 or less returns all of them. Links point to the page the instance is placed on; while it is on no page, \u003ccode\u003e.URL\u003c/code\u003e is empty.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range events \u0026quot;agenda\u0026quot; 3}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n    {{date .Start \u0026quot;EEE d MMM\u0026quot;}}{{if not .AllDay}}, {{time .Start}}{{end}}\n{{end}}\n\n\u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;agenda\u0026quot;}}\u0026quot;\u0026gt;Full agenda\u0026lt;/a\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"feeds\"\u003eFeeds\u003c/h2\u003e\n\u003cp\u003eEach instance serves Atom and RSS feeds of its upcoming and running events, soonest first, in the page's language: with the page at \u003ccode\u003e/agenda\u003c/code\u003e, \u003ccode\u003e/agenda/feed.atom\u003c/code\u003e and \u003ccode\u003e/agenda/feed.rss\u003c/code\u003e (routes \u003ccode\u003efeed.atom\u003c/code\u003e and \u003ccode\u003efeed.rss\u003c/code\u003e). Core's head tags link to them with \u003ccode\u003e{{feedLinks}}\u003c/code\u003e from every page of the instance; see \u003ca href=\"wt-docs:/go-webthings/themes#feeds\"\u003eThemes\u003c/a\u003e. While the instance is on no page, the feeds get the site's 404 page.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eThe feeds list as many events as the site setting \u003cstrong\u003eItems in feeds\u003c/strong\u003e says (\u003cstrong\u003eSite settings › General\u003c/strong\u003e, 20 by default). An event leaves them once it is past.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eevents.Module(\u0026quot;agenda\u0026quot;, \u0026quot;Agenda\u0026quot;, events.WithFeedSize(50))\u003c/code\u003e makes the instance's feeds list 50 events instead, whatever the setting says. The size is at most 100 (\u003ccode\u003esite.MaxFeedSize\u003c/code\u003e) and 0 follows the setting; the app does not start with another size.\u003c/li\u003e\n\u003cli\u003eAn entry's summary says when and where the event takes place, in the page's language and the event's timezone, such as \u0026quot;14 November 2026 · 20:00–22:00 · De Werf\u0026quot;, then the event's own summary after a blank line. All-day events have no times.\u003c/li\u003e\n\u003cli\u003eIts content is the event's Markdown with absolute addresses, its images shown as in e-mail, and the event's image is an enclosure.\u003c/li\u003e\n\u003cli\u003eIt is published when the event was created and updated when its published revision was saved. Its ID is \u003ccode\u003etag:\u0026lt;host\u0026gt;,\u0026lt;date created\u0026gt;:\u0026lt;key\u0026gt;/\u0026lt;event ID\u0026gt;\u003c/code\u003e, so it stays the same when the event's slug or page changes. Set \u003ccode\u003eConfig.BaseURL\u003c/code\u003e, so the host does not depend on the address a reader used.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eFeeds are cached like pages and are not in \u003ccode\u003esitemap.xml\u003c/code\u003e; a past event leaves a cached feed when the cache's time has passed. \u003ca href=\"wt-docs:/go-webthings/module-feeds-and-links#feeds\"\u003eFeeds\u003c/a\u003e for modules explains what core adds to them.\u003c/p\u003e\n\u003ch2 id=\"structured-data\"\u003eStructured data\u003c/h2\u003e\n\u003cp\u003eAn event's page describes the event to search engines as a schema.org \u003ccode\u003eEvent\u003c/code\u003e. Core's head tags write it, with the site's own items, with \u003ccode\u003e{{structuredData}}\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/search-and-seo#structured-data\"\u003eSearch and SEO\u003c/a\u003e. The Event of an event at \u003ccode\u003e/en/agenda/harbour-fair\u003c/code\u003e that visitors can register for, one item of the page's \u003ccode\u003e@graph\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-json\"\u003e{\n  \u0026quot;@type\u0026quot;: \u0026quot;Event\u0026quot;,\n  \u0026quot;description\u0026quot;: \u0026quot;Games and food\u0026quot;,\n  \u0026quot;endDate\u0026quot;: \u0026quot;2027-06-12T17:00:00+02:00\u0026quot;,\n  \u0026quot;eventAttendanceMode\u0026quot;: \u0026quot;https://schema.org/OfflineEventAttendanceMode\u0026quot;,\n  \u0026quot;eventStatus\u0026quot;: \u0026quot;https://schema.org/EventScheduled\u0026quot;,\n  \u0026quot;inLanguage\u0026quot;: \u0026quot;en\u0026quot;,\n  \u0026quot;location\u0026quot;: {\u0026quot;@type\u0026quot;: \u0026quot;Place\u0026quot;, \u0026quot;address\u0026quot;: \u0026quot;Quay 1, Harbourtown\u0026quot;, \u0026quot;name\u0026quot;: \u0026quot;Town hall\u0026quot;},\n  \u0026quot;mainEntityOfPage\u0026quot;: {\u0026quot;@id\u0026quot;: \u0026quot;https://example.com/en/agenda/harbour-fair\u0026quot;},\n  \u0026quot;name\u0026quot;: \u0026quot;Harbour fair\u0026quot;,\n  \u0026quot;offers\u0026quot;: {\n    \u0026quot;@type\u0026quot;: \u0026quot;Offer\u0026quot;,\n    \u0026quot;availability\u0026quot;: \u0026quot;https://schema.org/InStock\u0026quot;,\n    \u0026quot;price\u0026quot;: \u0026quot;12.50\u0026quot;,\n    \u0026quot;priceCurrency\u0026quot;: \u0026quot;EUR\u0026quot;,\n    \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/agenda/harbour-fair\u0026quot;,\n    \u0026quot;validThrough\u0026quot;: \u0026quot;2027-06-12T12:30:00Z\u0026quot;\n  },\n  \u0026quot;organizer\u0026quot;: {\u0026quot;@id\u0026quot;: \u0026quot;https://example.com/#organization\u0026quot;},\n  \u0026quot;startDate\u0026quot;: \u0026quot;2027-06-12T14:30:00+02:00\u0026quot;,\n  \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/agenda/harbour-fair\u0026quot;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003ename\u003c/code\u003e is the event's title and \u003ccode\u003edescription\u003c/code\u003e its summary; \u003ccode\u003eimage\u003c/code\u003e, for an event with an image, is that image as it is shown when the page is shared, a 1200 × 630 JPEG cut around its focal point.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003estartDate\u003c/code\u003e and \u003ccode\u003eendDate\u003c/code\u003e are in the event's timezone, such as \u003ccode\u003e2027-06-12T14:30:00+02:00\u003c/code\u003e, or the day alone for an all-day event, such as \u003ccode\u003e2027-06-12\u003c/code\u003e. An event without an end has no \u003ccode\u003eendDate\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eeventStatus\u003c/code\u003e is always \u003ccode\u003eEventScheduled\u003c/code\u003e: the module has no cancelled or moved events.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003elocation\u003c/code\u003e is a \u003ccode\u003ePlace\u003c/code\u003e with the event's location as \u003ccode\u003ename\u003c/code\u003e and its address as \u003ccode\u003eaddress\u003c/code\u003e, and \u003ccode\u003eeventAttendanceMode\u003c/code\u003e says it takes place there; an event without either has neither.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003einLanguage\u003c/code\u003e is the page's language, and \u003ccode\u003eorganizer\u003c/code\u003e the site's organisation.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eA \u003ca href=\"/registrations\"\u003eRegistrations\u003c/a\u003e instance linked with \u003ccode\u003eregistrations.ForEvents(\u0026quot;agenda\u0026quot;)\u003c/code\u003e adds \u003ccode\u003eoffers\u003c/code\u003e, an \u003ccode\u003eOffer\u003c/code\u003e, while visitors can register for the event (\u003ccode\u003eInStock\u003c/code\u003e) and once every place is taken (\u003ccode\u003eSoldOut\u003c/code\u003e), also after registration is switched off: \u003ccode\u003eprice\u003c/code\u003e is the adult price, \u003ccode\u003epriceCurrency\u003c/code\u003e the instance's currency, \u003ccode\u003eurl\u003c/code\u003e the event's page and \u003ccode\u003evalidThrough\u003c/code\u003e when registration closes, the deadline or else the event's start. An event without registration gets none, and so does one whose registration closed with places left.\u003c/p\u003e\n\u003cp\u003eThe lists of upcoming and past events are an \u003ccode\u003eItemList\u003c/code\u003e of the events they show, in their order.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), each instance serves its published events as JSON below \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/\u003c/code\u003e, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003eagenda\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/agenda/events\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.agenda.events\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe upcoming and running events, soonest first, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/agenda/events?past=true\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe past events, newest first\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/agenda/events?slug=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe event with that slug: the \u003ccode\u003emodule.path\u003c/code\u003e that \u003ccode\u003e/api/v1/pages/resolve\u003c/code\u003e gives for an event's address, without its leading slash; add \u003ccode\u003epast=true\u003c/code\u003e for a past event\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/agenda/events/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.agenda.event\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne event, past or not, with its text\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eAn event appears in each language it has a title and slug for, as on the site, and never as a draft. \u003ccode\u003eGET /api/v1/agenda/events/{id}\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-json\"\u003e{\n  \u0026quot;id\u0026quot;: \u0026quot;01a115cb-b189-7cb8-9adc-82a8952a89ef\u0026quot;,\n  \u0026quot;slug\u0026quot;: \u0026quot;harbour-fair\u0026quot;,\n  \u0026quot;title\u0026quot;: \u0026quot;Harbour fair\u0026quot;,\n  \u0026quot;summary\u0026quot;: \u0026quot;Games and food\u0026quot;,\n  \u0026quot;body_html\u0026quot;: \u0026quot;\\u003cp\\u003eBring \\u003cem\\u003efriends\\u003c/em\\u003e.\\u003c/p\\u003e\\n\u0026quot;,\n  \u0026quot;location\u0026quot;: \u0026quot;Town hall\u0026quot;,\n  \u0026quot;address\u0026quot;: \u0026quot;Quay 1, Harbourtown\u0026quot;,\n  \u0026quot;start\u0026quot;: \u0026quot;2027-06-12T14:30:00+02:00\u0026quot;,\n  \u0026quot;end\u0026quot;: \u0026quot;2027-06-12T17:00:00+02:00\u0026quot;,\n  \u0026quot;all_day\u0026quot;: false,\n  \u0026quot;timezone\u0026quot;: \u0026quot;Europe/Amsterdam\u0026quot;,\n  \u0026quot;past\u0026quot;: false,\n  \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/agenda/harbour-fair\u0026quot;,\n  \u0026quot;api_url\u0026quot;: \u0026quot;https://example.com/api/v1/agenda/events/01a115cb-b189-7cb8-9adc-82a8952a89ef?locale=en\u0026quot;,\n  \u0026quot;image\u0026quot;: null,\n  \u0026quot;updated_at\u0026quot;: \u0026quot;2026-10-07T09:57:13.225795Z\u0026quot;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ebody_html\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe event's text as HTML, with absolute addresses and images with their \u003ccode\u003esrcset\u003c/code\u003e; only \u003ccode\u003e/events/{id}\u003c/code\u003e gives it\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003elocation\u003c/code\u003e, \u003ccode\u003eaddress\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe location's name and its address, as editors wrote them\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003estart\u003c/code\u003e, \u003ccode\u003eend\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe start and the end in the event's timezone, with its offset; \u003ccode\u003eend\u003c/code\u003e is \u003ccode\u003enull\u003c/code\u003e for an event without one. An all-day event starts and ends at midnight of its first and its last day.\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eall_day\u003c/code\u003e, \u003ccode\u003etimezone\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe \u003cstrong\u003eAll day\u003c/strong\u003e switch and the event's timezone, an IANA name\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003epast\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eSet once the event is over, as for the list of past events on the site\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eurl\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe event's page on the site; \u003ccode\u003enull\u003c/code\u003e while the instance is on no page in that language\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eapi_url\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe event in the API\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eimage\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe event's image as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e, \u003ccode\u003enull\u003c/code\u003e without one\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eupdated_at\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eWhen the published revision was saved\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eThe API leaves out registrations and their places: visitors' sign-ups are personal data.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/events/{id}\u003c/code\u003e sends a \u003ccode\u003eLast-Modified\u003c/code\u003e: the latest change of the event, of the page the instance is on and of the event's media, and, once the event is past, when it ended, since \u003ccode\u003epast\u003c/code\u003e changes then. The lists send none; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/agenda\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) with the list of events.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eAn event has a start, an optional end, an \u003cstrong\u003eAll day\u003c/strong\u003e switch, a timezone and an optional image from the media library; per language a title, web address, summary, Markdown text, location name and address. An empty \u003cstrong\u003eWeb address\u003c/strong\u003e is made from the title when the event is saved.\u003c/li\u003e\n\u003cli\u003eStart and end are the local time in the event's timezone, an IANA name such as \u003ccode\u003eEurope/Amsterdam\u003c/code\u003e: the editor shows and reads them as typed in that timezone, not in the site's timezone as other dates in the admin. A value that is not a date and time gets an error at its field. When the clocks go forward, a time they skip moves forward by the change (02:30 becomes 03:30); when they go back, a time that occurs twice is the first of the two. New events get the site's timezone from the site settings and start at the next full hour on the clocks of that timezone, also in a timezone whose offset is not whole hours, such as \u003ccode\u003eAsia/Kolkata\u003c/code\u003e. For all-day events only the dates count; an end on the first day makes a one-day event.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eSave draft\u003c/strong\u003e creates a new revision as a draft: \u0026quot;Saved as a draft. Publish it to show it on the website.\u0026quot; The published version stays online until a revision is published. Editors can preview a draft at the event's own address on the website, while the instance is placed on a page, and restore an earlier revision from the history.\u003c/li\u003e\n\u003cli\u003eThe publication box plans publishing or unpublishing for a date and time in the site's timezone. Publishing by hand cancels the plan. Events that are over stay published and move to the past list.\u003c/li\u003e\n\u003cli\u003eA site can require a review per instance in \u003cstrong\u003eSite settings › Review\u003c/strong\u003e. An event's revision then needs a reviewer's approval before it is published or planned; see \u003ca href=\"wt-docs:/go-webthings/editing#review-before-publishing\"\u003eReview before publishing\u003c/a\u003e.\u003c/li\u003e\n\u003cli\u003ePublishing needs a title and a web address in the site's default language. The web address \u003ccode\u003epast\u003c/code\u003e is reserved for the list of past events.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves an event to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored with its revisions or deleted for good. It cancels a planned publication. A published event cannot be restored while another published event uses its web address.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003ePublished events, upcoming and past, appear in the site search by title, summary, text, location and address. They are also listed in \u003ccode\u003esitemap.xml\u003c/code\u003e, with \u003ccode\u003e/agenda/past\u003c/code\u003e when there are past events.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the text of published events count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the events that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003cp\u003eThe editor of a published event lists the published content that links to the event and asks before it is unpublished or moved to the trash. A revision with a new \u003cstrong\u003eWeb address\u003c/strong\u003e shows the old and the new address before it is published. With the \u003ca href=\"/redirects\"\u003eredirects module\u003c/a\u003e, editors who may create redirects also get \u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e, and \u003cstrong\u003ePublish this revision\u003c/strong\u003e comes with \u003cstrong\u003eRedirect the old addresses to the new ones\u003c/strong\u003e, ticked by default; see \u003ca href=\"wt-docs:/go-webthings/editing#links-to-an-item\"\u003eLinks to an item\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003eevents.Of(app, \u0026quot;agenda\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eagenda := events.Of(app, \u0026quot;agenda\u0026quot;)\n\nnext, err := agenda.Upcoming(ctx, \u0026quot;en\u0026quot;, 3)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eEvent(ctx, id, locale)\u003c/code\u003e returns one event and \u003ccode\u003eEvents(ctx, locale)\u003c/code\u003e all of them, published or not, as \u003ccode\u003eevents.Info\u003c/code\u003e with \u003ccode\u003ePublished\u003c/code\u003e, \u003ccode\u003ePast\u003c/code\u003e and the public \u003ccode\u003eURL\u003c/code\u003e. While the instance is on no page in that language, \u003ccode\u003eUpcoming\u003c/code\u003e, \u003ccode\u003eEvent\u003c/code\u003e and \u003ccode\u003eEvents\u003c/code\u003e still return the events, with an empty \u003ccode\u003eURL\u003c/code\u003e. They are meant for modules that refer to events, which reach the instance with \u003ccode\u003eenv.Service(\u0026quot;agenda\u0026quot;).(*events.Service)\u003c/code\u003e once the app runs.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses. Times are stored in UTC next to the event's timezone, and publishing takes the revision to publish:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eamsterdam, err := time.LoadLocation(\u0026quot;Europe/Amsterdam\u0026quot;)\nif err != nil {\n    return err\n}\n\nstore := agenda.Store()\n\nitem, err := store.Save(ctx, content.Draft[events.EventFields, events.EventText]{\n    Fields: events.EventFields{\n        Start:    time.Date(2026, 11, 14, 20, 0, 0, 0, amsterdam).UTC(),\n        Timezone: \u0026quot;Europe/Amsterdam\u0026quot;,\n    },\n    Translations: []content.Translation[events.EventText]{\n        {\n            Locale: \u0026quot;en\u0026quot;,\n            Text: events.EventText{\n                Slug:  \u0026quot;autumn-concert\u0026quot;,\n                Title: \u0026quot;Autumn concert\u0026quot;,\n            },\n        },\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, item.ID, item.Revision.ID, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/registrations\"\u003eRegistrations\u003c/a\u003e takes sign-ups for events: link an instance with \u003ccode\u003eregistrations.ForEvents(\u0026quot;agenda\u0026quot;)\u003c/code\u003e and show the form with \u003ccode\u003e{{registrationForm \u0026quot;signup\u0026quot; .ID}}\u003c/code\u003e in \u003ccode\u003eevent.gohtml\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/comments\"\u003eComments\u003c/a\u003e adds reactions below an event with \u003ccode\u003e{{commentThread \u0026quot;remarks\u0026quot; .ID}}\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/publishing\"\u003ePublishing\u003c/a\u003e keeps news and other dated posts.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string, opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "WithFeedSize",
+      "Signature": "func WithFeedSize(size int) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": true,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": true,
+    "Scheduled": true,
+    "Close": false,
+    "Service": "*events.Service"
+  },
+  "Admin": [
+    {
+      "ID": "agenda",
+      "Title": "Agenda",
+      "Path": "/admin/agenda",
+      "Permission": "agenda",
+      "Icon": "calendar",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New event",
+      "Recent": true,
+      "Scheduled": true,
+      "Trash": true,
+      "Review": true
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "upcoming",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "past",
+      "Method": "GET",
+      "Path": "/past"
+    },
+    {
+      "Kind": "page",
+      "Name": "event",
+      "Method": "GET",
+      "Path": "/{slug}"
+    },
+    {
+      "Kind": "feed",
+      "Name": "feed.atom",
+      "Method": "GET",
+      "Path": "/feed.atom"
+    },
+    {
+      "Kind": "feed",
+      "Name": "feed.rss",
+      "Method": "GET",
+      "Path": "/feed.rss"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.agenda.events",
+      "Method": "GET",
+      "Path": "/api/v1/agenda/events"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.agenda.event",
+      "Method": "GET",
+      "Path": "/api/v1/agenda/events/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "events",
+      "Signature": "events(key string, limit int) []Event",
+      "Doc": "\u003cp\u003eupcoming returns the next events of an instance, for example\n{{range events \u0026quot;agenda\u0026quot; 5}} on the home page; a limit of 0 or less returns\nall of them.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "agenda/list.gohtml",
+        "events/list.gohtml"
+      ],
+      "DataType": "events.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Events",
+          "Type": "[]events.Event",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Summary",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Location",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Address",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Start",
+              "Type": "time.Time",
+              "Doc": "Start and End are in Timezone; for \"UTC\" they are civil times (see frontend.Civil). End is zero when the event has no end; for all-day events it is the last day.",
+              "Fields": null
+            },
+            {
+              "Name": "End",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "AllDay",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Timezone",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the event's page, empty when the agenda is on no page.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageURL",
+              "Type": "string",
+              "Doc": "ImageURL is the event's image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the event has no image.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Past",
+          "Type": "bool",
+          "Doc": "Past is true on the list of past events, newest first. Otherwise the list holds upcoming and running events, soonest first.",
+          "Fields": null
+        },
+        {
+          "Name": "UpcomingURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "PastURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/events.ListView */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    \u003cnav\u003e\n        {{if .Past}}\u003ca href=\"{{.UpcomingURL}}\"\u003eUpcoming\u003c/a\u003e{{else}}\u003ca href=\"{{.PastURL}}\"\u003ePast events\u003c/a\u003e{{end}}\n    \u003c/nav\u003e\n\n    {{range .Events}}\n        \u003carticle\u003e\n            {{with .ImageURL}}\u003cimg src=\"{{image . \"400x300 crop\"}}\" alt=\"\"\u003e{{end}}\n            \u003ch2\u003e\u003ca href=\"{{.URL}}\"\u003e{{.Title}}\u003c/a\u003e\u003c/h2\u003e\n            \u003cp\u003e\n                \u003ctime datetime=\"{{.Start.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{with .When}}{{if .AllDay}}{{dateRange .Start .End \"full\"}}{{else if .SameDay}}{{date .Start \"full\"}} · {{timeRange .Start .End}}{{else}}{{date .Start \"full\"}}, {{time .Start}} – {{date .End \"full\"}}, {{time .End}}{{end}}{{end}}\u003c/time\u003e\n                {{with .Location}} · {{.}}{{end}}\n            \u003c/p\u003e\n            {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{else}}\n        \u003cp\u003eNo events.\u003c/p\u003e\n    {{end}}\n\u003c/main\u003e"
+    },
+    {
+      "Name": "event",
+      "Files": [
+        "agenda/event.gohtml",
+        "events/event.gohtml"
+      ],
+      "DataType": "events.Event",
+      "Fields": [
+        {
+          "Name": "ID",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Summary",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Body",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Location",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Address",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Start",
+          "Type": "time.Time",
+          "Doc": "Start and End are in Timezone; for \"UTC\" they are civil times (see frontend.Civil). End is zero when the event has no end; for all-day events it is the last day.",
+          "Fields": null
+        },
+        {
+          "Name": "End",
+          "Type": "time.Time",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "AllDay",
+          "Type": "bool",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Timezone",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the event's page, empty when the agenda is on no page.",
+          "Fields": null
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the event's image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the event has no image.",
+          "Fields": null
+        },
+        {
+          "Name": "ImageSrcset",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageOriginalURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageWidth",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageHeight",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/events.Event */}}\n\u003cmain id=\"content\"\u003e\n    \u003carticle\u003e\n        \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n        \u003cp\u003e\n            \u003ctime datetime=\"{{.Start.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{with .When}}{{if .AllDay}}{{dateRange .Start .End \"full\"}}{{else if .SameDay}}{{date .Start \"full\"}} · {{timeRange .Start .End}}{{else}}{{date .Start \"full\"}}, {{time .Start}} – {{date .End \"full\"}}, {{time .End}}{{end}}{{end}}\u003c/time\u003e{{if not .AllDay}} ({{.Timezone}}){{end}}\n        \u003c/p\u003e\n        {{with .Location}}\u003cp\u003e{{.}}{{with $.Address}}\u003cbr\u003e{{.}}{{end}}\u003c/p\u003e{{end}}\n        {{if .ImageURL}}\u003cimg src=\"{{.ImageURL}}\" srcset=\"{{.ImageSrcset}}\" sizes=\"100vw\" alt=\"\"\u003e{{end}}\n        {{with .Summary}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n        \u003cdiv\u003e{{.Body}}\u003c/div\u003e\n    \u003c/article\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261004000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261004000000_init.postgres.sql",
+          "SQL": "-- Events are revisioned content (see package content). Times are UTC; timezone\n-- is the IANA zone the event is shown in.\nCREATE TABLE wt_events_event (\n    id                    UUID PRIMARY KEY,\n    instance              VARCHAR(64) NOT NULL,\n    published_revision_id UUID,\n    scheduled_revision_id UUID,\n    publish_at            TIMESTAMPTZ,\n    unpublish_at          TIMESTAMPTZ,\n    created_at            TIMESTAMPTZ NOT NULL,\n    created_by            UUID,\n    updated_at            TIMESTAMPTZ NOT NULL,\n    updated_by            UUID,\n    deleted_at            TIMESTAMPTZ,\n    deleted_by            UUID\n);\n\nCREATE INDEX wt_events_event_instance ON wt_events_event (instance);\n\nCREATE TABLE wt_events_event_revision (\n    id           UUID PRIMARY KEY,\n    entity_id    UUID NOT NULL REFERENCES wt_events_event (id) ON DELETE CASCADE,\n    revision_no  INTEGER NOT NULL,\n    author       UUID,\n    created_at   TIMESTAMPTZ NOT NULL,\n    note         TEXT NOT NULL DEFAULT '',\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state VARCHAR(16) NOT NULL DEFAULT 'draft',\n    submitted_at TIMESTAMPTZ,\n    submitted_by UUID,\n    reviewed_at  TIMESTAMPTZ,\n    reviewed_by  UUID,\n    review_note  VARCHAR(500) NOT NULL DEFAULT '',\n    starts_at    TIMESTAMPTZ NOT NULL,\n    ends_at      TIMESTAMPTZ,\n    all_day      BOOLEAN NOT NULL DEFAULT FALSE,\n    timezone     VARCHAR(100) NOT NULL DEFAULT 'UTC',\n    image_id     UUID,\n    UNIQUE (entity_id, revision_no)\n);\n\nCREATE TABLE wt_events_event_translation (\n    revision_id      UUID NOT NULL REFERENCES wt_events_event_revision (id) ON DELETE CASCADE,\n    locale           VARCHAR(35) NOT NULL,\n    slug             VARCHAR(190) NOT NULL DEFAULT '',\n    title            VARCHAR(200) NOT NULL DEFAULT '',\n    summary          TEXT NOT NULL DEFAULT '',\n    body             TEXT NOT NULL DEFAULT '',\n    location_name    VARCHAR(200) NOT NULL DEFAULT '',\n    location_address TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (revision_id, locale)\n);\n\nCREATE INDEX wt_events_event_slug ON wt_events_event_translation (locale, slug);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261004000000_init.sqlite.sql",
+          "SQL": "-- Events are revisioned content (see package content). Times are UTC; timezone\n-- is the IANA zone the event is shown in.\nCREATE TABLE wt_events_event (\n    id                    TEXT PRIMARY KEY,\n    instance              TEXT NOT NULL,\n    published_revision_id TEXT,\n    scheduled_revision_id TEXT,\n    publish_at            TIMESTAMP,\n    unpublish_at          TIMESTAMP,\n    created_at            TIMESTAMP NOT NULL,\n    created_by            TEXT,\n    updated_at            TIMESTAMP NOT NULL,\n    updated_by            TEXT,\n    deleted_at            TIMESTAMP,\n    deleted_by            TEXT\n);\n\nCREATE INDEX wt_events_event_instance ON wt_events_event (instance);\n\nCREATE TABLE wt_events_event_revision (\n    id           TEXT PRIMARY KEY,\n    entity_id    TEXT NOT NULL REFERENCES wt_events_event (id) ON DELETE CASCADE,\n    revision_no  INTEGER NOT NULL,\n    author       TEXT,\n    created_at   TIMESTAMP NOT NULL,\n    note         TEXT NOT NULL DEFAULT '',\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state TEXT NOT NULL DEFAULT 'draft',\n    submitted_at TIMESTAMP,\n    submitted_by TEXT,\n    reviewed_at  TIMESTAMP,\n    reviewed_by  TEXT,\n    review_note  TEXT NOT NULL DEFAULT '',\n    starts_at    TIMESTAMP NOT NULL,\n    ends_at      TIMESTAMP,\n    all_day      BOOLEAN NOT NULL DEFAULT FALSE,\n    timezone     TEXT NOT NULL DEFAULT 'UTC',\n    image_id     TEXT,\n    UNIQUE (entity_id, revision_no)\n);\n\nCREATE TABLE wt_events_event_translation (\n    revision_id      TEXT NOT NULL REFERENCES wt_events_event_revision (id) ON DELETE CASCADE,\n    locale           TEXT NOT NULL,\n    slug             TEXT NOT NULL DEFAULT '',\n    title            TEXT NOT NULL DEFAULT '',\n    summary          TEXT NOT NULL DEFAULT '',\n    body             TEXT NOT NULL DEFAULT '',\n    location_name    TEXT NOT NULL DEFAULT '',\n    location_address TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (revision_id, locale)\n);\n\nCREATE INDEX wt_events_event_slug ON wt_events_event_translation (locale, slug);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261004000000_init.mysql.sql",
+          "SQL": "-- Events are revisioned content (see package content). Times are UTC; timezone\n-- is the IANA zone the event is shown in.\nCREATE TABLE wt_events_event (\n    id                    VARCHAR(36) PRIMARY KEY,\n    instance              VARCHAR(64) NOT NULL,\n    published_revision_id VARCHAR(36) NULL,\n    scheduled_revision_id VARCHAR(36) NULL,\n    publish_at            DATETIME(6) NULL,\n    unpublish_at          DATETIME(6) NULL,\n    created_at            DATETIME(6) NOT NULL,\n    created_by            VARCHAR(36) NULL,\n    updated_at            DATETIME(6) NOT NULL,\n    updated_by            VARCHAR(36) NULL,\n    deleted_at            DATETIME(6) NULL,\n    deleted_by            VARCHAR(36) NULL,\n    INDEX wt_events_event_instance (instance)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_events_event_revision (\n    id           VARCHAR(36) PRIMARY KEY,\n    entity_id    VARCHAR(36) NOT NULL,\n    revision_no  INTEGER NOT NULL,\n    author       VARCHAR(36) NULL,\n    created_at   DATETIME(6) NOT NULL,\n    note         TEXT NOT NULL,\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state VARCHAR(16) NOT NULL DEFAULT 'draft',\n    submitted_at DATETIME(6) NULL,\n    submitted_by VARCHAR(36) NULL,\n    reviewed_at  DATETIME(6) NULL,\n    reviewed_by  VARCHAR(36) NULL,\n    review_note  VARCHAR(500) NOT NULL DEFAULT '',\n    starts_at    DATETIME(6) NOT NULL,\n    ends_at      DATETIME(6) NULL,\n    all_day      BOOLEAN NOT NULL DEFAULT FALSE,\n    timezone     VARCHAR(100) NOT NULL DEFAULT 'UTC',\n    image_id     VARCHAR(36) NULL,\n    UNIQUE (entity_id, revision_no),\n    FOREIGN KEY (entity_id) REFERENCES wt_events_event (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_events_event_translation (\n    revision_id      VARCHAR(36) NOT NULL,\n    locale           VARCHAR(35) NOT NULL,\n    slug             VARCHAR(190) NOT NULL DEFAULT '',\n    title            VARCHAR(200) NOT NULL DEFAULT '',\n    summary          TEXT NOT NULL,\n    body             MEDIUMTEXT NOT NULL,\n    location_name    VARCHAR(200) NOT NULL DEFAULT '',\n    location_address TEXT NOT NULL,\n    PRIMARY KEY (revision_id, locale),\n    INDEX wt_events_event_slug (locale, slug),\n    FOREIGN KEY (revision_id) REFERENCES wt_events_event_revision (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_events_event",
+      "Note": "Events are revisioned content (see package content). Times are UTC; timezone is the IANA zone the event is shown in.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published_revision_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "scheduled_revision_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "publish_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "unpublish_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_events_event_instance (instance)"
+      ]
+    },
+    {
+      "Name": "wt_events_event_revision",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "entity_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_events_event (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "revision_no",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "author",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "note",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "review_state",
+          "Type": "VARCHAR(16)",
+          "Notes": "NOT NULL DEFAULT 'draft'"
+        },
+        {
+          "Name": "submitted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "submitted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "reviewed_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "reviewed_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "review_note",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "starts_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "ends_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "all_day",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "timezone",
+          "Type": "VARCHAR(100)",
+          "Notes": "NOT NULL DEFAULT 'UTC'"
+        },
+        {
+          "Name": "image_id",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "UNIQUE (entity_id, revision_no)"
+      ]
+    },
+    {
+      "Name": "wt_events_event_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "revision_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_events_event_revision (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "summary",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "location_name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "location_address",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (revision_id, locale)",
+        "INDEX wt_events_event_slug (locale, slug)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Event",
+        "Signature": "func (s *Service) Event(ctx context.Context, id, locale string) (Info, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Events",
+        "Signature": "func (s *Service) Events(ctx context.Context, locale string) ([]Info, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[EventFields, EventText]",
+        "Doc": ""
+      },
+      {
+        "Name": "Upcoming",
+        "Signature": "func (s *Service) Upcoming(ctx context.Context, locale string, limit int) ([]Event, error)",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APIEvent",
+        "Doc": "\u003cp\u003eAPIEvent is a published event in the content API (see package api), at\n/api/v1/\u0026lt;key\u0026gt;/events/{id} and in the list of /api/v1/\u0026lt;key\u0026gt;/events, which\nleaves out BodyHTML.\n",
+        "Fields": null,
+        "Decl": "type APIEvent struct {\n\tID       string `json:\"id\"`\n\tSlug     string `json:\"slug\"`\n\tTitle    string `json:\"title\"`\n\tSummary  string `json:\"summary\"`\n\tBodyHTML string `json:\"body_html,omitempty\"`\n\tLocation string `json:\"location\"`\n\tAddress  string `json:\"address\"`\n\t// Start and End are in Timezone, with its offset; End is null for an\n\t// event without an end. For an all-day event they are the first and\n\t// the last day at midnight.\n\tStart    time.Time  `json:\"start\"`\n\tEnd      *time.Time `json:\"end\"`\n\tAllDay   bool       `json:\"all_day\"`\n\tTimezone string     `json:\"timezone\"`\n\t// Past is set once the event is over.\n\tPast bool `json:\"past\"`\n\t// URL is the event's page, null while the agenda is on no page; APIURL\n\t// the event in the API.\n\tURL       *string    `json:\"url\"`\n\tAPIURL    string     `json:\"api_url\"`\n\tImage     *api.Image `json:\"image\"`\n\tUpdatedAt time.Time  `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "Event",
+        "Doc": "\u003cp\u003eEvent is a published event as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Event struct {\n\tID       string\n\tTitle    string\n\tSummary  string\n\tBody     template.HTML\n\tLocation string\n\tAddress  string\n\t// Start and End are in Timezone; for \"UTC\" they are civil times (see\n\t// frontend.Civil). End is zero when the event has no end; for all-day\n\t// events it is the last day.\n\tStart    time.Time\n\tEnd      time.Time\n\tAllDay   bool\n\tTimezone string\n\t// URL is the event's page, empty when the agenda is on no page.\n\tURL string\n\t// ImageURL is the event's image as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); ImageSrcset lists smaller\n\t// copies for a srcset attribute, ImageWidth and ImageHeight are the\n\t// size of ImageURL and ImageOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the event has no image.\n\tImageURL         string\n\tImageSrcset      string\n\tImageOriginalURL string\n\tImageWidth       int\n\tImageHeight      int\n}"
+      },
+      {
+        "Name": "EventFields",
+        "Doc": "\u003cp\u003eEventFields are the language-independent parts of an event. Start and End\nare stored in UTC. All-day events start at midnight in Timezone and End is\nmidnight of their last day.\n",
+        "Fields": null,
+        "Decl": "type EventFields struct {\n\tStart    time.Time  `db:\"starts_at\"`\n\tEnd      *time.Time `db:\"ends_at\"`\n\tAllDay   bool       `db:\"all_day\"`\n\tTimezone string     `db:\"timezone\"`\n\tImage    string     `db:\"image_id,null\"`\n}"
+      },
+      {
+        "Name": "EventItem",
+        "Doc": "\u003cp\u003eEventItem is an event with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type EventItem = content.Item[EventFields, EventText]"
+      },
+      {
+        "Name": "EventText",
+        "Doc": "\u003cp\u003eEventText is an event in one language. Body is Markdown.\n",
+        "Fields": null,
+        "Decl": "type EventText struct {\n\tSlug     string `db:\"slug\"`\n\tTitle    string `db:\"title\"`\n\tSummary  string `db:\"summary\"`\n\tBody     string `db:\"body\"`\n\tLocation string `db:\"location_name\"`\n\tAddress  string `db:\"location_address\"`\n}"
+      },
+      {
+        "Name": "Info",
+        "Doc": "\u003cp\u003eInfo is an event as other modules see it, published or not, for example a\nregistrations module that lists events to sign up for and names them in\ne-mail. Get it with Service.Event and Service.Events, through\nwebthings.Env.Service.\n",
+        "Fields": null,
+        "Decl": "type Info struct {\n\tID string\n\t// Title is in the requested language, or in the first language the\n\t// event has when it is not translated.\n\tTitle string\n\t// Start and End are in Timezone, for \"UTC\" as civil times (see\n\t// frontend.Civil); End is zero when the event has none and the last day\n\t// for all-day events.\n\tStart    time.Time\n\tEnd      time.Time\n\tAllDay   bool\n\tTimezone string\n\t// Published is true when visitors can see the event in the requested\n\t// language; URL is then its address, when the agenda is on a page.\n\tPublished bool\n\tURL       string\n\t// Past is true once the event is over.\n\tPast bool\n}"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of events/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\tTitle  string\n\tEvents []Event\n\t// Past is true on the list of past events, newest first. Otherwise the\n\t// list holds upcoming and running events, soonest first.\n\tPast        bool\n\tUpcomingURL string\n\tPastURL     string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Events instance, for the website\u0026apos;s own code (for example\n\u0026quot;upcoming events\u0026quot; on the home page).\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.DocsIndexData */}}
+<article class="grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <p>Each component is a Go package of its own: use one, or all of them together. go-webthings itself is built from them.</p>
+
+    <section class="grid" aria-label="Components">
+        {{ range .Elements }}
+            <a href="{{ .Link }}" hx-get="{{ .Link }}" hx-target="#content" hx-push-url="true">
+                <img class="h-10 w-auto justify-self-start object-contain" src="{{ .Image }}" alt="{{ .Name }}">
+                <strong class="font-mono">{{ .Slug }}</strong>
+                <span>{{ .Description }}</span>
+            </a>
+        {{ end }}
+    </section>
+</article>

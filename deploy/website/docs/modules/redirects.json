@@ -1,0 +1,363 @@
+{
+  "Slug": "redirects",
+  "Name": "Redirects",
+  "Group": "Site",
+  "Summary": "Sends visitors from old addresses to new ones, counts the hits of every redirect and lists the paths visitors asked for that do not exist.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/redirects",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/redirects",
+  "Type": "redirects",
+  "Example": {
+    "Key": "redirects",
+    "Title": "Redirects",
+    "Code": "app.Use(redirects.Module())"
+  },
+  "Guide": "\u003cp\u003eIt is a site feature: one instance serves the whole site, for example after moving an existing website to WebThings. It has no templates or template functions.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(redirects.Module())\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe instance gets the key \u003ccode\u003eredirects\u003c/code\u003e and the title Redirects, translated in the admin; its section is at \u003ccode\u003e/admin/redirects\u003c/code\u003e (\u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e). \u003ccode\u003eNamed\u003c/code\u003e chooses another key and title:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(redirects.Module(redirects.Named(\u0026quot;old\u0026quot;, \u0026quot;Old addresses\u0026quot;)))\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"in-the-admin\"\u003eIn the admin\u003c/h2\u003e\n\u003cp\u003eThe list shows every redirect with its old path, new address, status, hits and last hit, in the site's timezone. \u003cstrong\u003eRedirects again\u003c/strong\u003e marks a redirect whose new address redirects once more.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eNew redirect\u003c/strong\u003e asks for the old path, the new address and the kind of redirect: 301 Moved permanently (the default), 302 Found (temporary), 307 Temporary redirect or 308 Permanent redirect. The new address is a path on this site, such as \u003ccode\u003e/en/news\u003c/code\u003e, or a full URL. A redirect that would lead back to its own path, directly or through other redirects, is refused. The edit screen warns when the new address redirects again, and when other redirects now take two steps to arrive.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e, on a redirect's edit screen, moves it to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e: it stops redirecting at once and its old path is free for a new redirect. Restoring it is refused when another redirect uses that path by then, or when it would lead back to its own path.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eTest a path\u003c/strong\u003e shows where a path leads, step by step, or that it belongs to the website itself.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMissed paths\u003c/strong\u003e lists the paths that ended in \u0026quot;not found\u0026quot;, most requested first. \u003cstrong\u003eAdd redirect\u003c/strong\u003e opens a new redirect with the old path filled in; a path leaves the list once it has a redirect. \u003cstrong\u003eClear list\u003c/strong\u003e empties it.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eImport\u003c/strong\u003e takes CSV lines pasted into a text box: the old path, the new address and, optionally, the status (301 when empty).\u003c/li\u003e\n\u003c/ul\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003efrom,to,status\n/about-us.html,/en/about,301\n/blog/2019/summer-party,/en/news/summer-party\nhttps://old.example.com/contact.php,/en/contact,302\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA first line whose first field is \u003ccode\u003efrom\u003c/code\u003e is skipped. The fields are separated by commas, semicolons or tabs, whichever the first line uses most, and a byte order mark at the start, as spreadsheet programs write, is ignored. A line whose old path already has a redirect replaces it. The import saves every line or, when one is wrong, none: the screen then lists the lines to correct. One import takes at most 5000 lines, and the box holds at most 262,144 characters: split a long list of long addresses over several imports.\u003c/p\u003e\n\u003cp\u003eEditors' rights are set in the groups' permission matrix, like those of any module instance.\u003c/p\u003e\n\u003ch2 id=\"redirects-from-the-editors\"\u003eRedirects from the editors\u003c/h2\u003e\n\u003cp\u003eWith this module, the admin also offers redirects where a page or an item, such as a post, leaves its address; see \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e, in the editor of a page that published content links to, takes the page offline and redirects its addresses, those of the pages below it and the linked addresses below those to a page the editor chooses. In the editor of a post, event, album, person, directory entry or category of Publishing or Directory that published content links to, it does the same with the item's address.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eRedirect the old addresses to the new ones\u003c/strong\u003e is a box with \u003cstrong\u003ePublish this revision\u003c/strong\u003e when the revision gives a page a new \u003cstrong\u003eWeb address\u003c/strong\u003e or another parent page, or a post or an event a new \u003cstrong\u003eWeb address\u003c/strong\u003e. It is ticked by default, and redirects the old addresses of the page and of the pages below it, or of the item, to their new ones.\u003c/li\u003e\n\u003cli\u003eSaving a published album, person, directory entry or category of Publishing or Directory with a new \u003cstrong\u003eWeb address\u003c/strong\u003e redirects its old address to the new one.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eCreate redirect\u003c/strong\u003e, in the report under \u003cstrong\u003ePages › Broken links\u003c/strong\u003e, redirects an address that links lead to and where the site has no page.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThese are 301 redirects, listed here with the others. A redirect from the same old path is replaced. A redirect from the new address, which would hide the page there, such as one left from moving the page away earlier, is moved to the trash, so a page can get its old web address back. Making them needs the create right in this module's row of the permission matrix; without it, the report says \u0026quot;You need the right to create redirects.\u0026quot;\u003c/p\u003e\n\u003ch2 id=\"how-it-works\"\u003eHow it works\u003c/h2\u003e\n\u003cp\u003eThe module wraps the public site. A GET or HEAD request whose path has a redirect is redirected before the site handles it, and before the site's output cache, so a redirect also wins over a page at the same address, at once, also while that page is in the cache. The query string is kept when the new address has none: \u003ccode\u003e/old?utm_source=mail\u003c/code\u003e goes to \u003ccode\u003e/en/new?utm_source=mail\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003ePaths are compared after normalising: the host, query and fragment are dropped, a leading slash is added, and trailing slashes and dot segments are removed. Editors can therefore paste full old URLs: \u003ccode\u003ehttps://old.example.com/a/?b=1\u003c/code\u003e becomes \u003ccode\u003e/a\u003c/code\u003e. Case counts, so \u003ccode\u003e/About\u003c/code\u003e and \u003ccode\u003e/about\u003c/code\u003e are different paths.\u003c/p\u003e\n\u003cp\u003eNever redirected are the home page \u003ccode\u003e/\u003c/code\u003e and the paths WebThings serves itself: the admin, visitor actions (\u003ccode\u003e/_/\u003c/code\u003e), \u003ccode\u003e/media/\u003c/code\u003e, \u003ccode\u003e/assets/\u003c/code\u003e and \u003ccode\u003e/theme/\u003c/code\u003e, with everything below them, \u003ccode\u003e/sitemap.xml\u003c/code\u003e, \u003ccode\u003e/robots.txt\u003c/code\u003e, the endpoints for operations, \u003ccode\u003e/healthz\u003c/code\u003e, \u003ccode\u003e/readyz\u003c/code\u003e and \u003ccode\u003e/metrics\u003c/code\u003e, and, while \u003ccode\u003eConfig.API\u003c/code\u003e turns it on, the content API (\u003ccode\u003e/api/v1\u003c/code\u003e). A redirect from one of these paths is refused.\u003c/p\u003e\n\u003cp\u003eMissed paths are GET requests that the site answered with 404. A 404 sent with \u003ccode\u003eX-Robots-Tag: noindex\u003c/code\u003e or \u003ccode\u003enone\u003c/code\u003e, such as a mistyped registration code, is not counted. The module keeps the 1000 most requested; the admin shows the first 100.\u003c/p\u003e\n\u003cp\u003eHits and missed paths are counted in memory and written to the database in batches: at most every 30 seconds, whenever the admin lists them, and when the app closes, so a redirect never waits for the database. The redirects themselves are kept in memory too: a change applies at once in the process that made it, and other processes on the same database pick it up within a minute.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003eredirects.Of(app, \u0026quot;redirects\u0026quot;)\u003c/code\u003e returns the instance once the app has started, for example to add the redirects of a migration in code:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003emoved := redirects.Of(app, \u0026quot;redirects\u0026quot;)\n\n_, err := moved.Save(ctx, redirects.Redirect{\n    From:   \u0026quot;/about-us.html\u0026quot;,\n    To:     \u0026quot;/en/about\u0026quot;,\n    Status: 301,\n})\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eImport\u003c/code\u003e reads the same CSV as the admin from any \u003ccode\u003eio.Reader\u003c/code\u003e, such as a file, and refuses one over 1 MiB or 5000 lines whole. \u003ccode\u003eResolve\u003c/code\u003e and \u003ccode\u003eTrace\u003c/code\u003e tell where a path leads, by the saved redirects: a path that is never redirected has none, as \u003ccode\u003eSave\u003c/code\u003e and \u003ccode\u003eImport\u003c/code\u003e refuse it. \u003ccode\u003eMissed\u003c/code\u003e returns the missed paths. \u003ccode\u003eDelete\u003c/code\u003e, \u003ccode\u003eUndelete\u003c/code\u003e and \u003ccode\u003ePurge\u003c/code\u003e move a redirect to the trash, bring it back or remove it for good.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eRedirect(ctx, address, target)\u003c/code\u003e saves a 301 from \u003ccode\u003eaddress\u003c/code\u003e to \u003ccode\u003etarget\u003c/code\u003e, as the editors do: it replaces the redirect from the same path and moves a redirect from \u003ccode\u003etarget\u003c/code\u003e to the trash. It refuses what \u003ccode\u003eSave\u003c/code\u003e refuses, such as a reserved path or a redirect that leads back to its own path. \u003ccode\u003eRedirected(ctx, address)\u003c/code\u003e returns where the redirect of a path sends visitors, and false when it has none. With \u003ccode\u003emoved\u003c/code\u003e as above:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eif err := moved.Redirect(ctx, \u0026quot;/en/about\u0026quot;, \u0026quot;/en/about-us\u0026quot;); err != nil {\n    return err\n}\n\n// \u0026quot;/en/about-us\u0026quot;, true\ntarget, ok := moved.Redirected(ctx, \u0026quot;/en/about\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eTogether they are the module's \u003ccode\u003elinks.Redirector\u003c/code\u003e, which it gives the app as \u003ccode\u003eParts.Redirects\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/module-feeds-and-links#links-to-pages\"\u003eLinks to pages\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/stats\"\u003eStats\u003c/a\u003e counts the pages visitors do find.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "Named",
+      "Signature": "func Named(key, title string) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": false,
+    "Actions": false,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": true,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": true,
+    "Service": "*redirects.Service"
+  },
+  "Admin": [
+    {
+      "ID": "redirects",
+      "Title": "Redirects",
+      "Path": "/admin/redirects",
+      "Permission": "redirects",
+      "Icon": "link",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": null,
+  "Funcs": [],
+  "Templates": [],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Redirects send an old path to a new address. from_path is normalised (see\n-- package redirects); to_url is a path on the site or an absolute URL.\nCREATE TABLE wt_redirect (\n    id          UUID PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    from_path   VARCHAR(500) NOT NULL,\n    to_url      VARCHAR(2000) NOT NULL,\n    status      INTEGER NOT NULL DEFAULT 301,\n    hits        BIGINT NOT NULL DEFAULT 0,\n    last_hit_at TIMESTAMPTZ,\n    created_at  TIMESTAMPTZ NOT NULL,\n    created_by  UUID,\n    updated_at  TIMESTAMPTZ NOT NULL,\n    updated_by  UUID,\n    deleted_at  TIMESTAMPTZ,\n    deleted_by  UUID\n);\n\n-- Redirects in the trash keep their path, but leave it free for a new one.\nCREATE UNIQUE INDEX wt_redirect_from ON wt_redirect (instance, from_path) WHERE deleted_at IS NULL;\n\n-- Missed paths are public GET requests that ended in 404, counted so editors\n-- can add redirects for them.\nCREATE TABLE wt_redirect_miss (\n    instance    VARCHAR(64) NOT NULL,\n    path        VARCHAR(500) NOT NULL,\n    hits        BIGINT NOT NULL DEFAULT 0,\n    last_hit_at TIMESTAMPTZ NOT NULL,\n    PRIMARY KEY (instance, path)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Redirects send an old path to a new address. from_path is normalised (see\n-- package redirects); to_url is a path on the site or an absolute URL.\nCREATE TABLE wt_redirect (\n    id          TEXT PRIMARY KEY,\n    instance    TEXT NOT NULL,\n    from_path   TEXT NOT NULL,\n    to_url      TEXT NOT NULL,\n    status      INTEGER NOT NULL DEFAULT 301,\n    hits        INTEGER NOT NULL DEFAULT 0,\n    last_hit_at TIMESTAMP,\n    created_at  TIMESTAMP NOT NULL,\n    created_by  TEXT,\n    updated_at  TIMESTAMP NOT NULL,\n    updated_by  TEXT,\n    deleted_at  TIMESTAMP,\n    deleted_by  TEXT\n);\n\n-- Redirects in the trash keep their path, but leave it free for a new one.\nCREATE UNIQUE INDEX wt_redirect_from ON wt_redirect (instance, from_path) WHERE deleted_at IS NULL;\n\n-- Missed paths are public GET requests that ended in 404, counted so editors\n-- can add redirects for them.\nCREATE TABLE wt_redirect_miss (\n    instance    TEXT NOT NULL,\n    path        TEXT NOT NULL,\n    hits        INTEGER NOT NULL DEFAULT 0,\n    last_hit_at TIMESTAMP NOT NULL,\n    PRIMARY KEY (instance, path)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Redirects send an old path to a new address. from_path is normalised (see\n-- package redirects); to_url is a path on the site or an absolute URL. Paths\n-- compare case-sensitively, like the rest of the site.\nCREATE TABLE wt_redirect (\n    id          VARCHAR(36) PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    from_path   VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n    to_url      VARCHAR(2000) NOT NULL,\n    status      INTEGER NOT NULL DEFAULT 301,\n    hits        BIGINT NOT NULL DEFAULT 0,\n    last_hit_at DATETIME(6) NULL,\n    created_at  DATETIME(6) NOT NULL,\n    created_by  VARCHAR(36) NULL,\n    updated_at  DATETIME(6) NOT NULL,\n    updated_by  VARCHAR(36) NULL,\n    deleted_at  DATETIME(6) NULL,\n    deleted_by  VARCHAR(36) NULL,\n    -- Redirects in the trash keep their path, but leave it free for a new\n    -- one: MySQL has no partial indexes, but allows many NULLs in a unique\n    -- one.\n    live_from   VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin AS (CASE WHEN deleted_at IS NULL THEN from_path END) STORED,\n    UNIQUE KEY wt_redirect_from (instance, live_from)\n) ENGINE=InnoDB;\n\n-- Missed paths are public GET requests that ended in 404, counted so editors\n-- can add redirects for them.\nCREATE TABLE wt_redirect_miss (\n    instance    VARCHAR(64) NOT NULL,\n    path        VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n    hits        BIGINT NOT NULL DEFAULT 0,\n    last_hit_at DATETIME(6) NOT NULL,\n    PRIMARY KEY (instance, path)\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_redirect",
+      "Note": "Redirects send an old path to a new address. from_path is normalised (see package redirects); to_url is a path on the site or an absolute URL.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "from_path",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "to_url",
+          "Type": "VARCHAR(2000)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "status",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 301"
+        },
+        {
+          "Name": "hits",
+          "Type": "BIGINT",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "last_hit_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "UNIQUE INDEX wt_redirect_from (instance, from_path)"
+      ]
+    },
+    {
+      "Name": "wt_redirect_miss",
+      "Note": "Missed paths are public GET requests that ended in 404, counted so editors can add redirects for them.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "path",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "hits",
+          "Type": "BIGINT",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "last_hit_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, path)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Normalize",
+        "Signature": "func Normalize(address string) (string, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "ClearMissed",
+        "Signature": "func (s *Service) ClearMissed(ctx context.Context) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Delete",
+        "Signature": "func (s *Service) Delete(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Flush",
+        "Signature": "func (s *Service) Flush(ctx context.Context) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Get",
+        "Signature": "func (s *Service) Get(ctx context.Context, id string) (Redirect, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Import",
+        "Signature": "func (s *Service) Import(ctx context.Context, source io.Reader) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "List",
+        "Signature": "func (s *Service) List(ctx context.Context) ([]Redirect, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Missed",
+        "Signature": "func (s *Service) Missed(ctx context.Context, limit int) ([]Miss, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Purge",
+        "Signature": "func (s *Service) Purge(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Redirect",
+        "Signature": "func (s *Service) Redirect(ctx context.Context, address, target string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Redirected",
+        "Signature": "func (s *Service) Redirected(ctx context.Context, address string) (string, bool)",
+        "Doc": ""
+      },
+      {
+        "Name": "Resolve",
+        "Signature": "func (s *Service) Resolve(ctx context.Context, requestPath string) (Redirect, bool)",
+        "Doc": ""
+      },
+      {
+        "Name": "Save",
+        "Signature": "func (s *Service) Save(ctx context.Context, redirect Redirect) (Redirect, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Trace",
+        "Signature": "func (s *Service) Trace(ctx context.Context, requestPath string) []Redirect",
+        "Doc": ""
+      },
+      {
+        "Name": "Trashed",
+        "Signature": "func (s *Service) Trashed(ctx context.Context, limit, offset int) ([]Redirect, int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Undelete",
+        "Signature": "func (s *Service) Undelete(ctx context.Context, id string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "EditView",
+        "Doc": "\u003cp\u003eEditView is the data of templates/admin/edit.gohtml: the form of one\nredirect.\n",
+        "Fields": null,
+        "Decl": "type EditView struct {\n\tTitle   string\n\tBackURL string\n\t// BackLabel names the list BackURL leads to, as a translation key.\n\tBackLabel string\n\t// Warnings point out chains of redirects.\n\tWarnings []string\n\t// Saved is set for an existing redirect, which has hits.\n\tSaved   bool\n\tHits    int64\n\tLastHit string\n\tForm    form.RenderModel\n\tErrors  form.FieldErrors\n\tDelete  *form.RenderModel\n}"
+      },
+      {
+        "Name": "ImportError",
+        "Doc": "\u003cp\u003eImportError lists the lines an import refused; nothing was saved.\n",
+        "Fields": null,
+        "Decl": "type ImportError struct {\n\tLines []LineError\n}"
+      },
+      {
+        "Name": "ImportView",
+        "Doc": "\u003cp\u003eImportView is the data of templates/admin/import.gohtml: the form that\nimports redirects from CSV.\n",
+        "Fields": null,
+        "Decl": "type ImportView struct {\n\tTitle   string\n\tBackURL string\n\t// Problems lists the refused lines; nothing was imported.\n\tProblems []string\n\tForm     form.RenderModel\n\tErrors   form.FieldErrors\n}"
+      },
+      {
+        "Name": "IndexRow",
+        "Doc": "\u003cp\u003eIndexRow is one redirect in the list, with how often it was used.\n",
+        "Fields": null,
+        "Decl": "type IndexRow struct {\n\tURL     string\n\tFrom    string\n\tTo      string\n\tStatus  int\n\tHits    int64\n\tLastHit string\n\t// Chained is set when To leads to another redirect.\n\tChained bool\n}"
+      },
+      {
+        "Name": "IndexView",
+        "Doc": "\u003cp\u003eIndexView is the data of templates/admin/index.gohtml: the redirects,\nwith a box to test where a path leads.\n",
+        "Fields": null,
+        "Decl": "type IndexView struct {\n\tTitle     string\n\tNewURL    string\n\tImportURL string\n\tMissedURL string\n\t// TrashURL shows the deleted redirects in the admin's trash.\n\tTrashURL string\n\t// TestURL is where the test box sends ?test=\u003cpath\u003e.\n\tTestURL string\n\t// TestForm is the test box, a form that gets TestURL.\n\tTestForm form.RenderModel\n\tTest     *TestResult\n\tRows     []IndexRow\n\t// Pager pages through long lists.\n\tPager admin.Pager\n}"
+      },
+      {
+        "Name": "LineError",
+        "Doc": "\u003cp\u003eLineError is a CSV line an import refused.\n",
+        "Fields": null,
+        "Decl": "type LineError struct {\n\tLine int\n\tErr  error\n}"
+      },
+      {
+        "Name": "Miss",
+        "Doc": "\u003cp\u003eMiss is a path that was not found, with how often and when it was last\nrequested.\n",
+        "Fields": null,
+        "Decl": "type Miss struct {\n\tPath    string    `db:\"path\"`\n\tHits    int64     `db:\"hits\"`\n\tLastHit time.Time `db:\"last_hit_at\"`\n}"
+      },
+      {
+        "Name": "MissedRow",
+        "Doc": "\u003cp\u003eMissedRow is one path that was not found, with how often it was asked\nfor.\n",
+        "Fields": null,
+        "Decl": "type MissedRow struct {\n\tPath    string\n\tHits    int64\n\tLastHit string\n\t// AddURL opens a new redirect for the path; empty without the right.\n\tAddURL string\n}"
+      },
+      {
+        "Name": "MissedView",
+        "Doc": "\u003cp\u003eMissedView is the data of templates/admin/missed.gohtml: the paths\nvisitors asked for that the site does not have.\n",
+        "Fields": null,
+        "Decl": "type MissedView struct {\n\tTitle   string\n\tBackURL string\n\tRows    []MissedRow\n\tClear   *form.RenderModel\n}"
+      },
+      {
+        "Name": "Redirect",
+        "Doc": "\u003cp\u003eRedirect sends requests for From to To.\n",
+        "Fields": null,
+        "Decl": "type Redirect struct {\n\tID string `db:\"id\"`\n\t// From is the normalised old path, for example \"/old-page\".\n\tFrom string `db:\"from_path\"`\n\t// To is a path on the site, such as \"/en/news\", or an absolute URL.\n\tTo      string     `db:\"to_url\"`\n\tStatus  int        `db:\"status\"`\n\tHits    int64      `db:\"hits\"`\n\tLastHit *time.Time `db:\"last_hit_at\"`\n\t// CreatedAt is when the redirect was added, CreatedBy by whom (empty for\n\t// the system).\n\tCreatedAt time.Time `db:\"created_at\"`\n\tCreatedBy db.Ref    `db:\"created_by\"`\n\t// UpdatedAt and UpdatedBy are the last change by an editor; hits do not\n\t// count as changes.\n\tUpdatedAt time.Time `db:\"updated_at\"`\n\tUpdatedBy db.Ref    `db:\"updated_by\"`\n\t// DeletedAt is set while the redirect is in the trash, with DeletedBy.\n\tDeletedAt *time.Time `db:\"deleted_at\"`\n\tDeletedBy db.Ref     `db:\"deleted_by\"`\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Redirects instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "TestResult",
+        "Doc": "\u003cp\u003eTestResult is what the test box found for a path.\n",
+        "Fields": null,
+        "Decl": "type TestResult struct {\n\tPath     string\n\tReserved bool\n\tSteps    []IndexRow\n}"
+      }
+    ]
+  }
+}

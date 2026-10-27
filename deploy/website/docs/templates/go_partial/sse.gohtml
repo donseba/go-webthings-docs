@@ -13,6 +13,11 @@ notice := partial.NewID("notice", "templates/notice.gohtml").
 _ = events.PatchPartial(r.Context(), r, "#notice", notice)
 _ = events.Signal("saved", true)
 events.Flush()</code></pre>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">PatchPartial</code> renders the partial itself (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial.RenderSelf</code>), whatever the request targets, without out-of-band regions. A partial that is not in a tree renders with the functions, stages, file system and models of the application's root through <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">events.SetParent(root)</code>, which changes neither the partial nor the root. A patch replaces its target (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">outerHTML</code>).</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">events := sse.NewWriter(w).SetParent(root)
+viewers := partial.NewID("viewers", "viewers.gohtml").SetDot(view)
+
+_ = events.PatchPartial(r.Context(), r, "#viewers", viewers)</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">Client listener</h2>
     <p class="leading-7 text-slate-400">The default event names are neutral. Your client can decide whether to replace <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">outerHTML</code>, update state, or hand the HTML to another library.</p>
@@ -45,5 +50,57 @@ stream.addEventListener("partial:signal", (event) =&gt; {
 
     <h2 class="text-xl font-bold text-slate-50">Concurrency notes</h2>
     <p class="leading-7 text-slate-400">An <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.Writer</code> owns one HTTP response stream. If several goroutines produce updates, serialize calls through your own channel or mutex so event frames are not interleaved. Partial rendering can still use the request context for cancellation and request-scoped sinks before each event is written.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Browser client</h2>
+    <p class="leading-7 text-slate-400">The browser client of <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">exp/sse</code> is a small script, with no build step and no other library, served from <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">clients.FS()</code>. It replaces the elements each patch's target selects with its HTML (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">outerHTML</code>), dispatches <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial:signal</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial:error</code> as DOM events, and opens a stream for every element with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream</code> while it is in the page. It works with every connector; with htmx loaded, patched content is processed by htmx.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServerFS(clients.FS())))
+
+&lt;script src="/assets/partial-sse.js"&gt;&lt;/script&gt;
+&lt;ul id="activity" data-partial-stream="/activity/events"&gt;&lt;/ul&gt;</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">Hidden tabs and changing URLs</h2>
+    <p class="leading-7 text-slate-400">A stream follows its element: when the URL in <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream</code> changes, the client streams from the new one. With <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream-hidden="30s"</code>, the stream closes once the tab has been hidden that long (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial:stream:paused</code>) and opens again when it shows, with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial:stream:reconnect</code> on the element, so the page can fetch what it missed. A page restored from the back/forward cache opens its streams again, also with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial:stream:reconnect</code>.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">&lt;aside id="presence" data-partial-stream="/events/presence" data-partial-stream-hidden="30s"&gt;&lt;/aside&gt;</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">Client ids and beacons</h2>
+    <p class="leading-7 text-slate-400">With <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream-client-id="tab"</code>, the client adds an id of the browser tab to the stream URL as that parameter, the same for the life of the page, so the server tells the tabs of one browser apart; scripts read it as <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">goPartialSSE.clientId</code>.</p>
+    <p class="leading-7 text-slate-400">With <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream-beacon="/presence"</code>, the client POSTs <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">clientId</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">params</code> (the stream URL's query) and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">reason</code> to that address as a form: <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">beat</code> every <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">data-partial-stream-beat="15s"</code>, also while the tab is hidden; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">hidden</code> when the stream closes as the tab is hidden; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">removed</code> when the element leaves the page; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">pagehide</code> when the page is left. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.ReadBeacon(r)</code> reads one, and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">beacon.Reason.Leaving()</code> is true for the last two.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">beacon, err := sse.ReadBeacon(r)
+if err != nil {
+    http.Error(w, "invalid_beacon", http.StatusBadRequest)
+    return
+}
+if beacon.Reason.Leaving() {
+    presence.Leave(beacon.Params.Get("tab"))
+} else {
+    presence.Visit(beacon.Params.Get("tab"), beacon.Params.Get("page"))
+}</code></pre>
+    <p class="leading-7 text-slate-400">Templates write the client's attributes with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ sseAttrs }}" }}</code> from <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.FuncMap()</code>, which writes nothing without a URL; in Go, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.ClientStream{...}.Attrs()</code>. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">clients.FS()</code> holds the client as the file <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">partial-sse.js</code>.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">&lt;div{{ "{{ sseAttrs .PresenceStream \"clientId\" \"tab\" \"hidden\" \"30s\" \"beat\" \"15s\" \"beacon\" \"/presence\" }}" }}&gt;&lt;/div&gt;</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">Streams many clients follow</h2>
+    <p class="leading-7 text-slate-400">A <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.Broker</code> fans messages out to the streams that follow a topic, such as everyone looking at the same page. It keeps its state in memory, so it serves the streams of one process, and is safe for concurrent use. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Publish</code> never blocks and reports how many subscriptions received the message; a subscription whose buffer is full misses it.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">broker := sse.NewBroker(sse.BrokerOptions{MaxSubscribers: 1000, MaxPerKey: 10, Buffer: 1})
+defer broker.Close()
+
+// When something changes:
+broker.Publish("page:/about", sse.Message{Event: "changed", Data: "/about"})</code></pre>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">MaxSubscribers</code> caps the open subscriptions and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">MaxPerKey</code> those that share a key, such as the streams of one user; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Subscribe</code> then fails with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">sse.ErrTooManySubscribers</code>. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Writer.Serve</code> streams a subscription's messages until the request ends, the subscription closes or a write fails, flushing after each. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Heartbeat</code> writes a comment at that interval, which keeps proxies from closing an idle stream; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Handle</code> writes a message, such as a partial rendered for this client.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">func stream(w http.ResponseWriter, r *http.Request) {
+    subscription, err := broker.Subscribe(userID(r), "page:"+r.URL.Query().Get("page"))
+    if err != nil {
+        http.Error(w, "too_many_streams", http.StatusTooManyRequests)
+        return
+    }
+    defer subscription.Close()
+
+    events := sse.NewWriter(w).SetParent(root)
+    _ = events.Serve(r.Context(), subscription, sse.ServeOptions{
+        Heartbeat: 25 * time.Second,
+        Handle: func(stream *sse.Writer, message sse.Message) error {
+            return stream.PatchPartial(r.Context(), r, "#viewers", viewersPartial(r))
+        },
+    })
+}</code></pre>
 </article>
 

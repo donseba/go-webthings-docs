@@ -1,0 +1,19 @@
+{{/*
+@dot donseba/go-webthings-docs/internal/website.DocsRailPage
+*/}}
+{{ define "rail.gohtml" }}
+<nav id="docs-rail" class="docs-rail sticky top-16 grid h-[calc(100vh-4rem)] w-[200px] flex-none content-start gap-5 overflow-auto border-r border-slate-800/80 px-3 py-6 max-[900px]:static max-[900px]:h-auto max-[900px]:w-auto max-[900px]:border-r-0 max-[900px]:border-b"{{ oobAttr }} aria-label="Contents">
+    {{ range .Groups }}
+        <section class="grid gap-1">
+            {{ with .Name }}<h2 class="mb-1 px-2 font-mono text-xs font-extrabold uppercase tracking-wide text-slate-500">{{ . }}</h2>{{ end }}
+            {{ range .Items }}
+                <a class="docs-rail-item {{ if .Active }}is-active{{ end }}" href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true"{{ if .Active }} aria-current="true"{{ end }}>
+                    {{ if .Icon }}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/assets/img/icons.svg#{{ .Icon }}"></use></svg>{{ end }}
+                    <span{{ if .Code }} class="font-mono lowercase"{{ end }}>{{ .Label }}</span>
+                </a>
+            {{ end }}
+        </section>
+    {{ end }}
+</nav>
+{{ end }}
+{{ template "rail.gohtml" . }}

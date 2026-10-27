@@ -6,20 +6,30 @@
 protected := renderer.CSRFMiddleware()(handler)
 // GET and POST use protected; render with WithRequestInfo inside handler.</code></pre>
 <h2>Token lifecycle</h2>
-<ol><li>A safe request gets a session and a token in its context.</li><li><code>WithRequestInfo</code> includes that token as the hidden <code>_csrf</code> field.</li><li>An unsafe request must supply the existing session cookie and token.</li><li>The middleware consumes that token and creates a fresh token for redisplay.</li></ol>
+<ol><li>A safe request gets a session and a token in its context.</li><li><code>WithRequestInfo</code> includes that token as the hidden <code>_csrf</code> field (or the field of <code>CSRFOptions.FieldName</code>), which <code>form_render</code>, <code>form_open</code> and <code>form_hidden</code> render.</li><li>An unsafe request must supply the existing session cookie and token.</li><li>The middleware consumes that token and creates a fresh token for redisplay.</li><li>Every token it issues renews the session cookie, for as long as the store keeps tokens.</li></ol>
 <p>Tokens are session-bound and stored independently. Opening another form does not invalidate the first; successfully consuming a token prevents reusing that submission. Input validation happens after the middleware, so an invalid form can be returned with a fresh token.</p>
 <h2>One renderer, one configuration</h2>
 <p>GET and POST must use the same configured renderer or a shared compatible store. Creating a renderer for each request loses the token store. The default memory store belongs to one process and has expiration/cleanup; configure a shared store for multiple instances.</p>
+<p>The default store keeps a token for <code>csrf.DefaultExpirationTime</code> (10 minutes); <code>renderer.SetCSRFStore(csrf.NewDefaultMemoryCSRFStore(30*time.Minute))</code> keeps tokens longer. The session cookie lasts as long as a token: every page that gets a token and every accepted submission renew it, for the lifetime the store reports with <code>Lifetime() time.Duration</code> (<code>csrf.ExpiringStore</code>), or for <code>csrf.DefaultExpirationTime</code>.</p>
+<p>The middleware keeps its session in the cookie <code>session_id</code> (<code>csrf.DefaultSessionID</code>) and reads the token from the field <code>_csrf</code> (<code>form.DefaultCSRFField</code>). Change these variables at startup when your application uses the same names. <code>CSRFOptions.FieldName</code> sets the field for one middleware; forms that get their token from <code>WithRequestInfo</code> or <code>WithContextInfo</code> render it in that field, and a form that sets <code>Info.CsrfField</code> must name the same field.</p>
 <pre><code>type Store interface {
     Store(key, token string) error
     Validate(key, token string) error
 }
 type TokenConsumer interface {
     Consume(key, token string) error
+}
+type ExpiringStore interface {
+    Store
+    Lifetime() time.Duration
 }</code></pre>
-<p>A shared store should also implement <code>csrf.TokenConsumer</code> to validate and consume a token atomically. Treat the key passed to the store as opaque. Separate validation and replacement do not give the same concurrent replay guarantee as an atomic backend operation.</p>
+<p>A shared store should also implement <code>csrf.TokenConsumer</code> to validate and consume a token atomically, and <code>csrf.ExpiringStore</code> when its tokens last another time than <code>csrf.DefaultExpirationTime</code>. Treat the key passed to the store as opaque. Separate validation and replacement do not give the same concurrent replay guarantee as an atomic backend operation.</p>
 <pre><code>renderer.SetCSRFStore(sharedStore)</code></pre>
 <h2>Error handling</h2>
 <p><code>CSRFMiddlewareWithOptions</code> accepts <code>CSRFOptions.ErrorHandler</code>. Missing session/token errors use 400; mismatched, missing or expired stored tokens use 403 by default. The error handler can render an application page, but should not continue into the protected command.</p>
+<h2>Without tokens</h2>
+<pre><code>protection := http.NewCrossOriginProtection()
+mux.Handle("/", protection.Handler(handler))</code></pre>
+<p>Since Go 1.25, <code>http.CrossOriginProtection</code> refuses cross-origin form posts using the <code>Sec-Fetch-Site</code> and <code>Origin</code> headers that browsers send. It keeps no state, so it works across application instances without a shared store. Wrap the handlers with it and leave out the CSRF middleware; <code>WithRequestInfo</code> then adds no token, and forms render without one. Use the token middleware for browsers that send neither header, or when you need tokens for another reason.</p>
 <p>CSRF protection does not authenticate a user or authorize a command. Those decisions remain in your application middleware and service.</p>
 </article>

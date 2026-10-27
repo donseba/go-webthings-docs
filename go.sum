@@ -1,9 +1,9 @@
 github.com/donseba/go-clue v0.13.6-0.20261003092711-0d401074bc21 h1:Y5RwSX2S5aogztmFvIJG0LtFbBfScEGuYvgPyBFvPiY=
 github.com/donseba/go-clue v0.13.6-0.20261003092711-0d401074bc21/go.mod h1:LP0DkGlsfshhbVIrdJVGaIpfiwxUHPqwUzzbvbU3njM=
-github.com/donseba/go-partial v0.9.0 h1:xMqVgKEZ25eNq+HVl7hxjNRRJxyDxtezeaj3KlXgX7o=
-github.com/donseba/go-partial v0.9.0/go.mod h1:+cSPTFl0hsZJdsh0COYNLmvugr3ZDLjUum9PuGAkjIM=
-github.com/donseba/go-router v0.9.0 h1:gMAxc5CEMQf8/wkXuk/VAKfETOk8+GtBSX32UbRFzPM=
-github.com/donseba/go-router v0.9.0/go.mod h1:v++aGKy3vLsBP8mJugmQeSaBGY9bwSiBQRsWGEsGvJ0=
+github.com/donseba/go-partial v0.15.0 h1:sl74cIu/qtPgnN7FT3gNKsmpPvrpDTxlnAtyymRftZ0=
+github.com/donseba/go-partial v0.15.0/go.mod h1:c+kmuU4zNfFSeEaOTz5lIJTUFtSxGhRp8dC68KBv2Is=
+github.com/donseba/go-router v0.12.0 h1:HxVMHNrAxTKbGu1VlWV3PejZGA5pgrYeGHRQmLTixk0=
+github.com/donseba/go-router v0.12.0/go.mod h1:v++aGKy3vLsBP8mJugmQeSaBGY9bwSiBQRsWGEsGvJ0=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 golang.org/x/image v0.43.0 h1:FLxcP4ec2350nTfOC8ysKtqYSIFbk/QGjw1ZHNP4tsY=

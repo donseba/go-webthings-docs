@@ -3,14 +3,21 @@
     {{ template "hero.gohtml" . }}
 
 <h2>What it does</h2>
-<p><code>RequestID</code> reads <code>X-Request-ID</code> from the request, or generates a 16-byte random hex value when the header is missing.</p>
-<pre><code>r.Use(middleware.RequestID)</code></pre>
+<p><code>RequestID</code> keeps the <code>X-Request-ID</code> of the request when it is valid: 1 to 64 letters, digits and <code>-_.:</code> characters. Otherwise it generates a random ID of 32 hex characters, so a client cannot put arbitrary text into your logs. <code>ValidRequestID</code> is the rule.</p>
+<pre><code>r.UseAll(middleware.RequestID)</code></pre>
 
 <h2>Response and context</h2>
 <p>The middleware writes the same value to the response header and stores it on the request context.</p>
 <pre><code>requestID := middleware.GetRequestID(req.Context())</code></pre>
 
+<h2>Options</h2>
+<p><code>RequestIDWithOptions</code> changes the header and the generator, and can put the ID into other contexts too, such as that of a metrics or tracing library.</p>
+<pre><code>r.UseAll(middleware.RequestIDWithOptions(middleware.RequestIDOptions{
+    Header:      "X-Correlation-ID",
+    WithContext: metrics.WithRequestID, // func(context.Context, string) context.Context
+}))</code></pre>
+
 <h2>Recommended placement</h2>
-<p>Put <code>RequestID</code> early in the stack so logging and downstream handlers can include the same correlation value.</p>
+<p>Put <code>RequestID</code> early in the stack so logging and downstream handlers can include the same correlation value. With <code>UseAll</code>, the router's own redirects and 404 answers get an ID as well. <code>middleware.LogHandler</code> adds the ID to every <code>log/slog</code> record logged with the request's context.</p>
 </article>
 

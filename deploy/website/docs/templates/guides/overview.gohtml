@@ -1,0 +1,16 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.GuidesIndexData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    {{ range .Groups }}
+        <h2 id="{{ .Name }}">{{ .Name }}</h2>
+        <section class="module-grid" aria-label="{{ .Name }}">
+            {{ range .Guides }}
+                <a class="module-card" href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true">
+                    <strong>{{ .Title }}</strong>
+                    <span class="module-card-summary">{{ .Summary }}</span>
+                </a>
+            {{ end }}
+        </section>
+    {{ end }}
+</article>

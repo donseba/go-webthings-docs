@@ -3,11 +3,11 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Mount any handler</h2>
-<p><code>Mount</code> places an <code>http.Handler</code> under a path prefix. This is useful for debug handlers, admin tools, and small embedded apps.</p>
+<p><code>Mount</code> places an <code>http.Handler</code> under a path prefix. This is useful for debug handlers, admin tools, and small embedded apps. A handler that is not a <code>*router.Router</code> sees the path without the mount path, as with <code>http.StripPrefix</code>.</p>
 <pre><code>r.Mount("/debug", http.DefaultServeMux)</code></pre>
 
 <h2>Mount child routers</h2>
-<p>When the mounted handler is another <code>*router.Router</code>, go-router propagates route names, route walking metadata, and OpenAPI data into the parent.</p>
+<p>A mounted <code>*router.Router</code> becomes part of the router it is mounted on: its routes, route names, hosts and OpenAPI paths show up there below the mount path, also those registered after <code>Mount</code>, until the first request freezes both.</p>
 <pre><code>api := router.New(http.NewServeMux(), "API", "1.0.0")
 api.Get("/users/{id}", showUser).As("api.users.show")
 
@@ -17,6 +17,43 @@ path := r.RoutePathWithParams("api.users.show", map[string]any{
     "id": 123,
 })
 // "/api/users/123"</code></pre>
+
+<h2>Public paths</h2>
+<p>The handlers and middleware of a mounted router see the request URL as the outer router received it: <code>req.URL.Path</code> is <code>/api/users/123</code>, and <code>req.PathValue("id")</code> works as usual. Its reverse routing resolves through the outermost router it is mounted on, so <code>api.RoutePath("api.users.show")</code> is <code>/api/users/{id}</code> as well, and a root route <code>/{$}</code> is <code>/api/</code>. Its trailing slash redirects, and those of its <code>ServeMux</code>, go to the public path.</p>
+
+<h2>The mount is a route</h2>
+<p><code>Mount</code> returns the mount as a <code>*router.RouteRegistration</code>. It can be named, get route middleware, which runs for every request of the mount, and labels, which the mounted router's routes get as well.</p>
+<pre><code>r.Mount("/admin", admin).Use(requireLogin).Label("admin")</code></pre>
+<p><code>Mount</code> panics for a mount path that is taken, and for a router mounted on itself or on a router mounted on it. <code>TryMount</code> returns the mount and an error instead; the mount is <code>nil</code> when there is an error.</p>
+<pre><code>mount, err := r.TryMount("/admin", admin)
+if err != nil {
+    return err
+}
+
+if err := mount.TryLabel("admin"); err != nil {
+    return err
+}</code></pre>
+
+<h2>Mount options</h2>
+<p><code>router.NamePrefix</code> puts a prefix before the route names of a mounted router, so a router can be mounted more than once, such as one per instance of a module. <code>router.AbsolutePaths</code> mounts a router whose patterns include the mount path already.</p>
+<pre><code>r.Mount("/_/comments", comments, router.NamePrefix("comments."))
+r.RoutePath("comments.post") // "/_/comments/post"
+
+r.Mount("/admin", admin, router.AbsolutePaths()) // admin registers /admin/... itself</code></pre>
+<p>A handler with a <code>Router() *router.Router</code> method, such as a type that wraps its router in middleware of its own, is mounted as that router: its routes become part of the parent, and requests are served through the handler.</p>
+
+<h2>Serving at a prefix per request</h2>
+<p>A router whose address is only known per request, such as a module on a page that editors can move, is not mounted. The handler that knows where it is serves the request with <code>ServeAt</code>, which mounts the router at that prefix for that request. <code>For(req)</code> gives the router's public paths in such a request, and <code>At(prefix)</code> the same paths without a request, such as for a feed.</p>
+<pre><code>site.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+    page := pages.Resolve(req.URL.Path) // the news page is at /en/news
+    news.ServeAt(w, req, page.Path, router.NamePrefix("news."))
+}))
+
+// in a handler of news
+self, _ := news.For(req).RoutePathArgs("show", "slug", req.PathValue("slug"))
+
+// outside a request
+link, _ := news.At("/en/news").RoutePathArgs("show", "slug", "hello") // "/en/news/hello"</code></pre>
 
 <h2>Host routes inside mounted routers</h2>
 <p>Mounted routers keep their child host registrations. That lets a composed app still own its exact-host or subdomain routes.</p>

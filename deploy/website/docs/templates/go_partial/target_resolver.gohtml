@@ -21,13 +21,14 @@
 &lt;/tr&gt;</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">Wire the resolver</h2>
-    <p class="leading-7 text-slate-400">The connector reads the requested target from the request. For HTMX this is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">HX-Target</code>. If the target is not a registered region ID, go-partial asks the resolver whether it can map that target to a partial and fresh dot value.</p>
+    <p class="leading-7 text-slate-400">The connector reads the requested target from the request. For HTMX this is <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">HX-Target</code>. If the target is not a registered region ID, go-partial asks the resolver whether it can map that target to a partial and fresh dot value. The resolver runs in <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">target.Stage()</code>, which must be in use, and is looked up on the partial passed to <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Write</code> and its ancestors.</p>
 
     <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">rowPartial := partial.NewID("row", "templates/users/user_row.gohtml")
 
 table := partial.NewID("content", "templates/users/table.gohtml").
     SetDot(UserTablePage{Rows: rows}).
-    With(rowPartial)
+    With(rowPartial).
+    Use(target.Stage())
 
 target.WithResolver(table, func(ctx context.Context, r *http.Request, target string) (*partial.Partial, bool) {
     if !strings.HasPrefix(target, "row-") {
@@ -54,16 +55,56 @@ target.WithResolver(table, func(ctx context.Context, r *http.Request, target str
         <li>go-partial first checks for a registered region with ID <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">row-42</code>.</li>
         <li>If no registered region exists, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">target.WithResolver</code> receives <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">row-42</code>.</li>
         <li>The resolver returns the row template partial with fresh dot data for row 42.</li>
-        <li>Only that row template is rendered and swapped into <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">#row-42</code>.</li>
+        <li>The row template is rendered, followed by the out-of-band regions of the partial that resolved it and of its ancestors, and swapped into <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">#row-42</code>.</li>
     </ol>
 
     <h2 class="text-xl font-bold text-slate-50">Rules of thumb</h2>
     <ul class="docs-list list-disc">
         <li>Keep DOM IDs stable and unique, such as <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">row-{{ "{" }}id{{ "}" }}</code>.</li>
         <li>Do not cache row HTML when row data can change. Resolve fresh data per request.</li>
-        <li>Return <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">false</code> for unknown target shapes so normal registered-region lookup and errors stay predictable.</li>
+        <li>Return <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">false</code> for unknown target shapes, so the target fallback or the usual error answers them.</li>
         <li>Use native <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">template</code> calls for repeated rendering, and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">target.WithResolver</code> for targeted replacement of one repeated item.</li>
     </ul>
+
+    <h2 class="text-xl font-bold text-slate-50">Regions of resolved targets</h2>
+    <p class="leading-7 text-slate-400">A resolved partial gets the out-of-band regions of the partial that resolved it and of its parents, as a registered child does. A target an earlier stage resolved is left as it is.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Fragments and regions with slots</h2>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">exp/slots</code> covers two common targets without a resolver. A region is placed on the page with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ slot \"cart\" }}" }}</code> and sent out of band with every partial response; a fragment is answered on its own when a request targets its ID and the page can render it, else left to the target fallback. Slots are looked up through the ancestors, so a content template can place a slot of the layout.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">root.Use(slots.Stage())
+slots.Set(root, "cart", cart, slots.OOB())
+slots.Set(root, "comments", comments, slots.CheckContracts(), slots.OmitOOB())</code></pre>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">CheckContracts</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">OmitOOB</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Deferred</code> make a slot standalone: the stage answers requests for its ID. A slot without options is registered as a child of the partial it is set on. Out-of-band regions go in the order they were registered, nearest partial first, so the same page gives the same bytes on every render.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Deferred, globbed and required slots</h2>
+    <p class="leading-7 text-slate-400">A deferred slot loads after the page: <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ slot }}" }}</code> renders a placeholder that requests the slot from the page's address through the connector, and the request renders the slot alone, with its lazy dot. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">slots.Placeholder(p)</code> renders a placeholder of the application's own with a <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">slots.PlaceholderData</code> dot, and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">slots.Data(v)</code> gives that dot data of the slot's own. See <a href="{{ basePath }}/deferred" hx-get="{{ basePath }}/deferred" hx-target="#content" hx-push-url="true">Deferred partials</a>.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">slots.Set(root, "recent", recent.SetDotSource(partial.DotFuncOf(loadRecent)), slots.Deferred(), slots.OmitOOB())</code></pre>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">slots.Glob</code> sets a slot for every file of a directory, named after the file (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">menu</code> for <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">regions/menu.gohtml</code>), and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">slots.Setup</code> configures each slot's partial. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ requiredSlot \"name\" }}" }}</code> fails the template for a slot that is not set; <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ hasSlot \"name\" }}" }}</code> checks optional ones. The template that places a slot can defer it itself with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ deferredSlot \"popular\" \"reveal\" }}" }}</code>.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">err := slots.Glob(root, "regions/*.gohtml", slots.OOB(), slots.Setup(func(name string, region *partial.Partial) {
+    region.SetDot(view)
+}))</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">Sending only some elements of a region</h2>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetOOBElements(ids...)</code> makes a region that goes out of band send only the elements of its output with those IDs, each with the connector's out-of-band attribute, such as the items of a menu that mark the page being shown. When none of the IDs is in the output, the whole region goes; on a full page the region renders whole. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetOOBElementsFunc(fn)</code> chooses the IDs per request and names the request headers they depend on for <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Vary</code>.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">menu := partial.NewID("menu", "templates/menu.gohtml").SetOOBElements("menu-about", "menu-contact")
+
+menu.SetOOBElementsFunc(func(r *http.Request) partial.OOBElements {
+    return partial.OOBElements{
+        IDs:  changedItems(connector.CurrentURL(conn, r), r.URL),
+        Vary: []string{connector.CurrentURLHeader(conn)},
+    }
+})</code></pre>
+
+    <h2 class="text-xl font-bold text-slate-50">A region in the head</h2>
+    <p class="leading-7 text-slate-400">A region placed in <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">&lt;head&gt;</code>, with the page's canonical, alternate and feed links, description or structured data, cannot go out of band as other regions do: <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">&lt;head&gt;</code> holds no element to wrap it, and the number of its elements changes from page to page. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">head.Region(p)</code> of <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">exp/head</code> makes a partial such a region. On a full page its output sits between two empty <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">&lt;template&gt;</code> markers (<code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">head.StartAttr</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">head.EndAttr</code>); out of band it replaces whatever is between them, as a group.</p>
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">region := head.Region(partial.NewID("head", "regions/head.gohtml").SetDot(page))
+slots.Set(root, "head", region, slots.OOB())
+
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    {{ "{{ slot \"head\" }}" }}
+&lt;/head&gt;</code></pre>
+    <p class="leading-7 text-slate-400">With htmx 2 and 4 the region goes as two out-of-band swaps that need no extension: a delete of the elements between the markers and an insert before the end marker. A <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">&lt;title&gt;</code> in the region's output goes on its own, where htmx sets the document's title from it. The region needs no ID and no <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">{{ "{{ oobAttr }}" }}</code>. With a connector whose out-of-band attribute is not <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">hx-swap-oob</code>, such as Unpoly's, the output goes as it is.</p>
 </article>
 
 

@@ -39,20 +39,30 @@ root.Use(localization.Stage())</code></pre>
 &lt;small&gt;{{ "{{ locale }}" }}&lt;/small&gt;</code></pre>
 
     <h2 class="text-xl font-bold text-slate-50">With go-translator</h2>
-    <p class="leading-7 text-slate-400"><a href="https://github.com/donseba/go-translator">github.com/donseba/go-translator</a> is a good fit for this hook. It supports dynamic languages from PO files, template integration, plural forms, contextual translations, and prefix handling.</p>
+    <p class="leading-7 text-slate-400"><a href="https://github.com/donseba/go-translator/tree/v2.0.0">github.com/donseba/go-translator/v2</a> is a good fit for this hook. It supports dynamic languages from PO files, template integration, plural forms, contextual translations, and prefix handling.</p>
 
     <p class="leading-7 text-slate-400">go-translator already exposes <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">tr.FuncMap()</code>, including <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">tl</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">tn</code>, <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">ctl</code>, and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">ctn</code>. Wire those functions into the Root partial:</p>
 
-    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">tr := translator.NewTranslator("translations", "templates")
-_ = tr.AddLanguage("en_US")
-_ = tr.AddLanguage("nl_NL")
+    <pre class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-2xl"><code class="block border-0 bg-transparent p-0 font-mono text-sm text-inherit">import "github.com/donseba/go-translator/v2" // package translator
+
+tr := translator.NewTranslator("translations", "templates")
+for _, lang := range []string{"en_US", "nl_NL"} {
+    if err := tr.SetLanguage(lang); err != nil {
+        log.Fatal(err)
+    }
+}
 
 root := partial.New("shell.gohtml").
     SetConnector(connector.NewHTMX(nil))
 root.SetFunc(localization.FuncMap(), tr.FuncMap())
 root.Use(localization.Stage())</code></pre>
 
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetLanguage</code> loads the catalog of one locale. Load every language before serving requests; the request's localizer chooses the locale of each lookup.</p>
+
     <p class="leading-7 text-slate-400">This keeps the core package out of translation semantics. Your translation package owns pluralization, context, fallback language, catalog loading, and missing-key behavior.</p>
+
+    <h2 class="text-xl font-bold text-slate-50">Templates go-partial does not execute</h2>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">localization.Funcs(localization.New("nl"))</code> returns the <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">locale</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">localizer</code> helpers bound to a localizer, for a template of your own, such as the text part of an e-mail written with <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">text/template</code>. <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">localization.New(code)</code> is a localizer for a locale code.</p>
 
     <h2 class="text-xl font-bold text-slate-50">Why this shape</h2>
     <ul class="docs-list list-disc">

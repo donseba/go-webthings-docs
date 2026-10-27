@@ -3,27 +3,27 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Install the CLI</h2>
-<p>Use <code>@main</code> during the rename transition. Existing release tags use the old module path; <code>@latest</code> will become available after the first go-clue release.</p>
-<pre><code>go install github.com/donseba/go-clue@main</code></pre>
+<pre><code>go install github.com/donseba/go-clue@latest</code></pre>
 
 <h2>Install the experimental generator</h2>
 <p>Only install this when you want to use <code>@gen</code> helper namespaces.</p>
-<pre><code>go install github.com/donseba/go-clue/cmd/go-clue-exp-gen@main</code></pre>
+<pre><code>go install github.com/donseba/go-clue/cmd/go-clue-exp-gen@latest</code></pre>
 
 <h2>Install an editor package</h2>
 <table class="table">
-    <thead><tr><th>Editor</th><th>Release asset</th></tr></thead>
+    <thead><tr><th>Editor</th><th>Release asset</th><th>Needs</th></tr></thead>
     <tbody>
-        <tr><td>GoLand</td><td><code>go-clue-goland-plugin-*.zip</code></td></tr>
-        <tr><td>VS Code</td><td><code>go-clue-vscode-*.vsix</code></td></tr>
-        <tr><td>Sublime Text</td><td><code>go-clue-sublime-*.sublime-package</code></td></tr>
-        <tr><td>Vim</td><td><code>go-clue-vim-*.zip</code></td></tr>
-        <tr><td>Neovim</td><td><code>go-clue-neovim-*.zip</code></td></tr>
+        <tr><td>GoLand</td><td><code>go-clue-goland-plugin-*.zip</code></td><td>GoLand 2025.3 or newer. Install with Settings &gt; Plugins &gt; Install Plugin from Disk.</td></tr>
+        <tr><td>VS Code</td><td><code>go-clue-vscode-*.vsix</code></td><td>VS Code 1.90 or newer. Install with Extensions: Install from VSIX.</td></tr>
+        <tr><td>Sublime Text</td><td><code>go-clue-sublime-*.sublime-package</code></td><td>The LSP package from Package Control.</td></tr>
+        <tr><td>Vim</td><td><code>go-clue-vim-*.zip</code></td><td>Vim 8.2 or newer with <code>prabirshrestha/vim-lsp</code>.</td></tr>
+        <tr><td>Neovim</td><td><code>go-clue-neovim-*.zip</code></td><td>Neovim 0.10 or newer.</td></tr>
     </tbody>
 </table>
+<p>Each editor has a README with its install steps in the <a href="https://github.com/donseba/go-clue/tree/main/ide">ide folder</a> of the repository.</p>
 
 <h2>No project files required</h2>
-<p>The editor integrations start <code>go-clue lsp</code>. The language server finds <code>go.mod</code>, scans the module in memory, and does not require a <code>.go-clue</code> folder.</p>
+<p>The editor integrations start <code>go-clue lsp</code>. The language server uses the nearest <code>go.mod</code> above each template and scans that module in memory, and does not require a <code>.go-clue</code> folder. It still starts in a folder with no <code>go.mod</code>; templates there get no Go types.</p>
 
 <h2>Optional index file</h2>
 <p><code>.go-clue/index.json</code> is only needed when you explicitly want a generated artifact for CI, debugging, or other tools.</p>
