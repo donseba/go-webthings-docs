@@ -9,7 +9,7 @@ if err != nil { return err }
     {{"{{"}} .AssetHead }}
     &lt;script type="module" src="/assets/app.js"&gt;&lt;/script&gt;
 &lt;/head&gt;</code></pre>
-<p><code>Render</code> returns <code>template.HTML</code>: stylesheet links, the configured shim script when nonempty, and an <code>imports</code> map when modules are present. Keep package names, paths and configuration under application control.</p>
+<p><code>Render</code> returns <code>template.HTML</code>: stylesheet links in name order, the shim script when <code>ShimPath</code> sets one, the import map with its imports and scopes, and modulepreload links for the imports <code>ModulePreload</code> names. Keep package names, paths and configuration under application control.</p>
 <h2>The generated map</h2>
 <pre><code>&lt;script type="importmap"&gt;
 {
@@ -18,10 +18,35 @@ if err != nil { return err }
   }
 }
 &lt;/script&gt;</code></pre>
-<p>The map must appear before module scripts that rely on its names. An import map resolves names; the module script executes the import. CSS entries are emitted as stylesheet links.</p>
+<p>The map must appear before module scripts that rely on its names. An import map resolves names; the module script executes the import. CSS entries are emitted as stylesheet links. With <code>FromFS</code> or <code>WithAssets</code>, the URLs carry the file's version, such as <code>/assets/htmx/htmx.esm.min.js?v=3f2a…</code>.</p>
+<h2>Building the map</h2>
+<pre><code>im.WithImport("partial-sse", r.RoutePath("presence.client"), "").
+    WithFile("app", "app/main.js").
+    ModulePreload("htmx", "app")</code></pre>
+<table><thead><tr><th>Method</th><th>Use</th></tr></thead><tbody><tr><td><code>WithFile(name, file)</code></td><td>Maps a local file (below the assets directory or the file system of <code>FromFS</code>) to a name; its URL follows <code>WithURLFunc</code> and is versioned. A <code>.css</code> file becomes a stylesheet</td></tr><tr><td><code>WithImport(name, url, integrity)</code></td><td>Maps a name to a URL as it is, such as a route of your own or another host, with the module's Subresource Integrity for a module the manifest does not know; an empty integrity maps it without one</td></tr><tr><td><code>ModulePreload(names...)</code></td><td>Adds <code>&lt;link rel="modulepreload"&gt;</code> for those imports</td></tr></tbody></table>
+<p><code>assets.Integrity(data)</code> or <code>manifest.Integrity(file)</code> gives the integrity value for <code>WithImport</code>.</p>
+<h2>Templates</h2>
+<pre><code>tmpl := template.New("layout").Funcs(im.FuncMap())</code></pre>
+<pre><code>&lt;head&gt;
+    {{"{{"}}importmap_style "site.css"}}
+    {{"{{"}}importmap}}
+    {{"{{"}}importmap_script "app/main.js" "type" "module"}}
+&lt;/head&gt;</code></pre>
+<p><code>FuncMap</code> gives <code>importmap</code> (what <code>Render</code> produces), <code>importmap_nonce</code> (the same with a CSP nonce), <code>importmap_url</code> (the URL of a local file, as <code>URL</code> gives it), and <code>importmap_script</code> and <code>importmap_style</code> (<code>Script</code> and <code>Stylesheet</code> in Go) for files a page loads directly rather than through the map. More attributes follow as name and value pairs, such as <code>"type" "module"</code>; an empty value writes the name alone (<code>"defer" ""</code>). A <code>crossorigin</code> attribute replaces the default one; <code>integrity</code> cannot be set this way, nor <code>src</code> on a script or <code>rel</code> and <code>href</code> on a stylesheet.</p>
+<h2>Render options</h2>
+<pre><code>head, err := im.RenderWith(importmap.WithIntegrity())</code></pre>
+<table><thead><tr><th>Option</th><th>Effect</th></tr></thead><tbody><tr><td><code>WithIntegrity()</code></td><td>An <code>integrity</code> section in the map and <code>integrity</code> attributes on the links, for files whose hash is known (<code>FromFS</code>, <code>WithAssets</code>) and imports mapped with <code>WithImport</code></td></tr><tr><td><code>WithStableIntegrity()</code></td><td><code>WithIntegrity</code> for pages that may be cached: while the manifest reloads (<code>assets.Reload</code>) nothing carries integrity</td></tr><tr><td><code>WithNonce(nonce)</code></td><td>A <code>nonce</code> attribute on the shim, the import map and the modulepreload links</td></tr></tbody></table>
+<p><code>RenderWith</code> takes options for one call. <code>WithRenderOptions</code> sets them for every call, also for <code>Styles</code>, <code>Script</code>, <code>Stylesheet</code> and the template functions; <code>Script</code> and <code>Stylesheet</code> carry integrity only through it. Attribute values are HTML-escaped; the JSON escapes <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code>. Rendering only reads the map, so it is safe from many goroutines once configured.</p>
+<h2>Content-Security-Policy</h2>
+<p>The import map is an inline script, so a policy without <code>'unsafe-inline'</code> blocks it unless it allows that script by hash or by nonce. Everything else <code>Render</code> writes loads from a URL: the shim and the modulepreload links fall under <code>script-src</code>, the stylesheet links under <code>style-src</code>, and <code>'self'</code> covers them when the site serves the files.</p>
+<pre><code>head, hash, err := im.RenderWithHash()
+if err != nil { return err }
+w.Header().Set("Content-Security-Policy", "script-src 'self' "+hash)</code></pre>
+<p>A hash suits pages that are cached, because it changes only when the map does. <code>ScriptHash(opts...)</code> returns it as a source expression, quotes included, such as <code>'sha256-…'</code>. Give it the options the page renders with: <code>WithIntegrity</code> changes the text, <code>WithNonce</code> does not. It is empty when there is no import map. <code>RenderWithHash</code> returns the head and its hash from one reading of the map, so they match also while the manifest reloads (<code>assets.Reload</code>).</p>
+<p>A nonce suits pages that are never cached: <code>{{"{{"}}importmap_nonce $nonce}}</code> is <code>{{"{{"}}importmap}}</code> with a nonce, and <code>importmap_script</code> takes one as an attribute (<code>"nonce" $nonce</code>). A nonce must differ for every response, so a cached page that carries one breaks.</p>
 <h2>Choose the output shape</h2>
-<table><thead><tr><th>Method</th><th>Output</th></tr></thead><tbody><tr><td><code>Render</code></td><td>Head markup: styles, optional shim and import map</td></tr><tr><td><code>Imports</code>, <code>ImportsIndent</code></td><td>JSON object containing <code>imports</code></td></tr><tr><td><code>Styles</code></td><td>Stylesheet link markup</td></tr><tr><td><code>Scopes</code></td><td>JSON for the scopes mapping</td></tr><tr><td><code>Marshal</code>, <code>MarshalIndent</code></td><td>Full structure JSON, including imports, scopes and styles</td></tr></tbody></table>
-<p><code>Structure.Imports</code>, <code>Structure.Scopes</code> and <code>Structure.Styles</code> expose prepared mappings. The current <code>Render</code> builds an imports-only browser map; if you need scopes, generate browser markup containing both imports and scopes from the structure. The full marshalled structure also contains styles and is not the same output shape as <code>Render</code>.</p>
+<table><thead><tr><th>Method</th><th>Output</th></tr></thead><tbody><tr><td><code>Render</code>, <code>RenderWith</code></td><td>Head markup: styles, optional shim, import map and modulepreload links</td></tr><tr><td><code>RenderWithHash</code></td><td>The head markup and the CSP hash of its import map</td></tr><tr><td><code>Imports</code>, <code>ImportsIndent</code></td><td>JSON object containing <code>imports</code></td></tr><tr><td><code>Styles</code></td><td>Stylesheet link markup</td></tr><tr><td><code>Script</code>, <code>Stylesheet</code></td><td>A tag for one local file</td></tr><tr><td><code>Scopes</code></td><td>JSON for the scopes mapping</td></tr><tr><td><code>Marshal</code>, <code>MarshalIndent</code></td><td>Full structure JSON, including imports, scopes and styles</td></tr></tbody></table>
+<p><code>Structure.Imports</code>, <code>Structure.Scopes</code> and <code>Structure.Styles</code> hold the configured mappings. <code>Render</code> writes the imports and the scopes into the browser map, also when it holds only scopes. The entries of <code>WithVersionedPaths</code> are added when the map renders, so they appear in <code>Render</code>, <code>Marshal</code> and <code>Imports</code> but not in <code>Structure</code>. The full marshalled structure also contains styles and is not the same output shape as <code>Render</code>.</p>
 <h2>Module shims</h2>
-<p>The defaults include a remote es-module-shims script. <code>ShimPath("")</code> disables it; a nonempty value changes its URL. A self-hosted asset policy needs a local shim URL or a browser policy that can use native maps.</p>
+<p>No shim is loaded unless <code>ShimPath</code> sets one. Earlier versions loaded the jspm.io build of es-module-shims by default; pass its URL, <code>https://ga.jspm.io/npm:es-module-shims@2.0.10/dist/es-module-shims.js</code>, to keep it. A self-hosted asset policy vendors <code>es-module-shims</code> and passes its <code>URL</code>, or relies on browsers with native import maps.</p>
 </article>

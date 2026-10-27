@@ -1,0 +1,833 @@
+{
+  "Slug": "newsletter",
+  "Name": "Newsletter",
+  "Group": "Visitors",
+  "Summary": "A subscriber list with double opt-in, and mailings to it from the admin. Every mailing carries a personal unsubscribe link.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/newsletter",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/newsletter",
+  "Type": "newsletter",
+  "Example": {
+    "Key": "newsletter",
+    "Title": "Newsletter",
+    "Code": "app.Use(newsletter.Module(\"newsletter\", \"Newsletter\"))"
+  },
+  "Guide": "\u003cp\u003eA site usually has one instance. Its signup box goes in any template, such as the footer; placing the instance on a page gives it a signup page as well, where the links in the e-mails land.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(newsletter.Module(\u0026quot;newsletter\u0026quot;, \u0026quot;Newsletter\u0026quot;))\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003enewsletter\u003c/code\u003e) is the instance's name in URLs and template functions and must be unique on the site. The title (\u003ccode\u003eNewsletter\u003c/code\u003e) is what editors see in the admin navigation and the page editor. Mail goes out through the site's \u003ccode\u003eConfig.Mail\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eWithProvider\u003c/code\u003e keeps a mailing service's list in step: it is told about every confirmed subscriber, and about confirmed subscribers who leave, are deleted or are restored from the trash. Errors are logged; the site's own list stays the reference. The \u003ccode\u003emailjet\u003c/code\u003e package of go-webthings-contrib (\u003ccode\u003egithub.com/donseba/go-webthings-contrib/mailjet\u003c/code\u003e) syncs a Mailjet contact list:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(newsletter.Module(\u0026quot;newsletter\u0026quot;, \u0026quot;Newsletter\u0026quot;,\n    newsletter.WithProvider(mailjet.List{APIKey: key, SecretKey: secret, ListID: 123}),\n))\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eAnother service implements \u003ccode\u003enewsletter.Provider\u003c/code\u003e: \u003ccode\u003eSubscribe\u003c/code\u003e and \u003ccode\u003eUnsubscribe\u003c/code\u003e, each with the address, name and language.\u003c/p\u003e\n\u003ch2 id=\"show-the-signup-form\"\u003eShow the signup form\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{newsletterForm \u0026quot;newsletter\u0026quot;}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003enewsletterForm\u003c/code\u003e renders a signup box: the title and introduction from the admin, the result of the visitor's signup and an e-mail field. It comes with plain, accessible default markup. A theme replaces it with \u003ccode\u003e\u0026lt;key\u0026gt;/form.gohtml\u003c/code\u003e, or \u003ccode\u003enewsletter/form.gohtml\u003c/code\u003e for every instance; \u003ccode\u003etask templates -- newsletter\u003c/code\u003e writes the default to start from, together with the signup page and the confirmation mail. It uses stable \u003ccode\u003ewt-*\u003c/code\u003e classes (\u003ccode\u003ewt-newsletter\u003c/code\u003e, \u003ccode\u003ewt-newsletter__intro\u003c/code\u003e, …) and the form classes of the site's form theme, laid out by the optional stylesheet \u003ccode\u003ewebthings.css\u003c/code\u003e, which the layout links with \u003ccode\u003e{{styles \u0026quot;webthings.css\u0026quot; \u0026quot;site.css\u0026quot;}}\u003c/code\u003e (see \u003ca href=\"wt-docs:/go-webthings/themes#the-base-stylesheet\"\u003eThe base stylesheet\u003c/a\u003e), and its texts go through \u003ccode\u003etl\u003c/code\u003e, so the site's translations translate them.\u003c/p\u003e\n\u003cp\u003eFor markup of your own, \u003ccode\u003enewsletter\u003c/code\u003e returns the title, introduction, form address, form and result in the page's language. \u003ccode\u003e.Intro\u003c/code\u003e is rendered from Markdown and brings its own paragraphs, so it does not go inside a \u003ccode\u003e\u0026lt;p\u0026gt;\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{with newsletter \u0026quot;newsletter\u0026quot;}}\n    \u0026lt;section id=\u0026quot;newsletter\u0026quot;\u0026gt;\n        \u0026lt;h2\u0026gt;{{.Title}}\u0026lt;/h2\u0026gt;\n        {{.Intro}}\n\n        {{if eq .Result \u0026quot;check-mail\u0026quot;}}\u0026lt;p\u0026gt;Please check your inbox and confirm.\u0026lt;/p\u0026gt;{{end}}\n\n        {{form_open .Form}}\n            {{form_field .Form \u0026quot;locale\u0026quot; nil}}\n            {{form_field .Form \u0026quot;email\u0026quot; nil}}\n            {{form_field .Form \u0026quot;name\u0026quot; nil}}\n            \u0026lt;button\u0026gt;Subscribe\u0026lt;/button\u0026gt;\n        {{form_close}}\n    \u0026lt;/section\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Form\u003c/code\u003e is the form: \u003ccode\u003eform_open\u003c/code\u003e writes the form tag, posting to \u003ccode\u003e.Action\u003c/code\u003e, with the spam trap and the page to return to, the element whose id is the instance key. \u003ccode\u003eform_field\u003c/code\u003e renders one of its fields by its key, with its label, limits and placeholder, translated with the site's translations and in the site's form theme; the ids start with the key, such as \u003ccode\u003enewsletter-email\u003c/code\u003e. \u003ccode\u003elocale\u003c/code\u003e is a hidden field with the page's language, the language of the confirmation mail. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e. Inputs written by hand with the same names work too.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e{{newsletterURL \u0026quot;newsletter\u0026quot;}}\u003c/code\u003e and \u003ccode\u003e{{newsletterResult \u0026quot;newsletter\u0026quot;}}\u003c/code\u003e give the form address and the result on their own.\u003c/p\u003e\n\u003ch2 id=\"signup-page\"\u003eSignup page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page renders \u003ccode\u003enewsletter/signup.gohtml\u003c/code\u003e with a \u003ccode\u003enewsletter.SignupView\u003c/code\u003e, the same data as the \u003ccode\u003enewsletter\u003c/code\u003e function; the starting point from \u003ccode\u003etask templates\u003c/code\u003e shows the form and every result. The box works here too:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/newsletter.SignupView */}}\n\u0026lt;main id=\u0026quot;content\u0026quot;\u0026gt;\n    {{newsletterForm .Key}}\n\u0026lt;/main\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eThe form posts to \u003ccode\u003e/_/\u0026lt;key\u0026gt;/subscribe\u003c/code\u003e with the fields of \u003ccode\u003enewsletter.SubscribeInput\u003c/code\u003e, \u003ccode\u003eemail\u003c/code\u003e (required) and \u003ccode\u003ename\u003c/code\u003e (optional, one line), and with \u003ccode\u003elocale\u003c/code\u003e (hidden, the page's language in \u003ccode\u003e.Form\u003c/code\u003e; without it, the language of the page the form is on), plus the spam trap and the way back that \u003ccode\u003eform_open\u003c/code\u003e adds. The visitor returns to the page with \u003ccode\u003e?\u0026lt;key\u0026gt;=\u0026lt;result\u0026gt;\u003c/code\u003e:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003echeck-mail\u003c/code\u003e: for every valid address, whether it is new or already on the list, so the form never reveals who subscribed;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003einvalid\u003c/code\u003e: the address is not valid, or the name is too long or not on one line;\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ethrottled\u003c/code\u003e: more than 20 signups in an hour from this visitor.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eWith \u003ccode\u003einvalid\u003c/code\u003e, the form shows the visitor's address and name again, with a message in the page's language at each field to correct. The component and \u003ccode\u003eform_field\u003c/code\u003e do this without a change to the template; inputs written by hand do not. See \u003ca href=\"wt-docs:/go-webthings/visitor-forms#a-post-with-mistakes\"\u003eA post with mistakes\u003c/a\u003e. A signup that cannot be saved, such as when the database cannot be reached, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eBots that fill in the spam trap get \u003ccode\u003echeck-mail\u003c/code\u003e; nothing is stored.\u003c/p\u003e\n\u003cp\u003eA new address is saved as pending and receives a confirmation mail. Its link, \u003ccode\u003e/_/\u0026lt;key\u0026gt;/confirm?token=…\u003c/code\u003e, confirms the subscription and leads to the signup page in the subscriber's language, or to the home page when the instance is not placed on a page, with \u003ccode\u003e?\u0026lt;key\u0026gt;=confirmed\u003c/code\u003e, or \u003ccode\u003einvalid\u003c/code\u003e for a link that no longer works. Signing up again while pending sends the mail again; a confirmed address receives nothing. After unsubscribing, signing up again needs a new confirmation.\u003c/p\u003e\n\u003cp\u003eEvery mailing ends with a personal link, \u003ccode\u003e/_/\u0026lt;key\u0026gt;/unsubscribe?token=…\u003c/code\u003e, which leads back with \u003ccode\u003e?\u0026lt;key\u0026gt;=unsubscribed\u003c/code\u003e. Mail programs get it in a \u003ccode\u003eList-Unsubscribe\u003c/code\u003e header with one-click unsubscribe. Subscribers who leave stay on the list as unsubscribed.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eThe instance's admin section (\u003ccode\u003e/admin/newsletter\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) lists the subscribers with tabs for all, pending, confirmed and unsubscribed, with their language and the dates they signed up and confirmed. \u003cstrong\u003eExport CSV\u003c/strong\u003e downloads the subscribers of the current tab; a value that starts with \u003ccode\u003e=\u003c/code\u003e, \u003ccode\u003e+\u003c/code\u003e, \u003ccode\u003e-\u003c/code\u003e or \u003ccode\u003e@\u003c/code\u003e gets a leading apostrophe, so a spreadsheet shows it as text instead of running it as a formula. It needs the export right; see \u003ca href=\"wt-docs:/go-webthings/permissions#groups-and-the-matrix\"\u003eGroups and the matrix\u003c/a\u003e. \u003cstrong\u003eMove to trash\u003c/strong\u003e moves a subscriber to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e: they leave the list, the counts and the export, and their links stop working. Their address is free again, so they can sign up anew themselves. Someone who had unsubscribed is not put back by the CSV import or \u003ccode\u003eAdd\u003c/code\u003e while their record is in the trash; only deleting it for good forgets that they left. Restoring brings them back with their status, unless the address is on the list again by then.\u003c/p\u003e\n\u003cp\u003e\u003cstrong\u003eImport CSV\u003c/strong\u003e adds people who agreed elsewhere, for example when moving a list from another service. It needs the create right.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eThe first row names the columns: \u003ccode\u003eemail\u003c/code\u003e (required), \u003ccode\u003ename\u003c/code\u003e and \u003ccode\u003elocale\u003c/code\u003e. Commas, semicolons and tabs all work as separators. Upload a CSV, TSV or plain-text file (\u003ccode\u003e.csv\u003c/code\u003e, \u003ccode\u003e.tsv\u003c/code\u003e, \u003ccode\u003e.txt\u003c/code\u003e) or paste the text; another kind of file gets an error at the field.\u003c/li\u003e\n\u003cli\u003eWith a \u003ccode\u003estatus\u003c/code\u003e column, as in the export, only \u003ccode\u003econfirmed\u003c/code\u003e rows are added.\u003c/li\u003e\n\u003cli\u003eThe editor picks the language for rows without one, the default language unless changed, and must confirm that everyone agreed to receive the newsletter. Without that confirmation nobody is added, and the checkbox shows an error.\u003c/li\u003e\n\u003cli\u003eEveryone is added as confirmed, without a confirmation mail; pending subscribers become confirmed. People who unsubscribed are not added again, also while their deleted record is in the trash; once it is deleted for good, the address counts as new. The result lists the addresses that are not valid.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eTexts\u003c/strong\u003e holds, per language, the signup box's \u003cstrong\u003eTitle\u003c/strong\u003e and \u003cstrong\u003eIntroduction\u003c/strong\u003e and the \u003cstrong\u003eMailing footer\u003c/strong\u003e that ends every mailing before the unsubscribe link. The introduction and the footer are Markdown. Publish them; until then the module uses the texts of the site's default language, or plain English.\u003c/p\u003e\n\u003cp\u003e\u003cstrong\u003eMailings\u003c/strong\u003e composes messages to the confirmed subscribers:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eA mailing has a subject, a language (\u003cstrong\u003eAll languages\u003c/strong\u003e or one) and a Markdown message, with images from the media library. The subject needs at least 5 characters; spaces around it do not count. An image without alt text in the Markdown gets the one of the media library in the mailing's language, or in each subscriber's language for a mailing to all languages.\u003c/li\u003e\n\u003cli\u003eA saved draft shows a preview and how many confirmed subscribers it would reach.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eSend to subscribers\u003c/strong\u003e asks for confirmation, then sends one message to each subscriber, as text and HTML, with the footer in their language and their unsubscribe link. It needs the publish right.\u003c/li\u003e\n\u003cli\u003eA mailing is marked as sent before the messages go out, so it cannot go out twice. Sent mailings cannot be changed.\u003c/li\u003e\n\u003cli\u003eMessages go out in the background. The mailing's page shows the progress while it is sent, and afterwards the number of recipients, when it finished and how many messages were not delivered.\u003c/li\u003e\n\u003cli\u003eEach subscriber gets a mailing at most once. After a restart, sending continues with the next subscriber; closing the app stops it after the current message. A message the mail server refuses is logged and counted as not delivered.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a mailing, a draft or a sent one, to the trash. Moving a mailing that is being sent to the trash stops it for good: subscribers who did not get it yet never will, also after a restore.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix; the texts share the rights of their instance.\u003c/p\u003e\n\u003ch2 id=\"e-mail\"\u003eE-mail\u003c/h2\u003e\n\u003cp\u003eThe confirmation mail is the template \u003ccode\u003econfirmation\u003c/code\u003e, with a \u003ccode\u003enewsletter.ConfirmationView\u003c/code\u003e, in the subscriber's language. Its default is English text through \u003ccode\u003etl\u003c/code\u003e, so the site's translations translate it. A theme replaces it with \u003ccode\u003email/\u0026lt;key\u0026gt;/confirmation.gohtml\u003c/code\u003e, or \u003ccode\u003email/newsletter/confirmation.gohtml\u003c/code\u003e for every instance.\u003c/p\u003e\n\u003cp\u003eMailings are not templates: they are the editor's Markdown, the footer and the unsubscribe link. In the HTML part the link continues the footer's last paragraph, so a footer ending in \u0026quot;Unsubscribe:\u0026quot; reads on into it; after a footer that ends otherwise, such as with a list, the link gets a paragraph of its own. The text part has the footer's Markdown with the link on the next line.\u003c/p\u003e\n\u003cp\u003eEvery address of the site in a mailing is absolute, in the HTML and the text part, on the site's address when the editor sends it (set \u003ccode\u003eConfig.BaseURL\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/mail#links-in-e-mail\"\u003eLinks in e-mail\u003c/a\u003e). A mailing has no address of its own, so its relative links lead from the home page of its language, or of the subscriber's for a mailing to all languages: in an English mailing, \u003ccode\u003e/en/about\u003c/code\u003e and \u003ccode\u003eabout\u003c/code\u003e both become \u003ccode\u003ehttps://example.com/en/about\u003c/code\u003e. Links to other sites, \u003ccode\u003emailto:\u003c/code\u003e links and links in code stay as they are.\u003c/p\u003e\n\u003cp\u003eImages in a mailing are copies at most 1200 pixels wide (\u003ccode\u003emedia.MailImageWidth\u003c/code\u003e), never enlarged, as JPEG, or as PNG for a PNG with transparency, because not every mail program shows WebP; a GIF keeps its own address. In the HTML part each has its alt text, \u003ccode\u003ewidth\u003c/code\u003e and \u003ccode\u003eheight\u003c/code\u003e, so a mail program does not show it larger. In the text part an image is a link to that copy, \u003ccode\u003e[alt](url)\u003c/code\u003e, and a link to a file of the library is the file's address.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003enewsletter.Of(app, \u0026quot;newsletter\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eletters := newsletter.Of(app, \u0026quot;newsletter\u0026quot;)\n\ncounts, err := letters.Counts(ctx)\nrecipients, err := letters.Recipients(ctx, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eSubscribers\u003c/code\u003e and \u003ccode\u003eSubscriber\u003c/code\u003e read subscribers; \u003ccode\u003eSubscribers\u003c/code\u003e with a limit of 0 or less returns all of them. \u003ccode\u003eDeleteSubscriber\u003c/code\u003e moves one to the trash, and \u003ccode\u003eUndeleteSubscriber\u003c/code\u003e and \u003ccode\u003ePurgeSubscriber\u003c/code\u003e bring it back or remove it for good. \u003ccode\u003eAdd\u003c/code\u003e and \u003ccode\u003eImport\u003c/code\u003e put people on the list like the CSV import: confirmed and without a mail, so only add people who agreed. \u003ccode\u003eAdd\u003c/code\u003e returns \u003ccode\u003eErrUnsubscribed\u003c/code\u003e for someone who left the list, also while their record is in the trash; \u003ccode\u003eImport\u003c/code\u003e skips and counts them:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003esubscriber, err := letters.Add(ctx, newsletter.Contact{Email: \u0026quot;anna@example.com\u0026quot;, Name: \u0026quot;Anna\u0026quot;, Locale: \u0026quot;en\u0026quot;})\nresult, err := letters.Import(ctx, contacts)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eNo page shows subscribers, so writing them, also a visitor's signup and a one-click unsubscribe, leaves the pages in the site's output cache as they are; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eMailings\u003c/code\u003e, \u003ccode\u003eMailing\u003c/code\u003e and \u003ccode\u003eSaveMailing\u003c/code\u003e handle drafts, which are sent from the admin. \u003ccode\u003eDeleteMailing\u003c/code\u003e, \u003ccode\u003eUndeleteMailing\u003c/code\u003e and \u003ccode\u003ePurgeMailing\u003c/code\u003e move a mailing to the trash, bring it back or remove it for good. \u003ccode\u003eTexts()\u003c/code\u003e gives write access to the texts for seed data, and what it changes shows on the site at once; \u003ccode\u003eText(ctx, locale)\u003c/code\u003e returns them with the same fallbacks the website uses.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/forms\"\u003eForms\u003c/a\u003e receives messages from visitors, with an inbox.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/registrations\"\u003eRegistrations\u003c/a\u003e sends a confirmation mail for each sign-up to an event.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string, opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "WithProvider",
+      "Signature": "func WithProvider(provider Provider) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": true,
+    "Service": "*newsletter.Service"
+  },
+  "Admin": [
+    {
+      "ID": "newsletter",
+      "Title": "Newsletter",
+      "Path": "/admin/newsletter",
+      "Permission": "newsletter",
+      "Icon": "megaphone",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    },
+    {
+      "ID": "newsletter-texts",
+      "Title": "Newsletter texts",
+      "Path": "/admin/newsletter-texts",
+      "Permission": "newsletter",
+      "Icon": "",
+      "Hidden": true,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "signup",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "action",
+      "Name": "newsletter.confirm",
+      "Method": "GET",
+      "Path": "/_/newsletter/confirm"
+    },
+    {
+      "Kind": "action",
+      "Name": "newsletter.subscribe",
+      "Method": "POST",
+      "Path": "/_/newsletter/subscribe"
+    },
+    {
+      "Kind": "action",
+      "Name": "newsletter.unsubscribe",
+      "Method": "GET",
+      "Path": "/_/newsletter/unsubscribe"
+    },
+    {
+      "Kind": "action",
+      "Name": "",
+      "Method": "POST",
+      "Path": "/_/newsletter/unsubscribe"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "newsletter",
+      "Signature": "newsletter(key string) *SignupView",
+      "Doc": "\u003cp\u003esignup returns the signup heading, introduction, form address and result of\nan instance in the page\u0026apos;s language, for example\n{{with newsletter \u0026quot;news\u0026quot;}}\u0026lt;h2\u0026gt;{{.Title}}\u0026lt;/h2\u0026gt;{{end}}; nil for unknown keys.\n"
+    },
+    {
+      "Name": "newsletterForm",
+      "Signature": "newsletterForm(key string) (template.HTML, error)",
+      "Doc": "\u003cp\u003enewsletterForm renders the form component, for example {{newsletterForm\n\u0026quot;news\u0026quot;}} in the footer.\n"
+    },
+    {
+      "Name": "newsletterResult",
+      "Signature": "newsletterResult(key string) string",
+      "Doc": "\u003cp\u003evisitorResult is the result a visitor returned with: \u0026quot;check-mail\u0026quot;,\n\u0026quot;confirmed\u0026quot;, \u0026quot;unsubscribed\u0026quot;, \u0026quot;invalid\u0026quot;, \u0026quot;throttled\u0026quot; or \u0026quot;\u0026quot;.\n"
+    },
+    {
+      "Name": "newsletterURL",
+      "Signature": "newsletterURL(key string) string",
+      "Doc": "\u003cp\u003eactionURL is the address signup forms post to, for example\n\u0026lt;form method=\u0026quot;post\u0026quot; action=\u0026quot;{{newsletterURL \u0026quot;news\u0026quot;}}\u0026quot;\u0026gt;, or \u0026quot;\u0026quot; for an\nunknown instance.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "signup",
+      "Files": [
+        "newsletter/signup.gohtml",
+        "newsletter/signup.gohtml"
+      ],
+      "DataType": "newsletter.SignupView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Intro",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the signup form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is \"check-mail\", \"confirmed\", \"unsubscribed\", \"invalid\", \"throttled\" or empty.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the signup form's model (SubscribeInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"email\" nil}}; it returns the visitor to the element with the id Key.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/newsletter.SignupView */}}\n{{/* Starting point generated by WebThings: the signup form and its results. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{.Intro}}\n\n    {{/* The form returns the visitor here, to the element with the id {{.Key}}. */}}\n    \u003csection id=\"{{.Key}}\"\u003e\n        {{if eq .Result \"check-mail\"}}\n            \u003cp\u003eThank you. Please check your inbox and confirm your subscription.\u003c/p\u003e\n        {{else if eq .Result \"confirmed\"}}\n            \u003cp\u003eYour subscription is confirmed.\u003c/p\u003e\n        {{else if eq .Result \"unsubscribed\"}}\n            \u003cp\u003eYou are unsubscribed.\u003c/p\u003e\n        {{else if eq .Result \"invalid\"}}\n            \u003cp\u003eThat did not work. Please check your e-mail address or link.\u003c/p\u003e\n        {{else if eq .Result \"throttled\"}}\n            \u003cp\u003eToo many attempts. Please try again later.\u003c/p\u003e\n        {{end}}\n\n        {{form_open .Form}}\n            {{form_field .Form \"locale\" nil}}\n            {{form_field .Form \"email\" nil}}\n            {{form_field .Form \"name\" nil}}\n\n            \u003cbutton type=\"submit\"\u003eSubscribe\u003c/button\u003e\n        {{form_close}}\n    \u003c/section\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [
+    {
+      "Name": "form",
+      "Files": [
+        "newsletter/form.gohtml",
+        "newsletter/form.gohtml"
+      ],
+      "DataType": "newsletter.SignupView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Intro",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the signup form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is \"check-mail\", \"confirmed\", \"unsubscribed\", \"invalid\", \"throttled\" or empty.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the signup form's model (SubscribeInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"email\" nil}}; it returns the visitor to the element with the id Key.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/newsletter.SignupView */}}\n{{/* A signup box for any page, with the result of the visitor's signup: {{newsletterForm \"news\"}}. */}}\n\u003csection class=\"wt-newsletter\" id=\"{{.Key}}\" aria-labelledby=\"{{.Key}}-signup-title\"\u003e\n    \u003ch2 class=\"wt-newsletter__title\" id=\"{{.Key}}-signup-title\"\u003e{{.Title}}\u003c/h2\u003e\n\n    {{with .Result}}\n        \u003cp class=\"wt-notice\" role=\"status\"\u003e\n            {{if eq . \"check-mail\"}}{{tl localizer \"Almost done: check your inbox and confirm your subscription.\"}}\n            {{else if eq . \"confirmed\"}}{{tl localizer \"Your subscription is confirmed.\"}}\n            {{else if eq . \"unsubscribed\"}}{{tl localizer \"You are unsubscribed.\"}}\n            {{else if eq . \"throttled\"}}{{tl localizer \"Too many attempts. Please try again later.\"}}\n            {{else}}{{tl localizer \"That did not work. Please check your e-mail address or link.\"}}{{end}}\n        \u003c/p\u003e\n    {{end}}\n\n    {{with .Intro}}\u003cdiv class=\"wt-newsletter__intro\"\u003e{{.}}\u003c/div\u003e{{end}}\n\n    {{/* The form returns the visitor to the element with the id {{.Key}}. */}}\n    {{form_open .Form}}\n        {{form_field .Form \"locale\" nil}}\n        {{form_field .Form \"email\" nil}}\n\n        \u003cbutton class=\"wt-button\" type=\"submit\"\u003e{{tl localizer \"Subscribe\"}}\u003c/button\u003e\n    {{form_close}}\n\n    \u003cp class=\"wt-newsletter__note wt-meta\"\u003e{{tl localizer \"You receive an e-mail to confirm your address. Every newsletter has a link to unsubscribe.\"}}\u003c/p\u003e\n\u003c/section\u003e"
+    }
+  ],
+  "Mail": [
+    {
+      "Name": "confirmation",
+      "Files": [
+        "mail/newsletter/confirmation.gohtml",
+        "mail/newsletter/confirmation.gohtml"
+      ],
+      "DataType": "newsletter.ConfirmationView",
+      "Fields": [
+        {
+          "Name": "Email",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "Name is empty when the subscriber gave none.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the newsletter's title in the subscriber's language.",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL confirms the subscription.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/newsletter.ConfirmationView */}}\n{{/* Sent to a new subscriber; only confirmed subscribers receive mailings. */}}\n{{define \"subject\"}}{{tl localizer \"Please confirm your subscription\"}}{{end}}\n\n{{define \"text\"}}\n{{with .Name}}{{tl localizer \"Hello %s,\" .}}\n\n{{end -}}\n{{tl localizer \"Thank you for subscribing to our newsletter. Please confirm your e-mail address with the link below.\"}}\n\n{{.URL}}\n\n{{tl localizer \"If you did not subscribe, you can ignore this message.\"}}\n{{end}}"
+    }
+  ],
+  "Forms": [
+    {
+      "Type": "newsletter.SubscribeInput",
+      "Doc": "\u003cp\u003eSubscribeInput is the signup form a visitor posts to /_/\u0026lt;key\u0026gt;/subscribe:\nan e-mail address, optionally a name, and the language of the mail, a\nhidden field that SignupView.Form sets to the page\u0026apos;s language. Themes\nrender its fields with form_field, with their limits (SignupView.Form),\nor write inputs with these names; without a locale the mail is in the\nlanguage of the page the form was on.\n",
+      "Fields": [
+        {
+          "Key": "email",
+          "Control": "input email",
+          "Label": "E-mail address",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 254 characters"
+          ]
+        },
+        {
+          "Key": "name",
+          "Control": "input text",
+          "Label": "Name",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "one line",
+            "at most 200 characters"
+          ]
+        },
+        {
+          "Key": "locale",
+          "Control": "input hidden",
+          "Label": "",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "one line",
+            "at most 35 characters"
+          ]
+        }
+      ]
+    }
+  ],
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- The texts of an instance (signup heading and introduction, mailing footer)\n-- are a collection with one item (see package content). The confirmation\n-- mail is a mail template.\nCREATE TABLE wt_newsletter (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID\n);\n\nCREATE INDEX wt_newsletter_instance ON wt_newsletter (instance, position);\n\nCREATE TABLE wt_newsletter_translation (\n    item_id         UUID NOT NULL REFERENCES wt_newsletter (id) ON DELETE CASCADE,\n    locale          VARCHAR(35) NOT NULL,\n    title           VARCHAR(200) NOT NULL DEFAULT '',\n    intro           TEXT NOT NULL DEFAULT '',\n    footer          TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- Subscribers sign up as pending and confirm with the token sent to them; the\n-- same token is in their unsubscribe links. An address is on the list once,\n-- not counting deleted subscribers in the trash, so it can sign up again.\nCREATE TABLE wt_newsletter_subscriber (\n    id           UUID PRIMARY KEY,\n    instance     VARCHAR(64) NOT NULL,\n    email        VARCHAR(254) NOT NULL,\n    name         VARCHAR(200) NOT NULL DEFAULT '',\n    locale       VARCHAR(35) NOT NULL,\n    status       VARCHAR(20) NOT NULL,\n    token        VARCHAR(64) NOT NULL UNIQUE,\n    created_at   TIMESTAMPTZ NOT NULL,\n    created_by   UUID,\n    updated_at   TIMESTAMPTZ NOT NULL,\n    updated_by   UUID,\n    deleted_at   TIMESTAMPTZ,\n    deleted_by   UUID,\n    confirmed_at TIMESTAMPTZ\n);\n\nCREATE UNIQUE INDEX wt_newsletter_subscriber_email ON wt_newsletter_subscriber (instance, email) WHERE deleted_at IS NULL;\nCREATE INDEX wt_newsletter_subscriber_status ON wt_newsletter_subscriber (instance, status, created_at);\nCREATE INDEX wt_newsletter_subscriber_sending ON wt_newsletter_subscriber (instance, status, id);\n\n-- Mailings are drafts until sent_at is set, when sending starts in the\n-- background. progress is the ID of the last subscriber handed to the mail\n-- sender (subscribers are sent to in ID order), so sending resumes after a\n-- restart; total is the audience when sending started, recipients and failed\n-- count the messages so far, and finished_at is set when all are done.\n-- origin is the site's address for the links in the mail.\nCREATE TABLE wt_newsletter_mailing (\n    id          UUID PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    locale      VARCHAR(35) NOT NULL DEFAULT '',\n    subject     VARCHAR(200) NOT NULL,\n    body        TEXT NOT NULL,\n    created_at  TIMESTAMPTZ NOT NULL,\n    created_by  UUID,\n    updated_at  TIMESTAMPTZ NOT NULL,\n    updated_by  UUID,\n    deleted_at  TIMESTAMPTZ,\n    deleted_by  UUID,\n    sent_at     TIMESTAMPTZ,\n    origin      VARCHAR(200) NOT NULL DEFAULT '',\n    total       INTEGER NOT NULL DEFAULT 0,\n    progress    VARCHAR(36) NOT NULL DEFAULT '',\n    recipients  INTEGER NOT NULL DEFAULT 0,\n    failed      INTEGER NOT NULL DEFAULT 0,\n    finished_at TIMESTAMPTZ\n);\n\nCREATE INDEX wt_newsletter_mailing_instance ON wt_newsletter_mailing (instance, created_at);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- The texts of an instance (signup heading and introduction, mailing footer)\n-- are a collection with one item (see package content). The confirmation\n-- mail is a mail template.\nCREATE TABLE wt_newsletter (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT\n);\n\nCREATE INDEX wt_newsletter_instance ON wt_newsletter (instance, position);\n\nCREATE TABLE wt_newsletter_translation (\n    item_id         TEXT NOT NULL REFERENCES wt_newsletter (id) ON DELETE CASCADE,\n    locale          TEXT NOT NULL,\n    title           TEXT NOT NULL DEFAULT '',\n    intro           TEXT NOT NULL DEFAULT '',\n    footer          TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);\n\n-- Subscribers sign up as pending and confirm with the token sent to them; the\n-- same token is in their unsubscribe links. An address is on the list once,\n-- not counting deleted subscribers in the trash, so it can sign up again.\nCREATE TABLE wt_newsletter_subscriber (\n    id           TEXT PRIMARY KEY,\n    instance     TEXT NOT NULL,\n    email        TEXT NOT NULL,\n    name         TEXT NOT NULL DEFAULT '',\n    locale       TEXT NOT NULL,\n    status       TEXT NOT NULL,\n    token        TEXT NOT NULL UNIQUE,\n    created_at   TIMESTAMP NOT NULL,\n    created_by   TEXT,\n    updated_at   TIMESTAMP NOT NULL,\n    updated_by   TEXT,\n    deleted_at   TIMESTAMP,\n    deleted_by   TEXT,\n    confirmed_at TIMESTAMP\n);\n\nCREATE UNIQUE INDEX wt_newsletter_subscriber_email ON wt_newsletter_subscriber (instance, email) WHERE deleted_at IS NULL;\nCREATE INDEX wt_newsletter_subscriber_status ON wt_newsletter_subscriber (instance, status, created_at);\nCREATE INDEX wt_newsletter_subscriber_sending ON wt_newsletter_subscriber (instance, status, id);\n\n-- Mailings are drafts until sent_at is set, when sending starts in the\n-- background. progress is the ID of the last subscriber handed to the mail\n-- sender (subscribers are sent to in ID order), so sending resumes after a\n-- restart; total is the audience when sending started, recipients and failed\n-- count the messages so far, and finished_at is set when all are done.\n-- origin is the site's address for the links in the mail.\nCREATE TABLE wt_newsletter_mailing (\n    id          TEXT PRIMARY KEY,\n    instance    TEXT NOT NULL,\n    locale      TEXT NOT NULL DEFAULT '',\n    subject     TEXT NOT NULL,\n    body        TEXT NOT NULL,\n    created_at  TIMESTAMP NOT NULL,\n    created_by  TEXT,\n    updated_at  TIMESTAMP NOT NULL,\n    updated_by  TEXT,\n    deleted_at  TIMESTAMP,\n    deleted_by  TEXT,\n    sent_at     TIMESTAMP,\n    origin      TEXT NOT NULL DEFAULT '',\n    total       INTEGER NOT NULL DEFAULT 0,\n    progress    TEXT NOT NULL DEFAULT '',\n    recipients  INTEGER NOT NULL DEFAULT 0,\n    failed      INTEGER NOT NULL DEFAULT 0,\n    finished_at TIMESTAMP\n);\n\nCREATE INDEX wt_newsletter_mailing_instance ON wt_newsletter_mailing (instance, created_at);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- The texts of an instance (signup heading and introduction, mailing footer)\n-- are a collection with one item (see package content). The confirmation\n-- mail is a mail template.\nCREATE TABLE wt_newsletter (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    INDEX wt_newsletter_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_newsletter_translation (\n    item_id         VARCHAR(36) NOT NULL,\n    locale          VARCHAR(35) NOT NULL,\n    title           VARCHAR(200) NOT NULL DEFAULT '',\n    intro           TEXT NOT NULL,\n    footer          TEXT NOT NULL,\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_newsletter (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- Subscribers sign up as pending and confirm with the token sent to them; the\n-- same token is in their unsubscribe links. An address is on the list once,\n-- not counting deleted subscribers in the trash, so it can sign up again.\nCREATE TABLE wt_newsletter_subscriber (\n    id           VARCHAR(36) PRIMARY KEY,\n    instance     VARCHAR(64) NOT NULL,\n    email        VARCHAR(254) NOT NULL,\n    name         VARCHAR(200) NOT NULL DEFAULT '',\n    locale       VARCHAR(35) NOT NULL,\n    status       VARCHAR(20) NOT NULL,\n    token        VARCHAR(64) NOT NULL,\n    created_at   DATETIME(6) NOT NULL,\n    created_by   VARCHAR(36) NULL,\n    updated_at   DATETIME(6) NOT NULL,\n    updated_by   VARCHAR(36) NULL,\n    deleted_at   DATETIME(6) NULL,\n    deleted_by   VARCHAR(36) NULL,\n    confirmed_at DATETIME(6) NULL,\n    live_email   VARCHAR(254) AS (CASE WHEN deleted_at IS NULL THEN email END) STORED,\n    UNIQUE (token),\n    UNIQUE INDEX wt_newsletter_subscriber_email (instance, live_email),\n    INDEX wt_newsletter_subscriber_status (instance, status, created_at),\n    INDEX wt_newsletter_subscriber_sending (instance, status, id)\n) ENGINE=InnoDB;\n\n-- Mailings are drafts until sent_at is set, when sending starts in the\n-- background. progress is the ID of the last subscriber handed to the mail\n-- sender (subscribers are sent to in ID order), so sending resumes after a\n-- restart; total is the audience when sending started, recipients and failed\n-- count the messages so far, and finished_at is set when all are done.\n-- origin is the site's address for the links in the mail.\nCREATE TABLE wt_newsletter_mailing (\n    id          VARCHAR(36) PRIMARY KEY,\n    instance    VARCHAR(64) NOT NULL,\n    locale      VARCHAR(35) NOT NULL DEFAULT '',\n    subject     VARCHAR(200) NOT NULL,\n    body        MEDIUMTEXT NOT NULL,\n    created_at  DATETIME(6) NOT NULL,\n    created_by  VARCHAR(36) NULL,\n    updated_at  DATETIME(6) NOT NULL,\n    updated_by  VARCHAR(36) NULL,\n    deleted_at  DATETIME(6) NULL,\n    deleted_by  VARCHAR(36) NULL,\n    sent_at     DATETIME(6) NULL,\n    origin      VARCHAR(200) NOT NULL DEFAULT '',\n    total       INTEGER NOT NULL DEFAULT 0,\n    progress    VARCHAR(36) NOT NULL DEFAULT '',\n    recipients  INTEGER NOT NULL DEFAULT 0,\n    failed      INTEGER NOT NULL DEFAULT 0,\n    finished_at DATETIME(6) NULL,\n    INDEX wt_newsletter_mailing_instance (instance, created_at)\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_newsletter",
+      "Note": "The texts of an instance (signup heading and introduction, mailing footer) are a collection with one item (see package content). The confirmation mail is a mail template.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_newsletter_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_newsletter_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_newsletter (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "intro",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "footer",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    },
+    {
+      "Name": "wt_newsletter_subscriber",
+      "Note": "Subscribers sign up as pending and confirm with the token sent to them; the same token is in their unsubscribe links. An address is on the list once, not counting deleted subscribers in the trash, so it can sign up again.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "status",
+          "Type": "VARCHAR(20)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "token",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL UNIQUE"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "confirmed_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "UNIQUE INDEX wt_newsletter_subscriber_email (instance, email)",
+        "INDEX wt_newsletter_subscriber_status (instance, status, created_at)",
+        "INDEX wt_newsletter_subscriber_sending (instance, status, id)"
+      ]
+    },
+    {
+      "Name": "wt_newsletter_mailing",
+      "Note": "Mailings are drafts until sent_at is set, when sending starts in the background. progress is the ID of the last subscriber handed to the mail sender (subscribers are sent to in ID order), so sending resumes after a restart; total is the audience when sending started, recipients and failed count the messages so far, and finished_at is set when all are done. origin is the site's address for the links in the mail.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "subject",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "sent_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "origin",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "total",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "progress",
+          "Type": "VARCHAR(36)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "recipients",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "failed",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "finished_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_newsletter_mailing_instance (instance, created_at)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Add",
+        "Signature": "func (s *Service) Add(ctx context.Context, contact Contact) (Subscriber, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Confirm",
+        "Signature": "func (s *Service) Confirm(ctx context.Context, token string) (Subscriber, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Counts",
+        "Signature": "func (s *Service) Counts(ctx context.Context) (Counts, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "DeleteMailing",
+        "Signature": "func (s *Service) DeleteMailing(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "DeleteSubscriber",
+        "Signature": "func (s *Service) DeleteSubscriber(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Import",
+        "Signature": "func (s *Service) Import(ctx context.Context, contacts []Contact) (ImportResult, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Mailing",
+        "Signature": "func (s *Service) Mailing(ctx context.Context, id string) (Mailing, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Mailings",
+        "Signature": "func (s *Service) Mailings(ctx context.Context) ([]Mailing, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "PurgeMailing",
+        "Signature": "func (s *Service) PurgeMailing(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "PurgeSubscriber",
+        "Signature": "func (s *Service) PurgeSubscriber(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Recipients",
+        "Signature": "func (s *Service) Recipients(ctx context.Context, locale string) ([]Subscriber, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SaveMailing",
+        "Signature": "func (s *Service) SaveMailing(ctx context.Context, mailing Mailing) (Mailing, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Subscriber",
+        "Signature": "func (s *Service) Subscriber(ctx context.Context, id string) (Subscriber, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Subscribers",
+        "Signature": "func (s *Service) Subscribers(ctx context.Context, status string, offset, limit int) ([]Subscriber, bool, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Text",
+        "Signature": "func (s *Service) Text(ctx context.Context, locale string) Text",
+        "Doc": ""
+      },
+      {
+        "Name": "Texts",
+        "Signature": "func (s *Service) Texts() content.Store[struct{}, Text]",
+        "Doc": ""
+      },
+      {
+        "Name": "TrashedMailings",
+        "Signature": "func (s *Service) TrashedMailings(ctx context.Context, limit, offset int) ([]Mailing, int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "TrashedSubscribers",
+        "Signature": "func (s *Service) TrashedSubscribers(ctx context.Context, limit, offset int) ([]Subscriber, int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "UndeleteMailing",
+        "Signature": "func (s *Service) UndeleteMailing(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "UndeleteSubscriber",
+        "Signature": "func (s *Service) UndeleteSubscriber(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Unsubscribe",
+        "Signature": "func (s *Service) Unsubscribe(ctx context.Context, token string) (Subscriber, error)",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "ConfirmationView",
+        "Doc": "\u003cp\u003eConfirmationView is the data of the mail template confirmation, in the\nsubscriber\u0026apos;s language.\n",
+        "Fields": null,
+        "Decl": "type ConfirmationView struct {\n\tEmail string\n\t// Name is empty when the subscriber gave none.\n\tName string\n\t// Title is the newsletter's title in the subscriber's language.\n\tTitle string\n\t// URL confirms the subscription.\n\tURL string\n}"
+      },
+      {
+        "Name": "Contact",
+        "Doc": "\u003cp\u003eContact is a person to put on the list with Add or Import.\n",
+        "Fields": null,
+        "Decl": "type Contact struct {\n\tEmail string\n\tName  string\n\t// Locale is the language of their mailings; empty or not one of the\n\t// site's languages is the site's default language.\n\tLocale string\n\t// ConfirmedAt is when they agreed to receive the newsletter; zero is now.\n\tConfirmedAt time.Time\n}"
+      },
+      {
+        "Name": "Counts",
+        "Doc": "\u003cp\u003eCounts are the number of subscribers per status.\n",
+        "Fields": null,
+        "Decl": "type Counts struct {\n\tPending      int\n\tConfirmed    int\n\tUnsubscribed int\n}"
+      },
+      {
+        "Name": "ImportResult",
+        "Doc": "\u003cp\u003eImportResult tells what Import did.\n",
+        "Fields": null,
+        "Decl": "type ImportResult struct {\n\t// Added are new subscribers.\n\tAdded int\n\t// Confirmed were waiting for their confirmation and are confirmed now.\n\tConfirmed int\n\t// Existing were confirmed already and are unchanged.\n\tExisting int\n\t// Unsubscribed left the list before and were not added again.\n\tUnsubscribed int\n\t// Invalid are the addresses that are not valid, as given.\n\tInvalid []string\n}"
+      },
+      {
+        "Name": "ImportView",
+        "Doc": "\u003cp\u003eImportView is the data of the subscriber import screen.\n",
+        "Fields": null,
+        "Decl": "type ImportView struct {\n\tTitle   string\n\tBackURL string\n\tForm    form.RenderModel\n\tErrors  form.FieldErrors\n\tResult  *ImportResult\n\t// Skipped counts rows of the file left out because their status is not\n\t// confirmed.\n\tSkipped int\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is the stored texts of an instance, with their translations.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[struct{}, Text]"
+      },
+      {
+        "Name": "Mailing",
+        "Doc": "\u003cp\u003eMailing is a message to the confirmed subscribers. Body is Markdown. Locale\nlimits the recipients to one language; empty means everyone.\n\u003cp\u003eA mailing is a draft until it is sent: then SentAt is when sending\nstarted, and the messages go out in the background, one per subscriber.\nTotal is the number of confirmed subscribers at that moment; Recipients\nand Failed count the messages the mail sender accepted and refused so far,\nand FinishedAt is set when every subscriber had their turn. DeletedAt and\nDeletedBy are set for mailings in the trash (see TrashedMailings).\n",
+        "Fields": null,
+        "Decl": "type Mailing struct {\n\tID         string     `db:\"id\"`\n\tLocale     string     `db:\"locale\"`\n\tSubject    string     `db:\"subject\"`\n\tBody       string     `db:\"body\"`\n\tCreatedAt  time.Time  `db:\"created_at\"`\n\tSentAt     *time.Time `db:\"sent_at\"`\n\tTotal      int        `db:\"total\"`\n\tRecipients int        `db:\"recipients\"`\n\tFailed     int        `db:\"failed\"`\n\tFinishedAt *time.Time `db:\"finished_at\"`\n\tDeletedAt  *time.Time `db:\"deleted_at\"`\n\tDeletedBy  db.Ref     `db:\"deleted_by\"`\n}"
+      },
+      {
+        "Name": "MailingRow",
+        "Doc": "\u003cp\u003eMailingRow is one mailing in the list; Sent is empty for drafts.\n",
+        "Fields": null,
+        "Decl": "type MailingRow struct {\n\tSubject  string\n\tURL      string\n\tLanguage string\n\tSent     string\n\t// Sending is set while the messages go out; Recipients counts them so far.\n\tSending    bool\n\tRecipients int\n}"
+      },
+      {
+        "Name": "MailingView",
+        "Doc": "\u003cp\u003eMailingView is the data of templates/admin/mailing.gohtml: a draft to\nedit and send, or a sent mailing with its progress.\n",
+        "Fields": null,
+        "Decl": "type MailingView struct {\n\tTitle   string\n\tBackURL string\n\t// Form edits a draft; nil for sent mailings and without edit rights.\n\tForm   *form.RenderModel\n\tErrors form.FieldErrors\n\t// Preview is the rendered body, for saved mailings.\n\tPreview  template.HTML\n\tSubject  string\n\tLanguage string\n\t// Audience is the number of subscribers a draft would go to now.\n\tAudience int\n\t// URL is the mailing's page, which shows the progress while it is sent.\n\tURL string\n\t// Sent is when sending started; Finished when every message went out.\n\tSent     string\n\tFinished string\n\t// Sending is set while the messages go out. Total is the audience when\n\t// sending started; Recipients and Failed count the messages so far.\n\tSending    bool\n\tTotal      int\n\tRecipients int\n\tFailed     int\n\tSend       *form.RenderModel\n\tDelete     *form.RenderModel\n}"
+      },
+      {
+        "Name": "MailingsView",
+        "Doc": "\u003cp\u003eMailingsView is the data of templates/admin/mailings.gohtml: drafts and\nsent mailings.\n",
+        "Fields": null,
+        "Decl": "type MailingsView struct {\n\tTitle   string\n\tBackURL string\n\tNewURL  string\n\t// TrashURL shows the deleted subscribers and mailings in the admin's trash.\n\tTrashURL string\n\tRows     []MailingRow\n}"
+      },
+      {
+        "Name": "Provider",
+        "Doc": "\u003cp\u003eProvider is a mailing service that mirrors the list, for example a Mailjet\ncontact list. It is told about confirmed subscribers and about subscribers\nwho leave. Errors are logged; the local list stays the reference.\n",
+        "Fields": null,
+        "Decl": "type Provider interface {\n\tSubscribe(ctx context.Context, email, name, locale string) error\n\tUnsubscribe(ctx context.Context, email, name, locale string) error\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Newsletter instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "SignupView",
+        "Doc": "\u003cp\u003eSignupView is the data of newsletter/signup.gohtml and of the newsletter\ntemplate function.\n",
+        "Fields": null,
+        "Decl": "type SignupView struct {\n\t// Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e.\n\tKey   string\n\tTitle string\n\tIntro template.HTML\n\t// Action is the address the signup form posts to.\n\tAction string\n\t// Result is \"check-mail\", \"confirmed\", \"unsubscribed\", \"invalid\",\n\t// \"throttled\" or empty.\n\tResult string\n\t// Form is the signup form's model (SubscribeInput) for go-form's\n\t// template functions, such as {{form_open .Form}} and {{form_field\n\t// .Form \"email\" nil}}; it returns the visitor to the element with the\n\t// id Key.\n\tForm form.RenderModel\n}"
+      },
+      {
+        "Name": "SubscribeInput",
+        "Doc": "\u003cp\u003eSubscribeInput is the signup form a visitor posts to /_/\u0026lt;key\u0026gt;/subscribe:\nan e-mail address, optionally a name, and the language of the mail, a\nhidden field that SignupView.Form sets to the page\u0026apos;s language. Themes\nrender its fields with form_field, with their limits (SignupView.Form),\nor write inputs with these names; without a locale the mail is in the\nlanguage of the page the form was on.\n",
+        "Fields": null,
+        "Decl": "type SubscribeInput struct {\n\tEmail  string `form:\"input,email\"  name:\"email\"  label:\"E-mail address\" required:\"true\" maxLength:\"254\" validate:\"mail\" autocomplete:\"email\" placeholder:\"you@example.com\"`\n\tName   string `form:\"input,text\"   name:\"name\"   label:\"Name\"                           maxLength:\"200\"                 autocomplete:\"name\"                                line:\"true\"`\n\tLocale string `form:\"input,hidden\" name:\"locale\"                                        maxLength:\"35\"                                                                     line:\"true\"`\n}"
+      },
+      {
+        "Name": "Subscriber",
+        "Doc": "\u003cp\u003eSubscriber is one address on the list. Token is the secret in the\nsubscriber\u0026apos;s confirmation and unsubscribe links. DeletedAt and DeletedBy\nare set for subscribers in the trash (see TrashedSubscribers).\n",
+        "Fields": null,
+        "Decl": "type Subscriber struct {\n\tID          string     `db:\"id\"`\n\tEmail       string     `db:\"email\"`\n\tName        string     `db:\"name\"`\n\tLocale      string     `db:\"locale\"`\n\tStatus      string     `db:\"status\"`\n\tToken       string     `db:\"token\"`\n\tCreatedAt   time.Time  `db:\"created_at\"`\n\tConfirmedAt *time.Time `db:\"confirmed_at\"`\n\tDeletedAt   *time.Time `db:\"deleted_at\"`\n\tDeletedBy   db.Ref     `db:\"deleted_by\"`\n}"
+      },
+      {
+        "Name": "SubscriberRow",
+        "Doc": "\u003cp\u003eSubscriberRow is one subscriber in the list, with its dates as shown.\n",
+        "Fields": null,
+        "Decl": "type SubscriberRow struct {\n\tEmail     string\n\tName      string\n\tLocale    string\n\tStatus    string\n\tCreated   string\n\tConfirmed string\n\tDelete    *form.RenderModel\n}"
+      },
+      {
+        "Name": "SubscribersView",
+        "Doc": "\u003cp\u003eSubscribersView is the data of templates/admin/subscribers.gohtml: the\nsubscribers, filtered by status.\n",
+        "Fields": null,
+        "Decl": "type SubscribersView struct {\n\tTitle   string\n\tFilters admin.Tabs\n\tRows    []SubscriberRow\n\t// ExportURL is empty without the right to export.\n\tExportURL   string\n\tMailingsURL string\n\tTextsURL    string\n\t// TrashURL shows the deleted subscribers and mailings in the admin's trash.\n\tTrashURL string\n\t// ImportURL is set for editors who may add subscribers.\n\tImportURL string\n\tPager     admin.Pager\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is the instance\u0026apos;s text in one language: the signup heading and\nintroduction, and the footer of every mailing. Intro and Footer are\nMarkdown.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tTitle  string `db:\"title\"`\n\tIntro  string `db:\"intro\"`\n\tFooter string `db:\"footer\"`\n}"
+      }
+    ]
+  }
+}

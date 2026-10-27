@@ -13,7 +13,7 @@ func localeFor(code string) Locale {
         return "en_US"
     }
 }</code></pre>
-<p>The mapping above is an application policy. go-translator does not normalize locale names, negotiate <code>Accept-Language</code>, persist a user preference, or choose a default for you.</p>
+<p>The mapping above is an application policy. go-translator does not negotiate <code>Accept-Language</code>, persist a user preference, or choose a default for you. By default it does not normalize locale names either: a lookup only uses the catalogue loaded under exactly the locale of the localizer. Language fallback, below, changes that.</p>
 <h2>Use a path, preference, or header</h2>
 <pre><code>loc := localeFor(r.PathValue("locale"))
 message := tr.Tl(loc, "Hello, %s", user.Name)
@@ -24,7 +24,20 @@ err := page.Execute(w, struct {
 }{Loc: loc, Name: user.Name})</code></pre>
 <p>Resolve the locale once for the request and pass the same localizer to template and form rendering. Stable domain codes and stored values can then be displayed in any supported language.</p>
 <h2>Concurrency and catalogue updates</h2>
-<p>Concurrent lookups serialize discovery and POT writes. Catalogue configuration and the language map are a separate concern: finish <code>SetLanguage</code>, directory changes and editing before serving requests. For a reload, construct and load a new translator before replacing the application reference.</p>
-<h2>Missing language behavior</h2>
-<p>An unloaded language or untranslated key produces a visible marker such as <code>*Hello, World!*</code>. Context and plural misses include additional key information. Automatic language fallback is not implemented. Resolve unsupported locale codes to a loaded language in the application; missing-key fallback needs an application strategy.</p>
+<p>Concurrent lookups serialize discovery and POT writes. Catalogue configuration and the language map are a separate concern: finish loading and merging catalogues, configuration and editing before serving requests. For a reload, construct and load a new translator before replacing the application reference.</p>
+<h2>Language fallback</h2>
+<pre><code>tr.SetLanguageFallback(true) // or translator.WithLanguageFallback(true) with New</code></pre>
+<p>Language fallback is off by default. With it on, a lookup tries, message by message, and uses the first catalogue that translates the message:</p>
+<ol><li>the catalogue loaded under the locale itself, such as <code>nl_NL</code>;</li><li>one loaded under the same locale written differently: case, <code>-</code> or <code>_</code>, and an encoding or modifier (<code>.UTF-8</code>, <code>@euro</code>) do not count, so <code>nl-nl</code> finds <code>nl_NL</code>;</li><li>the base language, such as <code>nl</code> for <code>nl_NL</code>;</li><li>another region of the same language, such as <code>nl_NL</code> for <code>nl</code> or <code>nl_BE</code>: first the region named like the language (<code>nl_NL</code>, <code>de_DE</code>), then the others in alphabetical order.</li></ol>
+<p>So a site with only <code>nl.po</code> serves <code>nl_NL</code> and <code>nl_BE</code> visitors, and an <code>nl_BE.po</code> with a few regional words falls back to <code>nl.po</code> for everything else. Fallback applies to lookups only; functions that edit or write a catalogue still need its exact name. <code>LanguageFallback()</code> reports the current setting. A locale of a language that is not loaded at all still needs a mapping in the application.</p>
+<h2>Messages without translation</h2>
+<p>By default an unloaded language or an untranslated key produces a visible marker: <code>*key*</code> for <code>tl</code>, <code>*singular/plural*</code> for <code>tn</code>, <code>*context/key*</code> for <code>ctl</code> and <code>*context/singular/plural*</code> for <code>ctn</code>. The arguments are not applied, and an empty translation counts as missing.</p>
+<pre><code>tr.SetUntranslated(translator.ShowOriginal)
+
+tr.SetUntranslated(func(m translator.Miss) string {
+    slog.Debug("missing translation", "locale", m.Locale, "key", m.Key)
+    return m.Original()
+})</code></pre>
+<p><code>ShowOriginal</code> shows the message as written in the source, formatted with its arguments, as gettext does: <code>tl "Hello, %s" "Bob"</code> shows <code>Hello, Bob</code>. For a plural it picks the singular for 1 and the plural for every other count. A mode is any function of a <code>translator.Miss</code>; <code>Marker()</code> and <code>Original()</code> return what the two built-in modes show. <code>SetUntranslated(nil)</code> restores the markers. Configure it before serving requests.</p>
+<p><code>translator.Untranslated()</code> is a translator without catalogues that shows every message with <code>ShowOriginal</code> and records nothing. Use it for templates that go through <code>tl</code> but are rendered without any language set up.</p>
 </article>

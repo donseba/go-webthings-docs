@@ -3,13 +3,13 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Decode requests</h2>
-<p><code>DecodeJSON</code> wraps <code>json.NewDecoder(req.Body).Decode</code> for the common case.</p>
+<p><code>DecodeJSON</code> wraps <code>json.NewDecoder(req.Body).Decode</code> for the common case. Unknown fields are an error.</p>
 <pre><code>type CreateUser struct {
     Name string `json:"name"`
 }
 
 var input CreateUser
-if err := router.DecodeJSON(req, &input); err != nil {
+if err := router.DecodeJSON(req, &amp;input); err != nil {
     _ = router.BadRequest(w, err)
     return
 }</code></pre>
@@ -25,5 +25,6 @@ if err := router.DecodeJSON(req, &input); err != nil {
     <li><code>InternalServerError</code></li>
     <li><code>MessageError</code></li>
 </ul>
+<p><code>Error</code> writes <code>{"error": "..."}</code> with the error's message, or the status text when the error is <code>nil</code>. <code>BadRequest</code> and <code>InternalServerError</code> are <code>Error</code> with their status, and <code>MessageError</code> makes an error from a message.</p>
 </article>
 

@@ -3,8 +3,14 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Purpose</h2>
-<p><code>Recover</code> protects the server from handler panics. It logs the recovered value and returns <code>500 Internal Server Error</code>.</p>
+<p><code>Recover</code> protects the server from handler panics. It logs the panic through <code>log/slog</code>, a record "panic recovered" at Error with <code>panic</code>, <code>method</code>, <code>path</code>, <code>request_id</code> (when there is one) and <code>stack</code>, to <code>slog.Default()</code>, and returns <code>500 Internal Server Error</code> when the response has not started.</p>
 <pre><code>r.Use(middleware.Recover)</code></pre>
+
+<h2>Started responses</h2>
+<p>When the response has already started, a 500 can no longer be sent. <code>Recover</code> then aborts the connection with <code>http.ErrAbortHandler</code>, so clients and caches do not mistake a truncated response for a complete one. A panic with <code>http.ErrAbortHandler</code> itself is passed on unlogged, as <code>net/http</code> expects.</p>
+
+<h2>Custom logger</h2>
+<pre><code>r.Use(middleware.RecoverWithOptions(middleware.RecoverOptions{Logger: logger}))</code></pre>
 
 <h2>Example</h2>
 <pre><code>r.Get("/panic", func(w http.ResponseWriter, req *http.Request) {
@@ -12,6 +18,7 @@
 })</code></pre>
 
 <h2>Production placement</h2>
-<p>Keep recovery near the outer edge of the middleware stack so it can catch panics from most downstream middleware and handlers.</p>
+<p>Keep recovery near the outer edge of the middleware stack so it can catch panics from most downstream middleware and handlers, inside <code>Logger</code> and <code>Observe</code>, so they log and count a recovered panic as a 500. <code>UseAll</code> covers every request.</p>
+<p>The writer <code>Recover</code> passes on hides <code>io.ReaderFrom</code>, so files served below it are copied through a buffer instead of sent with sendfile: slower for large files, not wrong.</p>
 </article>
 

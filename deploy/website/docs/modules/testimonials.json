@@ -1,0 +1,372 @@
+{
+  "Slug": "testimonials",
+  "Name": "Testimonials",
+  "Group": "Content",
+  "Summary": "Quotes from customers or partners, with the author's name, role and organisation and an optional photo.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/testimonials",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/testimonials",
+  "Type": "testimonials",
+  "Example": {
+    "Key": "reviews",
+    "Title": "Reviews",
+    "Code": "app.Use(testimonials.Module(\"reviews\", \"Reviews\"))"
+  },
+  "Guide": "\u003cp\u003eTestimonials are kept in a list ordered by hand and published one by one. Show them on a page of their own, or a few on any page with a template function. Use one instance per list, for example \u003ccode\u003ereviews\u003c/code\u003e and \u003ccode\u003epartners\u003c/code\u003e.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    testimonials.Module(\u0026quot;reviews\u0026quot;, \u0026quot;Reviews\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003ereviews\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eReviews\u003c/code\u003e) is what editors see in the admin navigation and the page editor. The module has no options.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. With the page at \u003ccode\u003e/reviews\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/reviews\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003ereviews/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eall published testimonials, in their order\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so \u003ccode\u003etestimonials/list.gohtml\u003c/code\u003e serves every Testimonials instance that has no design of its own. Generate a starting point with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- reviews\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal list:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/testimonials.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{range .Testimonials}}\n    \u0026lt;figure\u0026gt;\n        \u0026lt;blockquote\u0026gt;{{.Quote}}\u0026lt;/blockquote\u0026gt;\n        \u0026lt;figcaption\u0026gt;\n            {{with .PhotoURL}}\u0026lt;img src=\u0026quot;{{image . \u0026quot;96x96 crop\u0026quot;}}\u0026quot; width=\u0026quot;96\u0026quot; height=\u0026quot;96\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n            {{.Author}}{{with .Role}}, {{.}}{{end}}{{with .Organisation}}, {{.}}{{end}}\n        \u0026lt;/figcaption\u0026gt;\n    \u0026lt;/figure\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Title\u003c/code\u003e is the published title of the page. The quote is plain text, not Markdown. \u003ccode\u003e.PhotoURL\u003c/code\u003e is the photo as pages show it, at most 1600 pixels wide, with \u003ccode\u003e.PhotoSrcset\u003c/code\u003e, \u003ccode\u003e.PhotoWidth\u003c/code\u003e and \u003ccode\u003e.PhotoHeight\u003c/code\u003e for an \u003ccode\u003eimg\u003c/code\u003e tag of that size and \u003ccode\u003e.PhotoOriginalURL\u003c/code\u003e for the uploaded file; \u003ccode\u003eimage\u003c/code\u003e makes the small square above from it. All are empty for a testimonial without a photo.\u003c/p\u003e\n\u003cp\u003eA testimonial appears in each language it has a quote in.\u003c/p\u003e\n\u003ch2 id=\"show-testimonials-anywhere\"\u003eShow testimonials anywhere\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003etestimonials\u003c/code\u003e template function returns the first published testimonials in the current language, in their order, up to a limit; a limit of 0 or less returns all. It works on every page, also when the instance is not placed on a page.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range testimonials \u0026quot;reviews\u0026quot; 3}}\n    \u0026lt;blockquote\u0026gt;{{.Quote}} — {{.Author}}\u0026lt;/blockquote\u0026gt;\n{{end}}\n\n\u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;reviews\u0026quot;}}\u0026quot;\u0026gt;All reviews\u0026lt;/a\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eTo show a different choice on every visit, see \u003ccode\u003eRandom\u003c/code\u003e below.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/testimonials\u003c/code\u003e serves the published testimonials as JSON, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003ereviews\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/reviews/testimonials\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.reviews.testimonials\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published testimonials, in the editors' order, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/reviews/testimonials/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.reviews.testimonial\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne testimonial\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eA testimonial has its \u003ccode\u003eid\u003c/code\u003e, the \u003ccode\u003equote\u003c/code\u003e as plain text, the \u003ccode\u003eauthor\u003c/code\u003e, the \u003ccode\u003erole\u003c/code\u003e and \u003ccode\u003eorganisation\u003c/code\u003e in the language of the answer, the \u003ccode\u003ephoto\u003c/code\u003e as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e, \u003ccode\u003enull\u003c/code\u003e without one, and \u003ccode\u003eurl\u003c/code\u003e, \u003ccode\u003eapi_url\u003c/code\u003e and \u003ccode\u003eupdated_at\u003c/code\u003e. Testimonials have no page of their own: \u003ccode\u003eurl\u003c/code\u003e is the page the instance is placed on, \u003ccode\u003enull\u003c/code\u003e while it is on none.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/testimonials/{id}\u003c/code\u003e sends a \u003ccode\u003eLast-Modified\u003c/code\u003e: the latest change of the testimonial, of the page the instance is on and of its photo. A testimonial whose photo was deleted gets none, and so does every testimonial while the instance is on no page; the lists get none either; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/reviews\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e).\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eA testimonial has the author's name, which is required, and a photo from the media library, shared by all languages. Per language it has the quote and the author's role and organisation.\u003c/li\u003e\n\u003cli\u003eThe order in the admin (\u003cstrong\u003eMove up\u003c/strong\u003e, \u003cstrong\u003eMove down\u003c/strong\u003e) is the order on the site and in \u003ccode\u003etestimonials\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003eThere are no revisions: saving changes the testimonial at once, also when it is published. \u003cstrong\u003ePublish\u003c/strong\u003e and \u003cstrong\u003eUnpublish\u003c/strong\u003e show or hide it; publishing needs a quote in the site's default language.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a testimonial to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good.\u003c/li\u003e\n\u003cli\u003eA photo that a testimonial uses cannot be deleted from the media library, also while the testimonial is in the trash.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003eTestimonials are not part of the site search. The page they are placed on is in \u003ccode\u003esitemap.xml\u003c/code\u003e like any other page.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003etestimonials.Of(app, \u0026quot;reviews\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003ereviews := testimonials.Of(app, \u0026quot;reviews\u0026quot;)\n\nall, err := reviews.List(ctx, \u0026quot;en\u0026quot;)\npicked, err := reviews.Random(ctx, \u0026quot;en\u0026quot;, 3)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eRandom\u003c/code\u003e returns up to a number of published testimonials in random order; 0 or less returns all of them, shuffled. There is no template function for it; a site adds one through \u003ccode\u003eConfig.Funcs\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003erandomReviews := func(ctx context.Context, limit int) []testimonials.Testimonial {\n    service, ok := frontend.ServiceOf[*testimonials.Service](ctx, \u0026quot;reviews\u0026quot;)\n    if !ok {\n        return nil\n    }\n\n    list, _ := service.Random(ctx, frontend.Locale(ctx), limit)\n\n    return list\n}\n\napp := webthings.New(webthings.Config{\n    Funcs: []template.FuncMap{{\u0026quot;randomReviews\u0026quot;: randomReviews}},\n})\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eTemplates then use \u003ccode\u003e{{range randomReviews 2}}\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses. New testimonials are saved unpublished:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003estore := reviews.Store()\n\nitem, err := store.Save(ctx, content.Draft[testimonials.Fields, testimonials.Text]{\n    Fields: testimonials.Fields{Author: \u0026quot;Alice\u0026quot;},\n    Translations: []content.Translation[testimonials.Text]{\n        {Locale: \u0026quot;en\u0026quot;, Text: testimonials.Text{Quote: \u0026quot;They built our website in a week.\u0026quot;, Organisation: \u0026quot;Acme\u0026quot;}},\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, item.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/people\"\u003ePeople\u003c/a\u003e presents your own team, with photos and roles.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/lists\"\u003eLists\u003c/a\u003e keeps other short ordered content, such as services or features.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/banners\"\u003eBanners\u003c/a\u003e shows hero slides and notices next to them on the home page.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": false,
+    "Links": false,
+    "API": true,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*testimonials.Service"
+  },
+  "Admin": [
+    {
+      "ID": "reviews",
+      "Title": "Reviews",
+      "Path": "/admin/reviews",
+      "Permission": "reviews",
+      "Icon": "quote",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New testimonial",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.reviews.testimonials",
+      "Method": "GET",
+      "Path": "/api/v1/reviews/testimonials"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.reviews.testimonial",
+      "Method": "GET",
+      "Path": "/api/v1/reviews/testimonials/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "testimonials",
+      "Signature": "testimonials(key string, limit int) []Testimonial",
+      "Doc": "\u003cp\u003elist returns up to limit published testimonials in their order, for\nexample {{range testimonials \u0026quot;reviews\u0026quot; 3}} on the home page. A limit of 0\nor less returns all of them.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "reviews/list.gohtml",
+        "testimonials/list.gohtml"
+      ],
+      "DataType": "testimonials.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "Testimonials",
+          "Type": "[]testimonials.Testimonial",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Quote",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Author",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Role",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Organisation",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoURL",
+              "Type": "string",
+              "Doc": "PhotoURL is the photo as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); PhotoSrcset lists smaller copies for a srcset attribute, PhotoWidth and PhotoHeight are the size of PhotoURL and PhotoOriginalURL is the uploaded file, for downloads. All are empty when the testimonial has no photo.",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PhotoHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/testimonials.ListView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{range .Testimonials}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            {{with .Quote}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Author}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Role}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Organisation}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{if .PhotoURL}}\u003cimg src=\"{{.PhotoURL}}\"{{with .PhotoSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n            {{/* PhotoOriginalURL: {{.PhotoOriginalURL}} — the uploaded file, for a download link */}}\n        \u003c/article\u003e\n    {{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261004000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261004000000_init.postgres.sql",
+          "SQL": "-- Testimonials are a collection (see package content).\nCREATE TABLE wt_testimonial (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    photo_id   UUID,\n    author     VARCHAR(200) NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_testimonial_instance ON wt_testimonial (instance, position);\n\nCREATE TABLE wt_testimonial_translation (\n    item_id      UUID NOT NULL REFERENCES wt_testimonial (id) ON DELETE CASCADE,\n    locale       VARCHAR(35) NOT NULL,\n    quote        TEXT NOT NULL DEFAULT '',\n    author_role  VARCHAR(500) NOT NULL DEFAULT '',\n    organisation VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261004000000_init.sqlite.sql",
+          "SQL": "-- Testimonials are a collection (see package content).\nCREATE TABLE wt_testimonial (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    photo_id   TEXT,\n    author     TEXT NOT NULL DEFAULT ''\n);\n\nCREATE INDEX wt_testimonial_instance ON wt_testimonial (instance, position);\n\nCREATE TABLE wt_testimonial_translation (\n    item_id      TEXT NOT NULL REFERENCES wt_testimonial (id) ON DELETE CASCADE,\n    locale       TEXT NOT NULL,\n    quote        TEXT NOT NULL DEFAULT '',\n    author_role  TEXT NOT NULL DEFAULT '',\n    organisation TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261004000000_init.mysql.sql",
+          "SQL": "-- Testimonials are a collection (see package content).\nCREATE TABLE wt_testimonial (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    photo_id   VARCHAR(36) NULL,\n    author     VARCHAR(200) NOT NULL DEFAULT '',\n    INDEX wt_testimonial_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_testimonial_translation (\n    item_id      VARCHAR(36) NOT NULL,\n    locale       VARCHAR(35) NOT NULL,\n    quote        TEXT NOT NULL,\n    author_role  VARCHAR(500) NOT NULL DEFAULT '',\n    organisation VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_testimonial (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_testimonial",
+      "Note": "Testimonials are a collection (see package content).",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "photo_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "author",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_testimonial_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_testimonial_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_testimonial (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "quote",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "author_role",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "organisation",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "List",
+        "Signature": "func (s *Service) List(ctx context.Context, locale string) ([]Testimonial, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Random",
+        "Signature": "func (s *Service) Random(ctx context.Context, locale string, limit int) ([]Testimonial, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APITestimonial",
+        "Doc": "\u003cp\u003eAPITestimonial is a published testimonial in the content API (see\npackage api), at /api/v1/\u0026lt;key\u0026gt;/testimonials/{id} and in the list of\n/api/v1/\u0026lt;key\u0026gt;/testimonials. Quote is plain text, as the editors wrote it.\n",
+        "Fields": null,
+        "Decl": "type APITestimonial struct {\n\tID           string     `json:\"id\"`\n\tQuote        string     `json:\"quote\"`\n\tAuthor       string     `json:\"author\"`\n\tRole         string     `json:\"role\"`\n\tOrganisation string     `json:\"organisation\"`\n\tPhoto        *api.Image `json:\"photo\"`\n\t// URL is the page that lists the testimonials, null while the instance\n\t// is on no page; testimonials have no page of their own. APIURL is the\n\t// testimonial in the API.\n\tURL       *string   `json:\"url\"`\n\tAPIURL    string    `json:\"api_url\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of a testimonial.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tPhoto  string `db:\"photo_id,null\"`\n\tAuthor string `db:\"author\"`\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a testimonial with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of testimonials/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is mounted on.\n\tTitle        string\n\tTestimonials []Testimonial\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Testimonials instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Testimonial",
+        "Doc": "\u003cp\u003eTestimonial is a published testimonial as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Testimonial struct {\n\tID           string\n\tQuote        string\n\tAuthor       string\n\tRole         string\n\tOrganisation string\n\t// PhotoURL is the photo as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); PhotoSrcset lists smaller\n\t// copies for a srcset attribute, PhotoWidth and PhotoHeight are the\n\t// size of PhotoURL and PhotoOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the testimonial has no photo.\n\tPhotoURL         string\n\tPhotoSrcset      string\n\tPhotoOriginalURL string\n\tPhotoWidth       int\n\tPhotoHeight      int\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a testimonial in one language. Only the quote is required.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tQuote        string `db:\"quote\"`\n\tRole         string `db:\"author_role\"`\n\tOrganisation string `db:\"organisation\"`\n}"
+      }
+    ]
+  }
+}

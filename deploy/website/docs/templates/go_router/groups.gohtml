@@ -15,6 +15,7 @@
     admin.Use(requireAdmin)
     admin.Get("/dashboard", dashboard)
 })</code></pre>
+<p>Call <code>Use</code> before the routes it is meant for. <code>Use</code> after routes were registered on that router or one of its groups panics, since those routes would miss the middleware. A group can also have <code>NotFound</code> and <code>MethodNotAllowed</code> handlers of its own for the unmatched requests below its path.</p>
 
 <h2>Middleware-only groups</h2>
 <p>Use <code>With</code> when you want to share middleware without adding a path prefix.</p>

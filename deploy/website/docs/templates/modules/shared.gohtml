@@ -1,0 +1,34 @@
+{{ define "module_pager.gohtml" }}
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<nav class="module-pager" aria-label="{{ .Module.Name }} pages">
+    {{ with .Previous }}
+        <a href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true"><span>previous</span>{{ .Label }}</a>
+    {{ else }}
+        <span></span>
+    {{ end }}
+    {{ with .Next }}
+        <a class="module-pager-next" href="{{ .URL }}" hx-get="{{ .URL }}" hx-target="#content" hx-push-url="true"><span>next</span>{{ .Label }}</a>
+    {{ end }}
+</nav>
+{{ end }}
+
+{{ define "module_fields.gohtml" }}
+{{/* @dot []donseba/go-webthings-docs/internal/moduledoc.Field */}}
+<ul class="docs-list module-fields">
+    {{ range . }}
+        <li>
+            <code>{{ .Name }}</code> <span class="module-type">{{ .Type }}</span>
+            {{ with .Doc }}<p>{{ . }}</p>{{ end }}
+            {{ with .Fields }}{{ template "module_fields.gohtml" . }}{{ end }}
+        </li>
+    {{ end }}
+</ul>
+{{ end }}
+
+{{ define "module_func.gohtml" }}
+{{/* @dot donseba/go-webthings-docs/internal/moduledoc.Func */}}
+<div class="module-func">
+    <pre><code>{{ .Signature }}</code></pre>
+    {{ .Doc }}
+</div>
+{{ end }}

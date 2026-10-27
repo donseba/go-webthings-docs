@@ -1,0 +1,87 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.ModulePageData */}}
+<article class="module-article grid max-w-5xl gap-6">
+    {{ template "hero.gohtml" .Article }}
+
+    <h2 id="functions">Template functions</h2>
+    {{ if .Module.Funcs }}
+        <p>Every template of the site can use these. The first argument is the instance key; the current request and its language are passed along automatically.</p>
+        {{ range .Module.Funcs }}
+            <h3 id="func-{{ .Name }}">{{ .Name }}</h3>
+            {{ template "module_func.gohtml" . }}
+        {{ end }}
+    {{ else }}
+        <p>The module adds no template functions.</p>
+    {{ end }}
+
+    <h2 id="templates">Templates</h2>
+    {{ if .Module.Templates }}
+        <p>The theme provides these files; the first one found wins, so instances can share a design or each have their own. <code>App.WriteTemplates(dir, "{{ .Module.Example.Key }}")</code> writes the starting points below (in the clone: <code>task templates -- {{ .Module.Example.Key }}</code>). A missing template is reported when the app starts.</p>
+        {{ range .Module.Templates }}
+            <h3 id="template-{{ .Name }}">{{ .Name }}</h3>
+            <p>Looked up at {{ range $i, $file := .Files }}{{ if $i }}, then {{ end }}<code>{{ $file }}</code>{{ end }}{{ with .DataType }}; its data is <code>{{ . }}</code>{{ end }}.</p>
+            {{ with .Fields }}{{ template "module_fields.gohtml" . }}{{ end }}
+            <details class="module-details">
+                <summary>Starting point</summary>
+                <pre><code>{{ .Starter }}</code></pre>
+            </details>
+        {{ end }}
+    {{ else }}
+        <p>The module renders no pages of its own{{ if .Module.Funcs }}: templates show its content with the functions above{{ end }}.</p>
+    {{ end }}
+
+    {{ if .Module.Components }}
+        <h2 id="components">Components</h2>
+        <p>Components are parts of a page, such as a form, that the template functions above render with a default markup. A theme replaces one with the first file found; the markup uses <code>wt-*</code> class names, and the optional base stylesheet at <code>/_/webthings.css</code> lays them out.</p>
+        {{ range .Module.Components }}
+            <h3 id="component-{{ .Name }}">{{ .Name }}</h3>
+            <p>Looked up at {{ range $i, $file := .Files }}{{ if $i }}, then {{ end }}<code>{{ $file }}</code>{{ end }}, then the module's default{{ with .DataType }}; its data is <code>{{ . }}</code>{{ end }}.</p>
+            {{ with .Fields }}{{ template "module_fields.gohtml" . }}{{ end }}
+            <details class="module-details">
+                <summary>Default markup</summary>
+                <pre><code>{{ .Starter }}</code></pre>
+            </details>
+        {{ end }}
+    {{ end }}
+
+    {{ if .Module.Forms }}
+        <h2 id="forms">Visitor forms</h2>
+        <p>The module's visitor actions read these forms, and the views that show one hold it as <code>.Form</code>. A template writes the whole form with <code>{{ "{{" }}form_render .Form nil{{ "}}" }}</code>, or opens it with <code>{{ "{{" }}form_open .Form{{ "}}" }}</code>, writes one field at a time with <code>{{ "{{" }}form_field .Form "name" nil{{ "}}" }}</code>, which takes the field's key from the table, and closes it with <code>{{ "{{" }}form_close{{ "}}" }}</code>. The ids of the fields start with the instance key, such as <code>{{ .Module.Example.Key }}-name</code>, and after a post the visitor returns to the element with the key as its id. Labels, descriptions and messages are translated with the site's translations; see <a href="{{ .DocsURL }}/go-webthings/template-functions#forms">Template functions</a>.</p>
+        {{ range .Module.Forms }}
+            <h3 id="form-{{ .Type }}">{{ .Type }}</h3>
+            {{ .Doc }}
+            <div class="module-table"><table>
+                <thead>
+                    <tr><th>Key</th><th>Control</th><th>Label</th><th>Checks</th></tr>
+                </thead>
+                <tbody>
+                    {{ range .Fields }}
+                        <tr>
+                            <td><code>{{ .Key }}</code></td>
+                            <td><code>{{ .Control }}</code></td>
+                            <td>{{ .Label }}{{ with .Description }}<br><small>{{ . }}</small>{{ end }}</td>
+                            <td>{{ if .Required }}required{{ if .Rules }}, {{ end }}{{ end }}{{ range $i, $rule := .Rules }}{{ if $i }}, {{ end }}{{ $rule }}{{ end }}</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table></div>
+        {{ end }}
+    {{ end }}
+
+    <h2 id="mail">E-mail templates</h2>
+    {{ if .Module.Mail }}
+        <p>The module writes these e-mails with the site's mail sender. The text below is the default; a theme replaces it with one of the listed files.</p>
+        {{ range .Module.Mail }}
+            <h3 id="mail-{{ .Name }}">{{ .Name }}</h3>
+            <p>Looked up at {{ range $i, $file := .Files }}{{ if $i }}, then {{ end }}<code>{{ $file }}</code>{{ end }}{{ with .DataType }}; its data is <code>{{ . }}</code>{{ end }}.</p>
+            {{ with .Fields }}{{ template "module_fields.gohtml" . }}{{ end }}
+            <details class="module-details">
+                <summary>Default text</summary>
+                <pre><code>{{ .Starter }}</code></pre>
+            </details>
+        {{ end }}
+    {{ else }}
+        <p>The module sends no e-mail.</p>
+    {{ end }}
+
+    {{ template "module_pager.gohtml" . }}
+</article>

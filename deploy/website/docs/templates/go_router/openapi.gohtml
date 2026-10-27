@@ -4,6 +4,7 @@
 
 <h2>Enable docs</h2>
 <pre><code>r.UseOpenapiDocs(true)</code></pre>
+<p>Call it before the routes and groups it is meant for: docs are recorded when a route is registered, and groups take the setting when they are made.</p>
 
 <h2>Attach route metadata</h2>
 <pre><code>r.Get("/users/{id}", showUser, router.Docs{
@@ -19,5 +20,13 @@
 })</code></pre>
 
 <p>The OpenAPI helpers are intentionally lightweight. They are useful for route-level documentation and schema generation without pulling the router away from <code>net/http</code>.</p>
+
+<h2>Read the document</h2>
+<pre><code>doc := r.OpenAPI()</code></pre>
+<p>The paths of mounted routers appear below their mount path, with their trailing slash. With docs on, the router adds an <code>OPTIONS</code> route for each documented path on the first request, except for paths with an <code>OPTIONS</code> route of their own. Docs are off until <code>UseOpenapiDocs(true)</code>, with <code>New</code> and <code>NewSite</code> alike.</p>
+
+<h2>Servers</h2>
+<pre><code>r.AddServerEndpoint("https://api.example.com", "Production")</code></pre>
+<p><code>AddServerEndpoint</code> adds a server the API is reached at to the document.</p>
 </article>
 

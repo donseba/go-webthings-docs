@@ -3,16 +3,39 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Trusted proxy mode</h2>
-<p>For production proxy deployments, prefer <code>RealIPWithOptions</code>. It only trusts forwarding headers when the remote address belongs to a configured proxy.</p>
-<pre><code>r.Use(middleware.RealIPWithOptions(middleware.RealIPOptions{
+<p>Behind proxies, use <code>RealIPWithOptions</code> and list only your own proxies, as IP addresses or CIDR ranges. It only trusts forwarding headers when the remote address belongs to a configured proxy.</p>
+<pre><code>r.UseAll(middleware.RealIPWithOptions(middleware.RealIPOptions{
     TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
-}))</code></pre>
+}))
 
-<h2>Convenience mode</h2>
-<p><code>RealIP</code> trusts forwarding headers from any client. That is convenient locally, but usually too broad for internet-facing deployments.</p>
-<pre><code>r.Use(middleware.RealIP)</code></pre>
+ip := middleware.ClientIP(req)</code></pre>
+<p><code>RealIPWithOptions</code> panics on an entry that is not an IP address or CIDR range; <code>TryRealIP</code> returns the error instead.</p>
+
+<h2>No proxy</h2>
+<p><code>RealIP</code> trusts no proxy: the client IP is the address of the direct peer, and forwarding headers are ignored, since any client can send them.</p>
+<pre><code>r.UseAll(middleware.RealIP)</code></pre>
 
 <h2>Headers</h2>
-<p>The middleware understands <code>X-Forwarded-For</code>, <code>X-Real-IP</code>, and <code>Forwarded</code> when proxy headers are trusted.</p>
+<p>The middleware understands <code>X-Forwarded-For</code>, <code>X-Real-IP</code>, and <code>Forwarded</code> when proxy headers are trusted. <code>X-Forwarded-For</code> is read from the right, skipping trusted proxies: the first address that is not a trusted proxy is the client, so a client cannot choose its address by sending a header of its own. <code>X-Real-IP</code>, and then <code>Forwarded</code>, are used when <code>X-Forwarded-For</code> is absent.</p>
+
+<h2>Reading the client IP</h2>
+<ul class="docs-list">
+    <li><code>ClientIP(req)</code> returns the client IP, or the peer's IP when the middleware did not run.</li>
+    <li><code>GetClientIP(ctx)</code> returns the stored client IP, or <code>""</code>.</li>
+    <li><code>FromTrustedProxy(req)</code> reports whether the peer is a trusted proxy, so other forwarding headers can be believed.</li>
+</ul>
+<p>When the client differs from the peer, <code>RemoteAddr</code> becomes the client IP with port 0 (<code>203.0.113.10:0</code>) on the request the middleware passes on, so it still parses with <code>net.SplitHostPort</code>. The request itself is not changed: middleware outside it still sees the peer's address.</p>
+
+<h2>Scheme, host and origin</h2>
+<p><code>Scheme(req)</code> and <code>Host(req)</code> give the scheme and host a request arrived on, and <code>Origin(req)</code> both, such as <code>https://example.com</code>. They read <code>X-Forwarded-Proto</code> and <code>X-Forwarded-Host</code> (or <code>Forwarded</code>) only for requests from a trusted proxy. <code>SameOrigin(req, u)</code> reports whether a URL the client sent, such as <code>HX-Current-URL</code>, is an address on that host, and <code>SameOriginReferer(req)</code> returns the path and query of a <code>Referer</code> on it.</p>
+<p><code>router.LocalURL</code> guards redirects to an address from a form or query against open redirects: it accepts paths on the site only, and returns the parsed URL.</p>
+<pre><code>next := req.FormValue("next")
+if _, ok := router.LocalURL(next); !ok {
+    next = "/"
+    if referer, ok := middleware.SameOriginReferer(req); ok {
+        next = referer
+    }
+}
+http.Redirect(w, req, next, http.StatusSeeOther)</code></pre>
 </article>
 

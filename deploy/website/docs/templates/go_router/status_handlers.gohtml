@@ -2,10 +2,34 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
+<h2>Not found pages</h2>
+<p><code>NotFound</code> and <code>MethodNotAllowed</code> answer the requests no route matches: <code>NotFound</code> when no route has the path, <code>MethodNotAllowed</code> when routes have the path, but not for the request's method. Without them the router answers as the <code>ServeMux</code> does. A route that answers 404 itself, such as a lookup of a code that does not exist, keeps its own response. They take an <code>http.Handler</code>; <code>HandleStatus</code> takes an <code>http.HandlerFunc</code>.</p>
+<pre><code>r := router.NewSite(router.WithNotFound(siteNotFound))
+r.MethodNotAllowed(http.HandlerFunc(methodNotAllowed))
+
+r.Group("/api", func(api *router.Router) {
+    api.NotFound(jsonNotFound) // unmatched requests below /api
+})</code></pre>
+<p>The most specific handler answers: a group's for paths below the group, a host router's on its host. They run inside <code>UseAll</code> middleware and inside the <code>Use</code> middleware of the router or group they are set on. A mounted router answers its unmatched requests with its own handlers, or else with those of the routers it is mounted on.</p>
+<p>The router sets the <code>Allow</code> header before <code>MethodNotAllowed</code> runs. It keeps the header when the handler answers 405, and removes it when the handler answers with another status, so a site can use its not found page for both: <code>router.NewSite(router.WithNotFound(http.HandlerFunc(notFound)), router.WithMethodNotAllowed(http.HandlerFunc(notFound)))</code>.</p>
+
 <h2>Custom router statuses</h2>
-<p><code>HandleStatus</code> replaces status responses emitted by the underlying routing layer, such as 404 and 405.</p>
+<p><code>HandleStatus</code> replaces responses with a status, such as 404 and 405: those of the underlying routing layer and those of handlers. The response is dropped, without its <code>Content-Type</code>, and the status handler answers instead.</p>
 <pre><code>r.HandleStatus(http.StatusNotFound, notFound)
 r.HandleStatus(http.StatusMethodNotAllowed, methodNotAllowed)</code></pre>
+
+<h2>Keeping a response</h2>
+<p>A handler that renders its own error page keeps its response with <code>router.NoIntercept(w)</code>, called before it writes the status.</p>
+<pre><code>func page(w http.ResponseWriter, req *http.Request) {
+    if missing {
+        router.NoIntercept(w)
+        w.WriteHeader(http.StatusNotFound)
+        renderNotFound(w, req)
+        return
+    }
+    // ...
+}</code></pre>
+<p>Once a response has started, later statuses are not intercepted, and 1xx statuses pass through. Behind a response writer without <code>Unwrap</code>, set the <code>router.HeaderFlagDoNotIntercept</code> header instead; the router removes it before the response is sent.</p>
 
 <h2>Inline handlers</h2>
 <pre><code>r.HandleStatus(http.StatusInternalServerError, func(w http.ResponseWriter, req *http.Request) {
@@ -13,6 +37,6 @@ r.HandleStatus(http.StatusMethodNotAllowed, methodNotAllowed)</code></pre>
 })</code></pre>
 
 <h2>How it works</h2>
-<p>Custom status handling uses an intercepting response writer. When no custom handler is registered, the router keeps the hot path direct.</p>
+<p>Custom status handling uses an intercepting response writer. When no custom handler is registered, the router keeps the hot path direct. Status handlers get the request as the router received it: <code>UseAll</code> middleware has run for it, route middleware and <code>Use</code> middleware have not. The responses of <code>NotFound</code> and <code>MethodNotAllowed</code> handlers are not replaced by status handlers.</p>
 </article>
 

@@ -7,7 +7,6 @@
 <div class="actions">
     <a class="button primary" href="{{ goCluePath "/install" }}" hx-get="{{ goCluePath "/install" }}" hx-target="#content" hx-push-url="true">Get started</a>
     <a class="button" href="{{ goCluePath "/contracts" }}" hx-get="{{ goCluePath "/contracts" }}" hx-target="#content" hx-push-url="true">Read contracts</a>
-    <a class="button" href="http://localhost:8102">Open showcase</a>
 </div>
 
 <section class="grid">
@@ -23,9 +22,9 @@
         <strong>Keep runtime boring</strong>
         <p>Your app still uses <code>html/template</code>. The optional renderer only registers contract values.</p>
     </a>
-    <a class="card" href="{{ goCluePath "/" }}" hx-get="{{ goCluePath "/" }}" hx-target="#content" hx-push-url="true">
+    <a class="card" href="/" hx-get="/" hx-target="#content" hx-push-url="true">
         <strong>Part of a stack</strong>
-        <p>A companion to go-partial, go-translator, go-form, go-importmap, and the future docs hub.</p>
+        <p>A companion to go-partial, go-router, go-form, go-importmap, and go-translator.</p>
     </a>
 </section>
 

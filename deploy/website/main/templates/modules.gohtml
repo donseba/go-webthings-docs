@@ -1,0 +1,49 @@
+{{/* @dot donseba/go-webthings-docs/internal/website.PageData */}}
+<header class="main-hero grid grid-cols-[minmax(0,1fr)_minmax(220px,300px)] items-start gap-4 max-[760px]:grid-cols-1">
+    <div class="grid content-start gap-3 self-start">
+        <p class="main-eyebrow"><span aria-hidden="true">{{ .PromptFace }}</span> bundled modules</p>
+        <h1>{{ .Title }}</h1>
+        <p class="main-lead">{{ .Description }}</p>
+    </div>
+    <div class="main-visual-frame grid w-full max-w-[300px] place-items-center justify-self-end max-[760px]:justify-self-start">
+        <img class="main-hero-img h-auto max-h-[170px] w-auto max-w-full object-contain" src="/assets/img/logo-go-webthings.png" alt="go-webthings">
+    </div>
+</header>
+
+<section class="main-intro" aria-label="What modules are">
+    <div class="main-intro-copy">
+        <p class="main-eyebrow"><span aria-hidden="true">use</span> one line per instance</p>
+        <h2>Add a capability with one line.</h2>
+        <p>A module is a Go package. <code>app.Use(publishing.Module("news", "News"))</code> adds a news instance: its admin sections, the pages it serves below the page an editor places it on, template functions such as <code>posts "news" 3</code>, and its own database tables for SQLite, PostgreSQL and MySQL.</p>
+        <p>Run a module more than once with different keys, such as <code>news</code> and <code>blog</code>. The bundled modules use only the public API of go-webthings, so a module of your own can do everything they do.</p>
+        <nav aria-label="Module links">
+            <a href="{{ .ModulesURL }}">Module docs</a>
+            <a href="https://github.com/donseba/go-webthings/tree/main/modules">Source</a>
+        </nav>
+    </div>
+</section>
+
+{{ range .ModuleGroups }}
+    <section class="main-module-group" aria-label="{{ .Name }} modules">
+        <div class="main-module-group-head">
+            <h2>{{ .Name }}</h2>
+            <p>{{ .Intro }}</p>
+        </div>
+        <div class="main-module-grid">
+            {{ range .Modules }}
+                <article class="main-module">
+                    <a class="main-module-icon" href="{{ .URL }}" aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="/assets/img/icons.svg#{{ .Icon }}"></use></svg></a>
+                    <div>
+                        <h3><a href="{{ .URL }}">{{ .Name }}</a></h3>
+                        <p>{{ .Summary }}</p>
+                        <p class="main-module-facts">{{ if .Deprecated }}<span class="main-module-warning">going away</span>{{ end }}{{ range .Facts }}<span>{{ . }}</span>{{ end }}</p>
+                        <nav aria-label="{{ .Name }} links">
+                            <a href="{{ .URL }}">Docs</a>
+                            <a href="{{ .SourceURL }}">Source</a>
+                        </nav>
+                    </div>
+                </article>
+            {{ end }}
+        </div>
+    </section>
+{{ end }}

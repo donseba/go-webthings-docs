@@ -3,19 +3,42 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Configuration</h2>
+<p>No <code>.go-clue</code> folder is required. Add <code>.go-clue/config.json</code> only when a project needs to change the defaults.</p>
 <pre><code>{
   "enabled": true,
   "include": ["/"],
   "exclude": ["vendor"],
   "writeIndex": false,
+  "providers": [
+    "github.com/donseba/go-partial",
+    "github.com/donseba/go-partial/exp/..."
+  ],
   "functions": {
     "asset": "github.com/example/app.Asset",
     "urlFor": "github.com/example/app.URLFor"
   },
+  "functionMaps": [
+    "github.com/example/app.TemplateFuncs"
+  ],
+  "discover": {
+    "functionMaps": true,
+    "providers": true,
+    "signatures": true
+  },
+  "templateFunctions": [
+    {
+      "name": "async",
+      "path": "github.com/example/ui.Async",
+      "signatures": [
+        "func(endpoint string, params ...any) html/template.HTML"
+      ]
+    },
+    { "name": "csrfField" }
+  ],
   "symbolAnnotations": [
     {
       "name": "interaction",
-      "type": "github.com/donseba/go-partial.Interaction"
+      "type": "github.com/donseba/go-partial/exp/interactions.Interaction"
     },
     {
       "name": "component"
@@ -25,14 +48,34 @@
 }</code></pre>
 
 <p>Use <code>enabled: false</code> to disable go-clue for one project without uninstalling the editor package.</p>
+<p><code>include</code> and <code>exclude</code> are module-relative paths; <code>/</code> is the module root and excludes win over includes. Setting <code>exclude</code> replaces the default <code>["vendor"]</code>, so keep <code>vendor</code> in your own list. go-clue always skips nested modules and folders named <code>.git</code>, <code>.idea</code>, <code>node_modules</code>, <code>references</code>, <code>dist</code>, <code>build</code> and <code>out</code>, also when <code>include</code> names them.</p>
 <p>Use <code>functions</code> for helpers that your application registers globally with <code>html/template.Funcs</code>. go-clue adds them to every template contract, while local <code>@func</code> annotations can still override a helper for one template.</p>
+<p>Use <code>functionMaps</code> to name static Go FuncMap declarations whose entries are available in every template. <code>providers</code> lists dependency packages whose go-clue annotations are indexed; <code>github.com/acme/ui/...</code> loads a subtree. <code>discover</code> turns the scanning for <code>//go-clue:funcmap</code>, <code>//go-clue:provider</code> and <code>//go-clue:sig</code> comments on or off; all three are on by default.</p>
+<p>Use <code>templateFunctions</code> for helpers with more than one call form. Without <code>signatures</code>, go-clue reads the <code>//go-clue:sig</code> comments of the function at <code>path</code>. An entry with only a <code>name</code> declares a function that exists at runtime but that go-clue cannot type; its calls are not checked.</p>
 <p>Use <code>symbolAnnotations</code> for project or framework-specific annotations. A configured <code>@interaction LikesPoll</code> can become a typed symbol without go-clue depending on go-partial, and <code>@component Button github.com/example/ui.Button</code> can declare a typed component symbol when the alias has no default type. Custom annotation names with explicit types are valid by default; set <code>symbolStrictMode: true</code> if a project wants unknown custom annotations to be reported as typos.</p>
 <p>Use <code>writeIndex: true</code> only when you want editor adapters to maintain <code>.go-clue/index.json</code> after file changes. The language server does not need that file for normal completion, diagnostics, hover, or navigation.</p>
 
 <p>The scanner uses Go package information, so exported structs, fields, methods, aliases, imports, generics, and function return types are resolved through Go tooling rather than string guessing.</p>
 
+<h2>Commands</h2>
+<pre><code>go-clue types [-query Todo] [root]
+go-clue templates [root]
+go-clue index [-o .go-clue/index.json] [root]
+go-clue check [-json] [-severity warning] [-fail-on error] [-root dir] [-config file] [-problems] [path ...]
+go-clue lsp [root]
+go-clue version</code></pre>
+<p><code>types</code> and <code>templates</code> print the Go types and the template contracts go-clue found, as JSON. <code>-query</code> filters the types by name. <code>index</code> writes the full index to stdout, or to the <code>-o</code> file. <code>check</code> reports the diagnostics for every template at once. <code>lsp</code> starts the language server over stdio. <code>version</code> prints the installed version. The root is the module root, the current folder by default.</p>
+
+<h2>Checking a project</h2>
+<p><code>go-clue check</code> reports the diagnostics of the language server for every template at once, for scripts, tests and CI.</p>
+<pre><code>go-clue check .
+go-clue check -json -fail-on warning ./templates
+go-clue check -root . ./tmp/generated/page.gohtml</code></pre>
+<p>Each path is a folder or a template file; the default is the current folder. A folder is checked with the configuration of the module it is in; a file is checked as it is. <code>-root</code> checks every path in that project instead, also templates outside it, such as generated ones. The text output has one line per diagnostic, <code>file:line:column: severity: message</code>; <code>-json</code> writes an object with the counts and a <code>diagnostics</code> list. <code>-severity</code> (default <code>warning</code>) is the least severe diagnostic reported; <code>-fail-on</code> (default <code>error</code>) is the least severe diagnostic that makes the command exit with 1. <code>-problems</code> also reports problems building the index. Other failures exit with 2.</p>
+
 <h2>Optional index command</h2>
 <pre><code>go-clue index -o .go-clue/index.json .</code></pre>
 <p>The generated index is a cacheable artifact, not a runtime requirement. Without it, the language server scans the module at startup. With it, tools can inspect exactly what go-clue discovered.</p>
+<p><code>go-clue index</code> only writes an index when at least one template declares a contract or the project declares global template functions. Otherwise it exits successfully, writes nothing, and removes an index already at the <code>-o</code> path.</p>
 </article>
 

@@ -3,11 +3,18 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Purpose</h2>
-<p><code>Timer</code> is a tiny development middleware that logs duration, method, and path after the handler returns.</p>
+<p><code>Timer</code> is a tiny development middleware that logs duration, method, and path after the handler returns, as a <code>log/slog</code> record "request timed" at Info to <code>slog.Default()</code>.</p>
 <pre><code>r.Use(middleware.Timer)</code></pre>
 
 <h2>Output shape</h2>
-<pre><code>[go-router] 2.1ms      GET     /users</code></pre>
+<p>With the default <code>slog</code> handler:</p>
+<pre><code>2026/10/22 09:41:00 INFO request timed duration=2.1ms method=GET path=/users</code></pre>
+
+<h2>Options</h2>
+<pre><code>r.Use(middleware.TimerWithOptions(middleware.TimerOptions{
+    Logger: logger,
+    Level:  slog.LevelDebug,
+}))</code></pre>
 
 <h2>Logger vs timer</h2>
 <p>Use <code>Logger</code> for application request logs. Use <code>Timer</code> when you want a quick local timing view with minimal setup.</p>

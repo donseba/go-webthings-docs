@@ -1,0 +1,276 @@
+{
+  "Slug": "banners",
+  "Name": "Banners",
+  "Group": "Content",
+  "Summary": "Hero slides, carousels and announcement bars that editors write and schedule, shown anywhere on the site through template functions.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/banners",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/banners",
+  "Type": "banners",
+  "Example": {
+    "Key": "banners",
+    "Title": "Banners",
+    "Code": "app.Use(banners.Module(\"banners\", \"Banners\"))"
+  },
+  "Guide": "\u003cp\u003eA banner has a title, a subtitle, Markdown text, a button, an image, a tone and an optional window in which it is shown. Use one instance per place banners appear, for example \u003ccode\u003ebanners\u003c/code\u003e for the slides on the home page and \u003ccode\u003enotice\u003c/code\u003e for a bar at the top of every page.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    banners.Module(\u0026quot;banners\u0026quot;, \u0026quot;Banners\u0026quot;),\n    banners.Module(\u0026quot;notice\u0026quot;, \u0026quot;Notices\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003ebanners\u003c/code\u003e) is the instance's name in the admin and in the template functions and must be unique on the site. The title (\u003ccode\u003eBanners\u003c/code\u003e) is what editors see in the admin navigation. The module has no options.\u003c/p\u003e\n\u003ch2 id=\"show-banners\"\u003eShow banners\u003c/h2\u003e\n\u003cp\u003eBanners are not placed on a page and the instance is not offered under \u003cstrong\u003eShows on this page\u003c/strong\u003e in the page editor. Templates show them with two functions:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003ebanners\u003c/code\u003e returns the active banners of an instance, in their order.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ebanner\u003c/code\u003e returns the first active banner, or nothing.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eA banner is active when it is published, has a title in the page's language and the current time is inside its window. The window is checked whenever a page is rendered, so a banner appears and disappears without anyone publishing it. A page the \u003ca href=\"wt-docs:/go-webthings/deployment#the-output-cache\"\u003eoutput cache\u003c/a\u003e keeps shows the change once it is rendered again, after a minute by default.\u003c/p\u003e\n\u003cp\u003eSlides on the home page:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range banners \u0026quot;banners\u0026quot;}}\n    \u0026lt;section class=\u0026quot;slide\u0026quot;\u0026gt;\n        {{if .ImageURL}}\u0026lt;img src=\u0026quot;{{.ImageURL}}\u0026quot; srcset=\u0026quot;{{.ImageSrcset}}\u0026quot; sizes=\u0026quot;100vw\u0026quot; width=\u0026quot;{{.ImageWidth}}\u0026quot; height=\u0026quot;{{.ImageHeight}}\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n        \u0026lt;h2\u0026gt;{{.Title}}\u0026lt;/h2\u0026gt;\n        \u0026lt;p\u0026gt;{{.Subtitle}}\u0026lt;/p\u0026gt;\n        {{.Text}}\n        {{if .ButtonURL}}\u0026lt;a class=\u0026quot;button\u0026quot; href=\u0026quot;{{.ButtonURL}}\u0026quot;\u0026gt;{{.ButtonLabel}}\u0026lt;/a\u0026gt;{{end}}\n    \u0026lt;/section\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA notice bar in the layout:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{with banner \u0026quot;notice\u0026quot;}}\n    \u0026lt;div class=\u0026quot;notice notice-{{.Tone}}\u0026quot; role=\u0026quot;status\u0026quot;\u0026gt;\n        \u0026lt;strong\u0026gt;{{.Title}}\u0026lt;/strong\u0026gt; {{.Text}}\n        {{if not .Ends.IsZero}}Until {{date .Ends}}.{{end}}\n    \u0026lt;/div\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Text\u003c/code\u003e is the rendered Markdown, with media from the library resolved. \u003ccode\u003e.ImageURL\u003c/code\u003e is the image as pages show it, at most 1600 pixels wide, with \u003ccode\u003e.ImageSrcset\u003c/code\u003e, \u003ccode\u003e.ImageWidth\u003c/code\u003e and \u003ccode\u003e.ImageHeight\u003c/code\u003e for the \u003ccode\u003eimg\u003c/code\u003e tag; \u003ccode\u003e.ImageOriginalURL\u003c/code\u003e is the uploaded file. For wider screens, \u003ccode\u003e{{srcset .ImageURL 800 1600 2400}}\u003c/code\u003e offers larger copies (see \u003ca href=\"wt-docs:/go-webthings/media#image-sizes-in-templates\"\u003eMedia and images\u003c/a\u003e). \u003ccode\u003e.ImageURL\u003c/code\u003e and \u003ccode\u003e.ButtonURL\u003c/code\u003e are empty when the banner has none. \u003ccode\u003e.Tone\u003c/code\u003e is \u003ccode\u003einfo\u003c/code\u003e, \u003ccode\u003esuccess\u003c/code\u003e or \u003ccode\u003ewarning\u003c/code\u003e (\u003ccode\u003ebanners.ToneInfo\u003c/code\u003e, \u003ccode\u003eToneSuccess\u003c/code\u003e, \u003ccode\u003eToneWarning\u003c/code\u003e), meant as a CSS class. \u003ccode\u003e.Starts\u003c/code\u003e and \u003ccode\u003e.Ends\u003c/code\u003e are the window, zero when that side is open; \u003ccode\u003edate\u003c/code\u003e shows them in the site's timezone.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/banners\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e).\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003ePer language a banner has a title, a subtitle, Markdown text and a button label and address, so each language can link to its own page. The address is a path on this site, such as \u003ccode\u003e/en/contact\u003c/code\u003e, an anchor on the page, such as \u003ccode\u003e#opening-hours\u003c/code\u003e, a full \u003ccode\u003ehttp(s)\u003c/code\u003e URL, or a \u003ccode\u003emailto:\u003c/code\u003e or \u003ccode\u003etel:\u003c/code\u003e link; other kinds, such as \u003ccode\u003ejavascript:\u003c/code\u003e, and addresses with spaces in them are refused. Spaces around the title, subtitle, button label and address are removed.\u003c/li\u003e\n\u003cli\u003eThe image (from the media library), the tone (\u003cstrong\u003eInformation\u003c/strong\u003e, \u003cstrong\u003eSuccess\u003c/strong\u003e or \u003cstrong\u003eWarning\u003c/strong\u003e) and the window are shared by all languages.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eShow from\u003c/strong\u003e and \u003cstrong\u003eShow until\u003c/strong\u003e are entered in the site's timezone. An empty \u003cstrong\u003eShow from\u003c/strong\u003e shows the banner as soon as it is published, an empty \u003cstrong\u003eShow until\u003c/strong\u003e until it is unpublished. The overview marks banners outside their window as \u003cstrong\u003eUpcoming\u003c/strong\u003e or \u003cstrong\u003eExpired\u003c/strong\u003e.\u003c/li\u003e\n\u003cli\u003eThe order in the admin (\u003cstrong\u003eMove up\u003c/strong\u003e, \u003cstrong\u003eMove down\u003c/strong\u003e) is the order of \u003ccode\u003ebanners\u003c/code\u003e, and decides which banner \u003ccode\u003ebanner\u003c/code\u003e returns.\u003c/li\u003e\n\u003cli\u003eThere are no revisions: saving changes the banner at once, also when it is published. \u003cstrong\u003ePublish\u003c/strong\u003e and \u003cstrong\u003eUnpublish\u003c/strong\u003e show or hide it; publishing needs a title in the site's default language.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a banner to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003eBanners are not part of the site search or \u003ccode\u003esitemap.xml\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the text and button addresses of published banners count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the banners that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere. A banner has no address of its own, so its relative links count from the home page of its language.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003ebanners.Of(app, \u0026quot;banners\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eslides := banners.Of(app, \u0026quot;banners\u0026quot;)\n\nactive, err := slides.Active(ctx, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses. A banner needs a tone; the window is in UTC, with \u003ccode\u003enil\u003c/code\u003e for an open side. New banners are saved unpublished:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eends := time.Date(2026, 12, 24, 17, 0, 0, 0, time.UTC)\nstore := banners.Of(app, \u0026quot;notice\u0026quot;).Store()\n\nitem, err := store.Save(ctx, content.Draft[banners.Fields, banners.Text]{\n    Fields: banners.Fields{Tone: banners.ToneWarning, Ends: \u0026amp;ends},\n    Translations: []content.Translation[banners.Text]{\n        {Locale: \u0026quot;en\u0026quot;, Text: banners.Text{Title: \u0026quot;Closed on Christmas Eve from 17:00\u0026quot;}},\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, item.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/gallery\"\u003eGallery\u003c/a\u003e shows the photos of an album, for example as a carousel.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/testimonials\"\u003eTestimonials\u003c/a\u003e adds quotes from customers to the same home page.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/lists\"\u003eLists\u003c/a\u003e keeps ordered blocks such as services or features.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": false,
+    "Actions": false,
+    "Feeds": false,
+    "Links": true,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*banners.Service"
+  },
+  "Admin": [
+    {
+      "ID": "banners",
+      "Title": "Banners",
+      "Path": "/admin/banners",
+      "Permission": "banners",
+      "Icon": "megaphone",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New banner",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": null,
+  "Funcs": [
+    {
+      "Name": "banner",
+      "Signature": "banner(key string) *Banner",
+      "Doc": "\u003cp\u003efirst returns the first active banner of an instance, or nil, for example\n{{with banner \u0026quot;notice\u0026quot;}} in the layout.\n"
+    },
+    {
+      "Name": "banners",
+      "Signature": "banners(key string) []Banner",
+      "Doc": "\u003cp\u003eactive returns the active banners of an instance in their order, for\nexample {{range banners \u0026quot;hero\u0026quot;}} on the home page.\n"
+    }
+  ],
+  "Templates": [],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Banners are a collection (see package content). Times are UTC.\nCREATE TABLE wt_banner (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    image_id   UUID,\n    tone       VARCHAR(20) NOT NULL DEFAULT 'info',\n    starts_at  TIMESTAMPTZ,\n    ends_at    TIMESTAMPTZ\n);\n\nCREATE INDEX wt_banner_instance ON wt_banner (instance, position);\n\nCREATE TABLE wt_banner_translation (\n    item_id      UUID NOT NULL REFERENCES wt_banner (id) ON DELETE CASCADE,\n    locale       VARCHAR(35) NOT NULL,\n    title        VARCHAR(200) NOT NULL DEFAULT '',\n    subtitle     VARCHAR(500) NOT NULL DEFAULT '',\n    body         TEXT NOT NULL DEFAULT '',\n    button_label VARCHAR(100) NOT NULL DEFAULT '',\n    button_url   VARCHAR(2000) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Banners are a collection (see package content). Times are UTC.\nCREATE TABLE wt_banner (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    image_id   TEXT,\n    tone       TEXT NOT NULL DEFAULT 'info',\n    starts_at  TIMESTAMP,\n    ends_at    TIMESTAMP\n);\n\nCREATE INDEX wt_banner_instance ON wt_banner (instance, position);\n\nCREATE TABLE wt_banner_translation (\n    item_id      TEXT NOT NULL REFERENCES wt_banner (id) ON DELETE CASCADE,\n    locale       TEXT NOT NULL,\n    title        TEXT NOT NULL DEFAULT '',\n    subtitle     TEXT NOT NULL DEFAULT '',\n    body         TEXT NOT NULL DEFAULT '',\n    button_label TEXT NOT NULL DEFAULT '',\n    button_url   TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Banners are a collection (see package content). Times are UTC.\nCREATE TABLE wt_banner (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    image_id   VARCHAR(36) NULL,\n    tone       VARCHAR(20) NOT NULL DEFAULT 'info',\n    starts_at  DATETIME(6) NULL,\n    ends_at    DATETIME(6) NULL,\n    INDEX wt_banner_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_banner_translation (\n    item_id      VARCHAR(36) NOT NULL,\n    locale       VARCHAR(35) NOT NULL,\n    title        VARCHAR(200) NOT NULL DEFAULT '',\n    subtitle     VARCHAR(500) NOT NULL DEFAULT '',\n    body         TEXT NOT NULL,\n    button_label VARCHAR(100) NOT NULL DEFAULT '',\n    button_url   VARCHAR(2000) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_banner (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_banner",
+      "Note": "Banners are a collection (see package content). Times are UTC.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "image_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "tone",
+          "Type": "VARCHAR(20)",
+          "Notes": "NOT NULL DEFAULT 'info'"
+        },
+        {
+          "Name": "starts_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "ends_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_banner_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_banner_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_banner (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "subtitle",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "button_label",
+          "Type": "VARCHAR(100)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "button_url",
+          "Type": "VARCHAR(2000)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Active",
+        "Signature": "func (s *Service) Active(ctx context.Context, locale string) ([]Banner, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Banner",
+        "Doc": "\u003cp\u003eBanner is an active banner as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Banner struct {\n\tID       string\n\tTitle    string\n\tSubtitle string\n\t// Text is the rendered Markdown text.\n\tText        template.HTML\n\tButtonLabel string\n\t// ButtonURL is empty when the banner has no button. It is a template.URL,\n\t// checked when the banner was saved, so mailto: and tel: links work in\n\t// href attributes.\n\tButtonURL template.URL\n\t// ImageURL is the banner's image as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); ImageSrcset lists smaller\n\t// copies for a srcset attribute, ImageWidth and ImageHeight are the\n\t// size of ImageURL and ImageOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the banner has no image.\n\tImageURL         string\n\tImageSrcset      string\n\tImageOriginalURL string\n\tImageWidth       int\n\tImageHeight      int\n\t// Tone is ToneInfo, ToneSuccess or ToneWarning.\n\tTone string\n\t// Starts and Ends are the window the banner is shown in; zero when open.\n\tStarts time.Time\n\tEnds   time.Time\n}"
+      },
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of a banner. Starts and Ends are\nUTC; nil means the window is open on that side.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tImage  string     `db:\"image_id,null\"`\n\tTone   string     `db:\"tone\"`\n\tStarts *time.Time `db:\"starts_at\"`\n\tEnds   *time.Time `db:\"ends_at\"`\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a banner with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Banners instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a banner in one language. Body is Markdown. ButtonURL is a path on\nthe site, such as /en/contact, or a full URL.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tTitle       string `db:\"title\"`\n\tSubtitle    string `db:\"subtitle\"`\n\tBody        string `db:\"body\"`\n\tButtonLabel string `db:\"button_label\"`\n\tButtonURL   string `db:\"button_url\"`\n}"
+      }
+    ]
+  }
+}

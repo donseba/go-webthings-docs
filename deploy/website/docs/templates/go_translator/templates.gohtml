@@ -10,8 +10,15 @@
 <p>Go template arguments are separated by spaces. The translated string uses printf-style formatting: keep the placeholders and their expected types compatible across languages. Use indexed placeholders such as <code>%[2]d</code> when a translation needs to change the order.</p>
 <h2>Calls from Go</h2>
 <pre><code>greeting := tr.Tl(loc, "Hello, %s", name)
+messages := tr.Tn(loc, "%d message", "%d messages", count, count)
 label := tr.Ctl(loc, "navigation", "Home")</code></pre>
-<p><code>Tl</code> and <code>Ctl</code> accept formatting arguments. Public plural methods differ from their template helpers; see <a href="{{ basePath }}/plurals" hx-get="{{ basePath }}/plurals" hx-target="#content" hx-push-url="true">plural selection and formatting</a>.</p>
+<p><code>Tl</code>, <code>Tn</code>, <code>Ctl</code> and <code>Ctn</code> take the same arguments as the template helpers; see <a href="{{ basePath }}/plurals" hx-get="{{ basePath }}/plurals" hx-target="#content" hx-push-url="true">plural selection and formatting</a>. <code>ctl</code>/<code>Ctl</code> and <code>ctn</code>/<code>Ctn</code> without a context (<code>""</code>) behave exactly like <code>tl</code>/<code>Tl</code> and <code>tn</code>/<code>Tn</code>.</p>
+<h2>Knowing whether a translation exists</h2>
+<pre><code>text, found := tr.Lookup(loc, "Hello, %s", name)
+if !found {
+    // text is what SetUntranslated shows, by default "*Hello, %s*"
+}</code></pre>
+<p><code>Lookup</code>, <code>LookupN</code>, <code>LookupC</code> and <code>LookupCN</code> take the same arguments as <code>Tl</code>, <code>Tn</code>, <code>Ctl</code> and <code>Ctn</code>, return the same text, and also report whether a translation was found. Like the other lookups, they record the key when recording is on.</p>
 <h2>Literal keys and escaping</h2>
 <p>Use a stable literal key and pass values separately. Concatenating a name into the key creates a different catalogue entry for each value. <code>html/template</code> escapes the returned string for its HTML context; store ordinary text in translations and keep markup in templates.</p>
 </article>

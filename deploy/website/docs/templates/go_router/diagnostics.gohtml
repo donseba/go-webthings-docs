@@ -3,7 +3,7 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Walk routes</h2>
-<p><code>Walk</code> exposes registered route metadata. It is useful for startup logs, tests, and custom route documentation.</p>
+<p><code>Walk</code> exposes registered route metadata. It is useful for startup logs, tests, and custom route documentation. <code>RouteInfo.Path</code> is the path for reverse routing and <code>RouteInfo.Pattern</code> the registered <code>ServeMux</code> pattern, such as <code>/admin/</code> and <code>/admin/{$}</code>. Routes of mounted routers are listed below their mount path, and <code>RouteInfo.Labels</code> holds the labels of a route and of the mounts it is below.</p>
 <pre><code>err := r.Walk(func(route router.RouteInfo) error {
     log.Printf("%s %s %s %s", route.Host, route.Method, route.Path, route.Name)
     log.Printf("handler: %T middleware: %d", route.Handler, len(route.Middlewares))
@@ -12,6 +12,29 @@
 
 <h2>Print a route table</h2>
 <pre><code>fmt.Print(r.RouteTable())</code></pre>
+
+<h2>Match routes</h2>
+<p><code>Match</code> returns the route a method and path would be served by, as <code>Walk</code> lists it. <code>Owns</code> is <code>Match</code> for any method: the most specific route a path has, which tells which part of an application a path belongs to.</p>
+<pre><code>r.Mount("/admin", admin).Label("admin")
+
+route, _ := r.Match(http.MethodGet, "/admin/users/7")
+// route.Name "admin.users.show", route.Pattern "/admin/users/{id}"
+
+route, _ = r.Match(http.MethodGet, "/admin/nothing")
+// route.Pattern "/admin/", route.Mount true, route.HasLabel("admin") true</code></pre>
+<p>A path below a mount that the mounted router has no route for is the mount's, with <code>RouteInfo.Mount</code> set and the mount's labels. A path the router redirects, such as <code>/admin//users</code> or a path without the trailing slash of a route, is matched where the redirect leads, with <code>RouteInfo.Redirect</code> set to that path.</p>
+
+<h2>The route of a request</h2>
+<p><code>router.MatchedRoute(req)</code> returns the route that served a request, for <code>UseAll</code> middleware such as metrics and access logs. The router records it when <code>TrackRoutes</code> is set, which costs two allocations per request. <code>MatchedLabel</code>, <code>MatchLabel</code> and <code>OwnsLabel</code> give one label of the route without copying it.</p>
+<pre><code>r.TrackRoutes()
+r.UseAll(middleware.Observe(func(req *http.Request, info middleware.ResponseInfo) {
+    class, _ := router.MatchedLabel(req, "admin", "asset")
+    if class == "" {
+        class = "public"
+    }
+
+    requests.WithLabelValues(class, strconv.Itoa(info.Status)).Inc()
+}))</code></pre>
 
 <h2>Registration errors</h2>
 <p>Duplicate route names and duplicate method/path/host registrations fail during registration. Use the <code>Try*</code> APIs when you want startup code to return explicit errors instead of panicking.</p>

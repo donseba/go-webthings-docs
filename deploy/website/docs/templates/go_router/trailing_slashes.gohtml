@@ -3,7 +3,7 @@
     {{ template "hero.gohtml" . }}
 
 <h2>Default behavior</h2>
-<p>Trailing slash redirects are disabled by default so applications can choose their own canonical URL policy.</p>
+<p>Trailing slash redirects are disabled by default so applications can choose their own canonical URL policy. With them on, a path that ends in a slash, other than <code>/</code>, redirects to the path without it, with <code>router.DefaultRedirectStatusCode</code> (<code>307 Temporary Redirect</code>). A path that a route serves with its slash keeps it: a route such as <code>/docs/</code>, <code>/admin/{$}</code> or <code>/files/{name...}</code>, the root of <code>ServeFiles</code>, and such routes of a mounted router.</p>
 <pre><code>r.RedirectTrailingSlash(true)</code></pre>
 
 <h2>Scoped policies</h2>
@@ -15,5 +15,9 @@
 
 <h2>When to enable</h2>
 <p>Enable redirects when your website has a single canonical form for pages. Leave them off for APIs where explicit route shapes are part of the contract.</p>
+
+<h2>Routes with a trailing slash</h2>
+<p><code>/users</code> and <code>/users/</code> are two routes, and reverse routing keeps the trailing slash: <code>/admin/{$}</code> and <code>/admin/</code> are both <code>/admin/</code>. Without a route of its own, <code>/users</code> is redirected to a route <code>/users/</code> by the <code>ServeMux</code>.</p>
+<p>The redirects of a mounted router, those of its policy and those of its <code>ServeMux</code>, go to the public path: with a router mounted at <code>/admin</code>, <code>/admin/users/</code> redirects to <code>/admin/users</code>, not to <code>/users</code>.</p>
 </article>
 

@@ -3,8 +3,8 @@ module donseba/go-webthings-docs
 go 1.26.3
 
 require (
-	github.com/donseba/go-partial v0.9.0
-	github.com/donseba/go-router v0.9.0
+	github.com/donseba/go-partial v0.15.0
+	github.com/donseba/go-router v0.12.0
 	golang.org/x/image v0.43.0
 )
 

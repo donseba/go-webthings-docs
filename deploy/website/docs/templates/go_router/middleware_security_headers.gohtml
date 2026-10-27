@@ -14,9 +14,27 @@
 </ul>
 
 <h2>Options</h2>
+<p>With options, only the headers given are set: they replace the defaults entirely. <code>XRobotsTag</code> sets <code>X-Robots-Tag</code>, such as <code>noindex, nofollow</code> for an admin. The headers replace values of the same name set before, and the handler can still change them.</p>
 <pre><code>r.Use(middleware.SecurityHeaders(middleware.SecurityHeadersOptions{
     ContentSecurityPolicy: "default-src 'self'",
     FrameOptions:          "SAMEORIGIN",
 }))</code></pre>
+<p>Set headers that every response must carry, such as <code>X-Content-Type-Options</code>, with <code>UseAll</code>: <code>Use</code> middleware does not run for the router's own redirects and plain 404 and 405 answers. Headers that belong to pages, such as framing, can stay on <code>Use</code>.</p>
+
+<h2>Content-Security-Policy</h2>
+<p><code>CSP(policy)</code> merges a policy into the <code>Content-Security-Policy</code> of every response, directive by directive, and lets handlers add sources, such as the hash of an inline script, with <code>AddCSPSource</code> until the response is written. <code>SecurityHeaders</code> merges its <code>ContentSecurityPolicy</code> the same way. <code>StrictCSP</code> allows only what the site serves itself: no inline scripts or styles, no <code>eval</code>, no plugins, and forms, <code>&lt;base&gt;</code> and framing limited to the site.</p>
+<pre><code>r.Use(middleware.CSP(middleware.StrictCSP))
+
+r.Group("/admin", func(admin *router.Router) {
+    // Replaces frame-ancestors only; the rest of the site's policy stays.
+    admin.Use(middleware.CSP("frame-ancestors 'none'"))
+})
+
+func page(w http.ResponseWriter, req *http.Request) {
+    // Allows the import map, an inline script, by its hash.
+    middleware.AddCSPSource(w, "script-src", importMap.ScriptHash())
+    render(w, req)
+}</code></pre>
+<p>A later step wins over an earlier one for the directives it names and keeps the others: the policy an outer middleware set, then the policy of <code>CSP</code>, then what the handler leaves in the header, then the sources of <code>AddCSPSource</code>. So put the site-wide policy outside, and the policies of groups of routes inside. Put <code>CSP</code> inside an output cache, so the policy with the page's hashes is stored and served with the page. <code>ParseCSP</code> returns a <code>CSPPolicy</code>, which builds and changes policies outside a request.</p>
 </article>
 

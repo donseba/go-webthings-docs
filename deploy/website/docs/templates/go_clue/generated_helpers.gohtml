@@ -17,8 +17,10 @@
 */&#125;&#125;
 
 &lt;p&gt;&#123;&#123; time.Format Page.GeneratedAt "15:04:05" &#125;&#125;&lt;/p&gt;
-&lt;p&gt;&#123;&#123; money.EUR .MonthlyCents &#125;&#125;&lt;/p&gt;
-&lt;p&gt;&#123;&#123; text.Initials .Owner &#125;&#125;&lt;/p&gt;</code></pre>
+&#123;&#123; range Page.Accounts &#125;&#125;
+    &lt;p&gt;&#123;&#123; money.EUR .MonthlyCents &#125;&#125;&lt;/p&gt;
+    &lt;p&gt;&#123;&#123; text.Initials .Owner &#125;&#125;&lt;/p&gt;
+&#123;&#123; end &#125;&#125;</code></pre>
 
 <h2>Folder shape</h2>
 <p>Keep normal helper code under <code>internal/</code>. Put the generated wrapper in a small <code>gen</code> package.</p>
@@ -29,7 +31,7 @@ internal/textfuncs/textfuncs.go
 gen/gen.go</code></pre>
 
 <h2>Generation</h2>
-<pre><code>go install github.com/donseba/go-clue/cmd/go-clue-exp-gen@main
+<pre><code>go install github.com/donseba/go-clue/cmd/go-clue-exp-gen@latest
 
 go-clue-exp-gen \
   -package gen \

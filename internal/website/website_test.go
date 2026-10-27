@@ -13,6 +13,15 @@ import (
 	"time"
 )
 
+// setHTMXPartialRequest gives req the headers htmx 4 sends for a swap into
+// target, written as htmx 4 names it: the tag and the id, such as
+// main#content.
+func setHTMXPartialRequest(req *http.Request, target string) {
+	req.Header.Set("HX-Request", "true")
+	req.Header.Set("HX-Request-Type", "partial")
+	req.Header.Set("HX-Target", target)
+}
+
 func TestGoClueLegacyDocumentationRedirects(t *testing.T) {
 	handler := NewRouter()
 	for _, host := range []string{"docs.gowebthings.com", "docs.rocketweb.nl:8080"} {
@@ -78,7 +87,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"src=\"/assets/img/logo-go-partial.png\"",
 				"src=\"/assets/img/logo-go-clue.png\"",
 				"src=\"/assets/img/logo-go-router.png\"",
-				"class=\"root-card\"",
+				`<section class="grid" aria-label="Components">`,
 			},
 		},
 		{
@@ -129,7 +138,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"go-webthings",
 				"href=\"http://docs.rocketweb.nl:8080/go-partial\"",
 				"href=\"http://showcase.rocketweb.nl:8080\"",
-				"href=\"/assets/css/styles.css\"",
+				"href=\"/assets/css/styles.css?v=20261026\"",
 			},
 		},
 		{
@@ -199,12 +208,12 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				`<title>Typed contracts for Go templates - go-clue docs</title>`,
 				`<link rel="icon" href="/assets/img/favicon.ico" sizes="any">`,
 				"href=\"/go-clue/install\"",
-				"href=\"/assets/css/styles.css\"",
-				"src=\"/assets/js/code-highlight.js\"",
+				"href=\"/assets/css/styles.css?v=20261026\"",
+				"src=\"/assets/js/code-highlight.js?v=20261026\"",
 				"src=\"/assets/img/logo-go-clue.png\"",
 				"href=\"/go-partial\"",
 				"href=\"/go-clue\" hx-get=\"/go-clue\"",
-				"href=\"/go-clue\" hx-get=\"/go-clue\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"page\"",
+				"href=\"/go-clue\" hx-get=\"/go-clue\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"true\"",
 				"hx-get=\"/go-clue/install\"",
 				"href=\"/go-router\"",
 				"href=\"https://gowebthings.com\"",
@@ -236,7 +245,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 				"href=\"/go-partial\"",
 				"href=\"/go-clue\"",
 				"href=\"/go-router\" hx-get=\"/go-router\"",
-				"href=\"/go-router\" hx-get=\"/go-router\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"page\"",
+				"href=\"/go-router\" hx-get=\"/go-router\" hx-target=\"#content\" hx-push-url=\"true\" aria-current=\"true\"",
 				"hx-get=\"/go-router/routing\"",
 			},
 		},
@@ -331,7 +340,7 @@ func TestSubdomainElementRoutes(t *testing.T) {
 		{
 			name:       "unknown element",
 			host:       "docs.gowebthings.com",
-			path:       "/go-webthings",
+			path:       "/go-nothing",
 			wantStatus: http.StatusNotFound,
 			wantBody: []string{
 				"Element not found",
@@ -476,8 +485,7 @@ func TestMainGeneratorEndpoints(t *testing.T) {
 func TestHTMXMainNavigationReturnsContentFragment(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/generate", nil)
 	req.Host = "gowebthings.com"
-	req.Header.Set("HX-Request", "true")
-	req.Header.Set("HX-Target", "content")
+	setHTMXPartialRequest(req, "section#content")
 	rec := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(rec, req)
@@ -529,8 +537,7 @@ func TestShowcaseHTMXFragments(t *testing.T) {
 	t.Run("selection returns content and oob sidebar", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/selection", nil)
 		req.Host = "showcase.gowebthings.com"
-		req.Header.Set("HX-Request", "true")
-		req.Header.Set("HX-Target", "content")
+		setHTMXPartialRequest(req, "main#content")
 		req.Header.Set("X-Select", "details")
 		rec := httptest.NewRecorder()
 
@@ -561,8 +568,7 @@ func TestShowcaseHTMXFragments(t *testing.T) {
 	t.Run("row target resolves one row", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/rows/refresh-row?id=1", nil)
 		req.Host = "showcase.gowebthings.com"
-		req.Header.Set("HX-Request", "true")
-		req.Header.Set("HX-Target", "row-1")
+		setHTMXPartialRequest(req, "tr#row-1")
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)
@@ -582,8 +588,7 @@ func TestShowcaseHTMXFragments(t *testing.T) {
 	t.Run("cart add returns popup and oob button", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/shop/cart/add?id=1", nil)
 		req.Host = "showcase.gowebthings.com"
-		req.Header.Set("HX-Request", "true")
-		req.Header.Set("HX-Target", "cart-popup")
+		setHTMXPartialRequest(req, "aside#cart-popup")
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)
@@ -752,8 +757,53 @@ func TestDocsCodeHighlightAsset(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
-	if body := rec.Body.String(); !strings.Contains(body, "highlightAll") || !strings.Contains(body, "htmx:afterSwap") || !strings.Contains(body, "highlightGoClueComment") {
+	if body := rec.Body.String(); !strings.Contains(body, "highlightAll") || !strings.Contains(body, "htmx:after:swap") || !strings.Contains(body, "highlightGoClueComment") {
 		t.Fatalf("expected docs highlighter asset, got:\n%s", body)
+	}
+}
+
+func TestPagesLoadHTMX4(t *testing.T) {
+	const htmx4 = `<script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>`
+
+	tests := []struct {
+		host string
+		path string
+		want []string
+	}{
+		{host: "gowebthings.com", path: "/", want: []string{htmx4}},
+		{host: "docs.gowebthings.com", path: "/go-partial", want: []string{htmx4}},
+		{host: "modules.gowebthings.com", path: "/", want: []string{htmx4}},
+		{
+			host: "showcase.gowebthings.com",
+			path: "/",
+			want: []string{htmx4, `<script src="https://unpkg.com/htmx.org@4.0.0/dist/ext/hx-sse.min.js"></script>`},
+		},
+	}
+
+	handler := NewRouter()
+	for _, tt := range tests {
+		t.Run(tt.host, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req.Host = tt.host
+			rec := httptest.NewRecorder()
+
+			handler.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+			}
+
+			body := rec.Body.String()
+			for _, want := range tt.want {
+				if !strings.Contains(body, want) {
+					t.Fatalf("expected body to contain %q", want)
+				}
+			}
+
+			if strings.Contains(body, "htmx.org@2") || strings.Contains(body, "htmx-ext-sse") {
+				t.Fatalf("expected no htmx 2 script, got:\n%s", body)
+			}
+		})
 	}
 }
 
@@ -1058,8 +1108,7 @@ func TestHTMXDocsRequestsReturnFragments(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
 			req.Host = "docs.gowebthings.com"
-			req.Header.Set("HX-Request", "true")
-			req.Header.Set("HX-Target", "content")
+			setHTMXPartialRequest(req, "main#content")
 			rec := httptest.NewRecorder()
 
 			handler.ServeHTTP(rec, req)

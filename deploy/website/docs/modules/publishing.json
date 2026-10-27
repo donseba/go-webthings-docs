@@ -1,0 +1,854 @@
+{
+  "Slug": "publishing",
+  "Name": "Publishing",
+  "Group": "Content",
+  "Summary": "News, blogs and other streams of dated posts, with categories, an image, Markdown text, drafts, previews and scheduled publishing.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/publishing",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/publishing",
+  "Type": "publishing",
+  "Example": {
+    "Key": "news",
+    "Title": "News",
+    "Code": "app.Use(publishing.Module(\"news\", \"News\"))"
+  },
+  "Guide": "\u003cp\u003eUse one instance per stream: a site can have \u003ccode\u003enews\u003c/code\u003e and \u003ccode\u003eblog\u003c/code\u003e side by side, each with its own posts, categories, admin section and templates.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    publishing.Module(\u0026quot;news\u0026quot;, \u0026quot;News\u0026quot;),\n    publishing.Module(\u0026quot;blog\u0026quot;, \u0026quot;Blog\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003enews\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eNews\u003c/code\u003e) is what editors see in the admin navigation and the page editor.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page then serves the posts at and below its own address; with the page at \u003ccode\u003e/news\u003c/code\u003e (after the language prefix, such as \u003ccode\u003e/en/news\u003c/code\u003e):\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/news\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003enews/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe published posts, newest first\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/news/category/\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003enews/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe posts in one category\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/news/\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003enews/post.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone post\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so \u003ccode\u003epublishing/post.gohtml\u003c/code\u003e serves every Publishing instance that has no design of its own. Generate starting points with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- news\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal list:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/publishing.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n{{range .Categories}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;{{if .Active}} aria-current=\u0026quot;page\u0026quot;{{end}}\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n{{end}}\n\n{{range .Posts}}\n    \u0026lt;article\u0026gt;\n        \u0026lt;h2\u0026gt;\u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\u0026lt;/h2\u0026gt;\n        \u0026lt;time datetime=\u0026quot;{{.Date.Format \u0026quot;2006-01-02\u0026quot;}}\u0026quot;\u0026gt;{{date .Date}}\u0026lt;/time\u0026gt;\n        \u0026lt;p\u0026gt;{{.Excerpt}}\u0026lt;/p\u0026gt;\n    \u0026lt;/article\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Excerpt\u003c/code\u003e is what editors write under \u003cstrong\u003eSummary\u003c/strong\u003e. \u003ccode\u003e.Date\u003c/code\u003e is a calendar day, so \u003ccode\u003e{{date .Date}}\u003c/code\u003e shows the same day in every site timezone. On a category's page \u003ccode\u003e.Category\u003c/code\u003e is that category and \u003ccode\u003e.Title\u003c/code\u003e its title, also for a published category without visible posts, which \u003ccode\u003e.Categories\u003c/code\u003e leaves out.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003epost.gohtml\u003c/code\u003e gets a single \u003ccode\u003epublishing.Post\u003c/code\u003e; its \u003ccode\u003eBody\u003c/code\u003e is the rendered Markdown, with media from the library already resolved. \u003ccode\u003eImageURL\u003c/code\u003e is the post's \u003cstrong\u003eImage\u003c/strong\u003e as pages show it, at most 1600 pixels wide, with \u003ccode\u003eImageSrcset\u003c/code\u003e, \u003ccode\u003eImageWidth\u003c/code\u003e and \u003ccode\u003eImageHeight\u003c/code\u003e for the \u003ccode\u003eimg\u003c/code\u003e tag, and \u003ccode\u003eImageOriginalURL\u003c/code\u003e is the uploaded file; all are empty for a post without one:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{if .ImageURL}}\u0026lt;img src=\u0026quot;{{.ImageURL}}\u0026quot; srcset=\u0026quot;{{.ImageSrcset}}\u0026quot; sizes=\u0026quot;100vw\u0026quot; width=\u0026quot;{{.ImageWidth}}\u0026quot; height=\u0026quot;{{.ImageHeight}}\u0026quot; alt=\u0026quot;\u0026quot;\u0026gt;{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003ePosts in a list have the same fields; \u003ccode\u003e{{image .ImageURL \u0026quot;400x300 crop\u0026quot;}}\u003c/code\u003e gives a copy cut to a fixed size around the focal point (see \u003ca href=\"wt-docs:/go-webthings/media#image-sizes-in-templates\"\u003eMedia and images\u003c/a\u003e).\u003c/p\u003e\n\u003cp\u003eA post appears in each language it has a title and slug for. Posts are only reachable while the instance is placed on a page.\u003c/p\u003e\n\u003ch2 id=\"show-posts-anywhere\"\u003eShow posts anywhere\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003eposts\u003c/code\u003e template function returns the newest published posts in the current language, up to a limit, for a home page or a sidebar; a limit of 0 or less returns all. Links point to the page the instance is placed on; while it is on no page in the current language, \u003ccode\u003e.URL\u003c/code\u003e of posts and their categories is empty.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range posts \u0026quot;news\u0026quot; 3}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n{{end}}\n\n\u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;news\u0026quot;}}\u0026quot;\u0026gt;All news\u0026lt;/a\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"feeds\"\u003eFeeds\u003c/h2\u003e\n\u003cp\u003eEach instance serves Atom and RSS feeds of its newest published posts below its page, in the page's language:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eRoutes\u003c/th\u003e\n\u003cth\u003eLists\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/news/feed.atom\u003c/code\u003e, \u003ccode\u003e/news/feed.rss\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003efeed.atom\u003c/code\u003e, \u003ccode\u003efeed.rss\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe newest posts\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/news/category/\u0026lt;slug\u0026gt;/feed.atom\u003c/code\u003e, \u003ccode\u003e.rss\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003ecategory-feed.atom\u003c/code\u003e, \u003ccode\u003ecategory-feed.rss\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe newest posts in one category\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eCore's head tags link to them with \u003ccode\u003e{{feedLinks}}\u003c/code\u003e: every page of the instance to the instance's feeds, and a category's page to that category's feeds as well; see \u003ca href=\"wt-docs:/go-webthings/themes#feeds\"\u003eThemes\u003c/a\u003e. A category that does not exist or is not published gets the site's 404 page, and so do the feeds while the instance is on no page.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eThe feeds list as many posts as the site setting \u003cstrong\u003eItems in feeds\u003c/strong\u003e says (\u003cstrong\u003eSite settings › General\u003c/strong\u003e, 20 by default). Their title is the page's title, or the category's, with the site's name, such as \u0026quot;News from My site\u0026quot;, translated with the site's translations.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003epublishing.Module(\u0026quot;news\u0026quot;, \u0026quot;News\u0026quot;, publishing.WithFeedSize(50))\u003c/code\u003e makes the instance's feeds, those of its categories included, list 50 posts instead, whatever the setting says. The size is at most 100 (\u003ccode\u003esite.MaxFeedSize\u003c/code\u003e) and 0 follows the setting; the app does not start with another size.\u003c/li\u003e\n\u003cli\u003eAn entry's summary is the post's excerpt, or else about the first 300 characters of its text. Its content is the post's Markdown with absolute addresses, and its images are shown as in e-mail: a JPEG at most 1200 pixels wide, or a PNG for a PNG with transparency.\u003c/li\u003e\n\u003cli\u003eIts categories are the post's categories, and the featured image is an enclosure.\u003c/li\u003e\n\u003cli\u003eIt is published at the post's date and updated when its published revision was saved, if that was later.\u003c/li\u003e\n\u003cli\u003eIts ID is \u003ccode\u003etag:\u0026lt;host\u0026gt;,\u0026lt;date created\u0026gt;:\u0026lt;key\u0026gt;/\u0026lt;post ID\u0026gt;\u003c/code\u003e, such as \u003ccode\u003etag:example.com,2026-10-07:news/0199a3c1-…\u003c/code\u003e, so it stays the same when the post's slug or page changes. The host is that of \u003ccode\u003eConfig.BaseURL\u003c/code\u003e, or else of the request: set \u003ccode\u003eBaseURL\u003c/code\u003e, so the IDs do not depend on the address a reader used.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eFeeds are cached like pages and are not in \u003ccode\u003esitemap.xml\u003c/code\u003e. \u003ca href=\"wt-docs:/go-webthings/module-feeds-and-links#feeds\"\u003eFeeds\u003c/a\u003e for modules explains what core adds to them.\u003c/p\u003e\n\u003ch2 id=\"structured-data\"\u003eStructured data\u003c/h2\u003e\n\u003cp\u003eA post's page describes the post to search engines as a schema.org \u003ccode\u003eArticle\u003c/code\u003e. Core's head tags write it, with the site's own items, with \u003ccode\u003e{{structuredData}}\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/search-and-seo#structured-data\"\u003eSearch and SEO\u003c/a\u003e. The Article of a post at \u003ccode\u003e/en/news/hello-harbour\u003c/code\u003e, one item of the page's \u003ccode\u003e@graph\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-json\"\u003e{\n  \u0026quot;@type\u0026quot;: \u0026quot;Article\u0026quot;,\n  \u0026quot;articleSection\u0026quot;: [\u0026quot;Updates\u0026quot;],\n  \u0026quot;author\u0026quot;: {\u0026quot;@id\u0026quot;: \u0026quot;https://example.com/#organization\u0026quot;},\n  \u0026quot;dateModified\u0026quot;: \u0026quot;2026-10-07T09:57:13Z\u0026quot;,\n  \u0026quot;datePublished\u0026quot;: \u0026quot;2026-10-01\u0026quot;,\n  \u0026quot;description\u0026quot;: \u0026quot;Boats arrived\u0026quot;,\n  \u0026quot;headline\u0026quot;: \u0026quot;Hello harbour\u0026quot;,\n  \u0026quot;image\u0026quot;: \u0026quot;https://example.com/media/v/vFm2YaBvKDUol6Ti/01a115cb-afb9-7d37-a62d-7512dda0e551_1200x630c.jpg\u0026quot;,\n  \u0026quot;inLanguage\u0026quot;: \u0026quot;en\u0026quot;,\n  \u0026quot;mainEntityOfPage\u0026quot;: {\u0026quot;@id\u0026quot;: \u0026quot;https://example.com/en/news/hello-harbour\u0026quot;},\n  \u0026quot;publisher\u0026quot;: {\u0026quot;@id\u0026quot;: \u0026quot;https://example.com/#organization\u0026quot;},\n  \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/news/hello-harbour\u0026quot;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003eheadline\u003c/code\u003e is the post's title and \u003ccode\u003edescription\u003c/code\u003e its excerpt.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eimage\u003c/code\u003e is the featured image as it is shown when the page is shared, a 1200 × 630 JPEG cut around its focal point.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003edatePublished\u003c/code\u003e is the post's date, \u003ccode\u003edateModified\u003c/code\u003e when the revision shown was saved.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003einLanguage\u003c/code\u003e is the page's language, and \u003ccode\u003earticleSection\u003c/code\u003e the titles of the post's categories.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eauthor\u003c/code\u003e and \u003ccode\u003epublisher\u003c/code\u003e are the site's organisation, as posts name no author.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEmpty values, such as the description of a post without an excerpt, are left out. The list of posts and the list of a category have no Article: they are an \u003ccode\u003eItemList\u003c/code\u003e of the posts they show, in their order.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), each instance serves its published posts and categories as JSON below \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/\u003c/code\u003e, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003enews\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/news/posts\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.news.posts\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published posts, newest first, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/news/posts?category=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe posts in one category; a category that does not exist or is not published answers 404 \u003ccode\u003enot_found\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/news/posts?slug=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe post with that slug, such as \u003ccode\u003ehello-harbour\u003c/code\u003e for the \u003ccode\u003emodule.path\u003c/code\u003e \u003ccode\u003e/hello-harbour\u003c/code\u003e that \u003ccode\u003e/api/v1/pages/resolve\u003c/code\u003e gives for a post's address\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/news/posts/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.news.post\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne post, with its text\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/news/categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.news.categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published categories, in the editors' order, as a list\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eA post appears in each language it has a title and slug for, as on the site, and never as a draft. \u003ccode\u003eGET /api/v1/news/posts/{id}\u003c/code\u003e, with the long \u003ccode\u003esrcset\u003c/code\u003e values shortened:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-json\"\u003e{\n  \u0026quot;id\u0026quot;: \u0026quot;01a115cb-b0d3-7e8f-aab0-1307cf737b4c\u0026quot;,\n  \u0026quot;slug\u0026quot;: \u0026quot;hello-harbour\u0026quot;,\n  \u0026quot;title\u0026quot;: \u0026quot;Hello harbour\u0026quot;,\n  \u0026quot;excerpt\u0026quot;: \u0026quot;Boats arrived\u0026quot;,\n  \u0026quot;body_html\u0026quot;: \u0026quot;\\u003cp\\u003eThe \\u003cem\\u003eboats\\u003c/em\\u003e are in. \\u003cimg src=\\\u0026quot;https://example.com/media/v/wlN_-0Ps0_NzcXkN/01a115cb-afb9-7d37-a62d-7512dda0e551_1600x0.webp\\\u0026quot; alt=\\\u0026quot;Boats in the harbour\\\u0026quot; srcset=\\\u0026quot;…\\\u0026quot; sizes=\\\u0026quot;100vw\\\u0026quot; width=\\\u0026quot;1600\\\u0026quot; height=\\\u0026quot;900\\\u0026quot;\\u003e\\u003c/p\\u003e\\n\u0026quot;,\n  \u0026quot;date\u0026quot;: \u0026quot;2026-10-01T00:00:00Z\u0026quot;,\n  \u0026quot;updated_at\u0026quot;: \u0026quot;2026-10-07T09:57:13.0598Z\u0026quot;,\n  \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/news/hello-harbour\u0026quot;,\n  \u0026quot;api_url\u0026quot;: \u0026quot;https://example.com/api/v1/news/posts/01a115cb-b0d3-7e8f-aab0-1307cf737b4c?locale=en\u0026quot;,\n  \u0026quot;image\u0026quot;: {\n    \u0026quot;url\u0026quot;: \u0026quot;https://example.com/media/v/wlN_-0Ps0_NzcXkN/01a115cb-afb9-7d37-a62d-7512dda0e551_1600x0.webp\u0026quot;,\n    \u0026quot;srcset\u0026quot;: \u0026quot;https://example.com/media/v/hJrpW0UZS6JpKfmT/01a115cb-afb9-7d37-a62d-7512dda0e551_480x0.webp 480w, …\u0026quot;,\n    \u0026quot;width\u0026quot;: 1600,\n    \u0026quot;height\u0026quot;: 900,\n    \u0026quot;alt\u0026quot;: \u0026quot;Boats in the harbour\u0026quot;,\n    \u0026quot;original_url\u0026quot;: \u0026quot;https://example.com/media/01a115cb-afb9-7d37-a62d-7512dda0e551.png\u0026quot;\n  },\n  \u0026quot;categories\u0026quot;: [\n    {\n      \u0026quot;id\u0026quot;: \u0026quot;01a115cb-b0b3-7a87-a76d-08aca70ac28e\u0026quot;,\n      \u0026quot;slug\u0026quot;: \u0026quot;updates\u0026quot;,\n      \u0026quot;title\u0026quot;: \u0026quot;Updates\u0026quot;,\n      \u0026quot;url\u0026quot;: \u0026quot;https://example.com/en/news/category/updates\u0026quot;,\n      \u0026quot;posts_url\u0026quot;: \u0026quot;https://example.com/api/v1/news/posts?category=updates\\u0026locale=en\u0026quot;\n    }\n  ]\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ebody_html\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe post's text as HTML, with absolute addresses and images with their \u003ccode\u003esrcset\u003c/code\u003e; only \u003ccode\u003e/posts/{id}\u003c/code\u003e gives it\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003edate\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe post's date, at midnight UTC\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eupdated_at\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eWhen the published revision was saved\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eurl\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe post's page on the site; \u003ccode\u003enull\u003c/code\u003e while the instance is on no page in that language\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eapi_url\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe post in the API\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eimage\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe featured image as an \u003ca href=\"wt-docs:/go-webthings/api#responses\"\u003eimage object\u003c/a\u003e, \u003ccode\u003enull\u003c/code\u003e without one\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ecategories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published categories the post is in\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eA category has its \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003eslug\u003c/code\u003e and \u003ccode\u003etitle\u003c/code\u003e, its list on the site as \u003ccode\u003eurl\u003c/code\u003e, \u003ccode\u003enull\u003c/code\u003e while the instance is on no page, and its posts in the API as \u003ccode\u003eposts_url\u003c/code\u003e. \u003ccode\u003e/categories\u003c/code\u003e lists every published category with a title and slug in that language, also one without posts.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/posts/{id}\u003c/code\u003e sends a \u003ccode\u003eLast-Modified\u003c/code\u003e: the latest change of the post, of its categories, of the page the instance is on and of the post's media. A post in a category that was deleted gets none, and so do the lists; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/news\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) with the list of posts and a link to its categories.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eA post has a date, an optional image from the media library, categories, and per language a title, web address, summary and Markdown text. An empty \u003cstrong\u003eWeb address\u003c/strong\u003e is made from the title when the post is saved.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eSave draft\u003c/strong\u003e creates a new revision as a draft: \u0026quot;Saved as a draft. Publish it to show it on the website.\u0026quot; The published version stays online until a revision is published. Editors can preview a draft at the post's own address on the website, while the instance is placed on a page, and restore an earlier revision from the history.\u003c/li\u003e\n\u003cli\u003eThe publication box plans publishing or unpublishing for a date and time in the site's timezone. Publishing by hand cancels the plan.\u003c/li\u003e\n\u003cli\u003eA site can require a review per instance in \u003cstrong\u003eSite settings › Review\u003c/strong\u003e. A post's revision then needs a reviewer's approval before it is published or planned; see \u003ca href=\"wt-docs:/go-webthings/editing#review-before-publishing\"\u003eReview before publishing\u003c/a\u003e.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a post or a category to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good. Moving a post to the trash cancels its planned publication. A published post cannot be restored while another published post uses its web address, nor a category while another category does.\u003c/li\u003e\n\u003cli\u003eCategories are translated too, with a title and a web address per language, made from the title when left empty, and ordered by hand. They have no revisions: \u003cstrong\u003eSave\u003c/strong\u003e changes a category at once. The list only shows categories that have a visible post. Unpublished categories have no page, so they are not shown on posts or in the list.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix; categories share the rights of their instance.\u003c/p\u003e\n\u003cp\u003ePublished posts appear in the site search and in \u003ccode\u003esitemap.xml\u003c/code\u003e; \u003ccode\u003esitemap.xml\u003c/code\u003e also lists the pages of the categories that have a published post in that language.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the text of published posts count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the posts that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003cp\u003eThe editor of a published post lists the published content that links to the post and asks before it is unpublished or moved to the trash. A revision with a new \u003cstrong\u003eWeb address\u003c/strong\u003e shows the old and the new address before it is published. With the \u003ca href=\"/redirects\"\u003eredirects module\u003c/a\u003e, editors who may create redirects also get \u003cstrong\u003eUnpublish and redirect\u003c/strong\u003e, and \u003cstrong\u003ePublish this revision\u003c/strong\u003e comes with \u003cstrong\u003eRedirect the old addresses to the new ones\u003c/strong\u003e, ticked by default; see \u003ca href=\"wt-docs:/go-webthings/editing#links-to-an-item\"\u003eLinks to an item\u003c/a\u003e. The editor of a published category does the same for the category's page, such as \u003ccode\u003e/news/category/tips\u003c/code\u003e: categories have no revisions, so saving one with a new \u003cstrong\u003eWeb address\u003c/strong\u003e redirects its old address to the new one, for editors who may create redirects.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003epublishing.Of(app, \u0026quot;news\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003enews := publishing.Of(app, \u0026quot;news\u0026quot;)\n\nlatest, err := news.Latest(ctx, \u0026quot;en\u0026quot;, 5)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eWhile the instance is on no page in that language, \u003ccode\u003eLatest\u003c/code\u003e still returns the posts, with an empty \u003ccode\u003eURL\u003c/code\u003e for them and their categories.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e and \u003ccode\u003eCategories()\u003c/code\u003e give write access for imports and seed data, through the same rules the admin uses. Other modules propose posts with \u003ccode\u003eDraft\u003c/code\u003e, which saves an unpublished post for editors to review; \u003ca href=\"/submissions\"\u003eSubmissions\u003c/a\u003e uses it to turn visitors' news tips into drafts:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eid, err := news.Draft(ctx, publishing.DraftInput{\n    Locale: \u0026quot;en\u0026quot;,\n    Title:  \u0026quot;Street party on Saturday\u0026quot;,\n    Body:   \u0026quot;Everyone is welcome …\u0026quot;,\n    Note:   \u0026quot;Sent in by a visitor\u0026quot;,\n})\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/submissions\"\u003eSubmissions\u003c/a\u003e lets visitors send in news that editors accept as a draft post.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/comments\"\u003eComments\u003c/a\u003e adds reactions below posts.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/stats\"\u003eStats\u003c/a\u003e lists the most read posts.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string, opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "WithFeedSize",
+      "Signature": "func WithFeedSize(size int) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": true,
+    "Actions": false,
+    "Feeds": true,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": true,
+    "Scheduled": true,
+    "Close": false,
+    "Service": "*publishing.Service"
+  },
+  "Admin": [
+    {
+      "ID": "news",
+      "Title": "News",
+      "Path": "/admin/news",
+      "Permission": "news",
+      "Icon": "write",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New post",
+      "Recent": true,
+      "Scheduled": true,
+      "Trash": true,
+      "Review": true
+    },
+    {
+      "ID": "news-categories",
+      "Title": "Categories",
+      "Path": "/admin/news-categories",
+      "Permission": "news",
+      "Icon": "",
+      "Hidden": true,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New category",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "category",
+      "Method": "GET",
+      "Path": "/category/{slug}"
+    },
+    {
+      "Kind": "page",
+      "Name": "post",
+      "Method": "GET",
+      "Path": "/{slug}"
+    },
+    {
+      "Kind": "feed",
+      "Name": "category-feed.atom",
+      "Method": "GET",
+      "Path": "/category/{slug}/feed.atom"
+    },
+    {
+      "Kind": "feed",
+      "Name": "category-feed.rss",
+      "Method": "GET",
+      "Path": "/category/{slug}/feed.rss"
+    },
+    {
+      "Kind": "feed",
+      "Name": "feed.atom",
+      "Method": "GET",
+      "Path": "/feed.atom"
+    },
+    {
+      "Kind": "feed",
+      "Name": "feed.rss",
+      "Method": "GET",
+      "Path": "/feed.rss"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.news.categories",
+      "Method": "GET",
+      "Path": "/api/v1/news/categories"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.news.posts",
+      "Method": "GET",
+      "Path": "/api/v1/news/posts"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.news.post",
+      "Method": "GET",
+      "Path": "/api/v1/news/posts/{id}"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "posts",
+      "Signature": "posts(key string, limit int) []Post",
+      "Doc": "\u003cp\u003eposts returns up to limit of the newest published posts of an instance,\nfor example {{range posts \u0026quot;news\u0026quot; 3}} on the home page. A limit of 0 or less\nreturns all of them. URLs are empty while the instance is on no page.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "news/list.gohtml",
+        "publishing/list.gohtml"
+      ],
+      "DataType": "publishing.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Posts",
+          "Type": "[]publishing.Post",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Excerpt",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Date",
+              "Type": "time.Time",
+              "Doc": "Date is a calendar date (see frontend.Civil): {{date .Date}} shows the same day in every site timezone.",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the post's page. Latest and the posts template function leave it empty while the instance is on no page.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageURL",
+              "Type": "string",
+              "Doc": "ImageURL is the featured image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the post has no featured image.",
+              "Fields": null
+            },
+            {
+              "Name": "ImageSrcset",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageOriginalURL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageWidth",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "ImageHeight",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Categories",
+              "Type": "[]publishing.Category",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Title",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "URL is the category's list, empty like Post.URL.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Active",
+                  "Type": "bool",
+                  "Doc": "",
+                  "Fields": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "Categories",
+          "Type": "[]publishing.Category",
+          "Doc": "Categories that have at least one visible post.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the category's list, empty like Post.URL.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Category",
+          "Type": "*publishing.Category",
+          "Doc": "Category is set when the list is filtered.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the category's list, empty like Post.URL.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/publishing.ListView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{range .Posts}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            \u003ch3\u003e{{.Title}}\u003c/h3\u003e\n            {{with .Excerpt}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            \u003cdiv\u003e{{.Body}}\u003c/div\u003e\n            {{if not .Date.IsZero}}\u003ctime datetime=\"{{.Date.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{date .Date \"long\"}}\u003c/time\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{if .ImageURL}}\u003cimg src=\"{{.ImageURL}}\"{{with .ImageSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n            {{/* ImageOriginalURL: {{.ImageOriginalURL}} — the uploaded file, for a download link */}}\n            {{range .Categories}}\n                \u003carticle\u003e\n                \u003c/article\u003e\n            {{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{range .Categories}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            \u003ch3\u003e{{.Title}}\u003c/h3\u003e\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{with .Category}}\n        \u003csection\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            \u003ch3\u003e{{.Title}}\u003c/h3\u003e\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{end}}\n\u003c/main\u003e"
+    },
+    {
+      "Name": "post",
+      "Files": [
+        "news/post.gohtml",
+        "publishing/post.gohtml"
+      ],
+      "DataType": "publishing.Post",
+      "Fields": [
+        {
+          "Name": "ID",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Excerpt",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Body",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Date",
+          "Type": "time.Time",
+          "Doc": "Date is a calendar date (see frontend.Civil): {{date .Date}} shows the same day in every site timezone.",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the post's page. Latest and the posts template function leave it empty while the instance is on no page.",
+          "Fields": null
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the featured image as pages show it, at most media.ImageWidth wide (see frontend.Frontend.Image); ImageSrcset lists smaller copies for a srcset attribute, ImageWidth and ImageHeight are the size of ImageURL and ImageOriginalURL is the uploaded file, for downloads. All are empty when the post has no featured image.",
+          "Fields": null
+        },
+        {
+          "Name": "ImageSrcset",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageOriginalURL",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageWidth",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "ImageHeight",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Categories",
+          "Type": "[]publishing.Category",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the category's list, empty like Post.URL.",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/publishing.Post */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{with .Excerpt}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n    \u003cdiv\u003e{{.Body}}\u003c/div\u003e\n    {{if not .Date.IsZero}}\u003ctime datetime=\"{{.Date.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{date .Date \"long\"}}\u003c/time\u003e{{end}}\n    {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n    {{if .ImageURL}}\u003cimg src=\"{{.ImageURL}}\"{{with .ImageSrcset}} srcset=\"{{.}}\" sizes=\"100vw\"{{end}} alt=\"\"\u003e{{end}}\n    {{/* ImageOriginalURL: {{.ImageOriginalURL}} — the uploaded file, for a download link */}}\n    {{range .Categories}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            \u003ch3\u003e{{.Title}}\u003c/h3\u003e\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261004000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261004000000_init.postgres.sql",
+          "SQL": "-- Posts are revisioned content, categories a collection (see package content).\nCREATE TABLE wt_publishing_post (\n    id                    UUID PRIMARY KEY,\n    instance              VARCHAR(64) NOT NULL,\n    published_revision_id UUID,\n    scheduled_revision_id UUID,\n    publish_at            TIMESTAMPTZ,\n    unpublish_at          TIMESTAMPTZ,\n    created_at            TIMESTAMPTZ NOT NULL,\n    created_by            UUID,\n    updated_at            TIMESTAMPTZ NOT NULL,\n    updated_by            UUID,\n    deleted_at            TIMESTAMPTZ,\n    deleted_by            UUID\n);\n\nCREATE INDEX wt_publishing_post_instance ON wt_publishing_post (instance);\n\nCREATE TABLE wt_publishing_post_revision (\n    id           UUID PRIMARY KEY,\n    entity_id    UUID NOT NULL REFERENCES wt_publishing_post (id) ON DELETE CASCADE,\n    revision_no  INTEGER NOT NULL,\n    author       UUID,\n    created_at   TIMESTAMPTZ NOT NULL,\n    note         TEXT NOT NULL DEFAULT '',\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state VARCHAR(16) NOT NULL DEFAULT 'draft',\n    submitted_at TIMESTAMPTZ,\n    submitted_by UUID,\n    reviewed_at  TIMESTAMPTZ,\n    reviewed_by  UUID,\n    review_note  VARCHAR(500) NOT NULL DEFAULT '',\n    date         TIMESTAMPTZ NOT NULL,\n    image_id     UUID,\n    category_ids TEXT NOT NULL DEFAULT '',\n    UNIQUE (entity_id, revision_no)\n);\n\nCREATE TABLE wt_publishing_post_translation (\n    revision_id UUID NOT NULL REFERENCES wt_publishing_post_revision (id) ON DELETE CASCADE,\n    locale      VARCHAR(35) NOT NULL,\n    slug        VARCHAR(190) NOT NULL DEFAULT '',\n    title       VARCHAR(200) NOT NULL DEFAULT '',\n    excerpt     TEXT NOT NULL DEFAULT '',\n    body        TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (revision_id, locale)\n);\n\nCREATE INDEX wt_publishing_post_slug ON wt_publishing_post_translation (locale, slug);\n\nCREATE TABLE wt_publishing_category (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID\n);\n\nCREATE TABLE wt_publishing_category_translation (\n    item_id UUID NOT NULL REFERENCES wt_publishing_category (id) ON DELETE CASCADE,\n    locale  VARCHAR(35) NOT NULL,\n    slug    VARCHAR(190) NOT NULL DEFAULT '',\n    title   VARCHAR(200) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261004000000_init.sqlite.sql",
+          "SQL": "-- Posts are revisioned content, categories a collection (see package content).\nCREATE TABLE wt_publishing_post (\n    id                    TEXT PRIMARY KEY,\n    instance              TEXT NOT NULL,\n    published_revision_id TEXT,\n    scheduled_revision_id TEXT,\n    publish_at            TIMESTAMP,\n    unpublish_at          TIMESTAMP,\n    created_at            TIMESTAMP NOT NULL,\n    created_by            TEXT,\n    updated_at            TIMESTAMP NOT NULL,\n    updated_by            TEXT,\n    deleted_at            TIMESTAMP,\n    deleted_by            TEXT\n);\n\nCREATE INDEX wt_publishing_post_instance ON wt_publishing_post (instance);\n\nCREATE TABLE wt_publishing_post_revision (\n    id           TEXT PRIMARY KEY,\n    entity_id    TEXT NOT NULL REFERENCES wt_publishing_post (id) ON DELETE CASCADE,\n    revision_no  INTEGER NOT NULL,\n    author       TEXT,\n    created_at   TIMESTAMP NOT NULL,\n    note         TEXT NOT NULL DEFAULT '',\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state TEXT NOT NULL DEFAULT 'draft',\n    submitted_at TIMESTAMP,\n    submitted_by TEXT,\n    reviewed_at  TIMESTAMP,\n    reviewed_by  TEXT,\n    review_note  TEXT NOT NULL DEFAULT '',\n    date         TIMESTAMP NOT NULL,\n    image_id     TEXT,\n    category_ids TEXT NOT NULL DEFAULT '',\n    UNIQUE (entity_id, revision_no)\n);\n\nCREATE TABLE wt_publishing_post_translation (\n    revision_id TEXT NOT NULL REFERENCES wt_publishing_post_revision (id) ON DELETE CASCADE,\n    locale      TEXT NOT NULL,\n    slug        TEXT NOT NULL DEFAULT '',\n    title       TEXT NOT NULL DEFAULT '',\n    excerpt     TEXT NOT NULL DEFAULT '',\n    body        TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (revision_id, locale)\n);\n\nCREATE INDEX wt_publishing_post_slug ON wt_publishing_post_translation (locale, slug);\n\nCREATE TABLE wt_publishing_category (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT\n);\n\nCREATE TABLE wt_publishing_category_translation (\n    item_id TEXT NOT NULL REFERENCES wt_publishing_category (id) ON DELETE CASCADE,\n    locale  TEXT NOT NULL,\n    slug    TEXT NOT NULL DEFAULT '',\n    title   TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261004000000_init.mysql.sql",
+          "SQL": "-- Posts are revisioned content, categories a collection (see package content).\nCREATE TABLE wt_publishing_post (\n    id                    VARCHAR(36) PRIMARY KEY,\n    instance              VARCHAR(64) NOT NULL,\n    published_revision_id VARCHAR(36) NULL,\n    scheduled_revision_id VARCHAR(36) NULL,\n    publish_at            DATETIME(6) NULL,\n    unpublish_at          DATETIME(6) NULL,\n    created_at            DATETIME(6) NOT NULL,\n    created_by            VARCHAR(36) NULL,\n    updated_at            DATETIME(6) NOT NULL,\n    updated_by            VARCHAR(36) NULL,\n    deleted_at            DATETIME(6) NULL,\n    deleted_by            VARCHAR(36) NULL,\n    INDEX wt_publishing_post_instance (instance)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_publishing_post_revision (\n    id           VARCHAR(36) PRIMARY KEY,\n    entity_id    VARCHAR(36) NOT NULL,\n    revision_no  INTEGER NOT NULL,\n    author       VARCHAR(36) NULL,\n    created_at   DATETIME(6) NOT NULL,\n    note         TEXT NOT NULL,\n    -- The review workflow (see content.Review); the rest of a revision never changes.\n    review_state VARCHAR(16) NOT NULL DEFAULT 'draft',\n    submitted_at DATETIME(6) NULL,\n    submitted_by VARCHAR(36) NULL,\n    reviewed_at  DATETIME(6) NULL,\n    reviewed_by  VARCHAR(36) NULL,\n    review_note  VARCHAR(500) NOT NULL DEFAULT '',\n    date         DATETIME(6) NOT NULL,\n    image_id     VARCHAR(36) NULL,\n    category_ids TEXT NOT NULL,\n    UNIQUE (entity_id, revision_no),\n    FOREIGN KEY (entity_id) REFERENCES wt_publishing_post (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_publishing_post_translation (\n    revision_id VARCHAR(36) NOT NULL,\n    locale      VARCHAR(35) NOT NULL,\n    slug        VARCHAR(190) NOT NULL DEFAULT '',\n    title       VARCHAR(200) NOT NULL DEFAULT '',\n    excerpt     TEXT NOT NULL,\n    body        MEDIUMTEXT NOT NULL,\n    PRIMARY KEY (revision_id, locale),\n    INDEX wt_publishing_post_slug (locale, slug),\n    FOREIGN KEY (revision_id) REFERENCES wt_publishing_post_revision (id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_publishing_category (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    published  BOOLEAN NOT NULL DEFAULT FALSE,\n    position   INTEGER NOT NULL DEFAULT 0,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_publishing_category_translation (\n    item_id VARCHAR(36) NOT NULL,\n    locale  VARCHAR(35) NOT NULL,\n    slug    VARCHAR(190) NOT NULL DEFAULT '',\n    title   VARCHAR(200) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_publishing_category (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_publishing_post",
+      "Note": "Posts are revisioned content, categories a collection (see package content).",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published_revision_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "scheduled_revision_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "publish_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "unpublish_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_publishing_post_instance (instance)"
+      ]
+    },
+    {
+      "Name": "wt_publishing_post_revision",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "entity_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_publishing_post (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "revision_no",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "author",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "note",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "review_state",
+          "Type": "VARCHAR(16)",
+          "Notes": "NOT NULL DEFAULT 'draft'"
+        },
+        {
+          "Name": "submitted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "submitted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "reviewed_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "reviewed_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "review_note",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "date",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "image_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "category_ids",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "UNIQUE (entity_id, revision_no)"
+      ]
+    },
+    {
+      "Name": "wt_publishing_post_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "revision_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_publishing_post_revision (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "excerpt",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (revision_id, locale)",
+        "INDEX wt_publishing_post_slug (locale, slug)"
+      ]
+    },
+    {
+      "Name": "wt_publishing_category",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": null
+    },
+    {
+      "Name": "wt_publishing_category_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_publishing_category (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "slug",
+          "Type": "VARCHAR(190)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Categories",
+        "Signature": "func (s *Service) Categories() content.Store[struct{}, CategoryText]",
+        "Doc": ""
+      },
+      {
+        "Name": "Draft",
+        "Signature": "func (s *Service) Draft(ctx context.Context, input DraftInput) (string, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Latest",
+        "Signature": "func (s *Service) Latest(ctx context.Context, locale string, limit int) ([]Post, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[PostFields, PostText]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APICategory",
+        "Doc": "\u003cp\u003eAPICategory is a published category in the content API, at\n/api/v1/\u0026lt;key\u0026gt;/categories and with its posts.\n",
+        "Fields": null,
+        "Decl": "type APICategory struct {\n\tID    string `json:\"id\"`\n\tSlug  string `json:\"slug\"`\n\tTitle string `json:\"title\"`\n\t// URL is the category's list on the site, null while the instance is on\n\t// no page; PostsURL its posts in the API.\n\tURL      *string `json:\"url\"`\n\tPostsURL string  `json:\"posts_url\"`\n}"
+      },
+      {
+        "Name": "APIPost",
+        "Doc": "\u003cp\u003eAPIPost is a published post in the content API (see package api), at\n/api/v1/\u0026lt;key\u0026gt;/posts/{id} and in the list of /api/v1/\u0026lt;key\u0026gt;/posts, which\nleaves out BodyHTML.\n",
+        "Fields": null,
+        "Decl": "type APIPost struct {\n\tID      string `json:\"id\"`\n\tSlug    string `json:\"slug\"`\n\tTitle   string `json:\"title\"`\n\tExcerpt string `json:\"excerpt\"`\n\t// BodyHTML is the post's text as HTML (api.HTML); only the post's own\n\t// endpoint has it.\n\tBodyHTML string `json:\"body_html,omitempty\"`\n\t// Date is the post's date; UpdatedAt when its published revision was\n\t// saved.\n\tDate      time.Time `json:\"date\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n\t// URL is the post's page, null while the instance is on no page;\n\t// APIURL the post in the API.\n\tURL        *string       `json:\"url\"`\n\tAPIURL     string        `json:\"api_url\"`\n\tImage      *api.Image    `json:\"image\"`\n\tCategories []APICategory `json:\"categories\"`\n}"
+      },
+      {
+        "Name": "Category",
+        "Doc": "\u003cp\u003eCategory is a post category as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Category struct {\n\tID    string\n\tTitle string\n\t// URL is the category's list, empty like Post.URL.\n\tURL    string\n\tActive bool\n}"
+      },
+      {
+        "Name": "CategoryItem",
+        "Doc": "\u003cp\u003eCategoryItem is a category with its translations; categories have\nno fields of their own.\n",
+        "Fields": null,
+        "Decl": "type CategoryItem = content.Item[struct{}, CategoryText]"
+      },
+      {
+        "Name": "CategoryText",
+        "Doc": "\u003cp\u003eCategoryText is a category\u0026apos;s name and slug in one language; the\ncategory\u0026apos;s posts are listed at /category/\u0026lt;slug\u0026gt; below the instance\u0026apos;s page.\n",
+        "Fields": null,
+        "Decl": "type CategoryText struct {\n\tSlug  string `db:\"slug\"`\n\tTitle string `db:\"title\"`\n}"
+      },
+      {
+        "Name": "DraftInput",
+        "Doc": "\u003cp\u003eDraftInput is a post another module proposes, for example an accepted\nvisitor submission. Editors review and publish it in the admin.\n",
+        "Fields": null,
+        "Decl": "type DraftInput struct {\n\t// Locale is the language of the text, for example \"nl\".\n\tLocale string\n\tTitle  string\n\t// Slug is derived from the title when empty (see content.Slug).\n\tSlug    string\n\tExcerpt string\n\t// Body is Markdown.\n\tBody string\n\t// ImageID is a media asset for the featured image.\n\tImageID string\n\t// Date is the post's date; zero is today.\n\tDate time.Time\n\t// Author is the ID of the account the revision is credited to, empty for\n\t// none. Note describes the revision in the history, for example who sent\n\t// the text in.\n\tAuthor string\n\tNote   string\n}"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of publishing/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\tTitle string\n\tPosts []Post\n\t// Categories that have at least one visible post.\n\tCategories []Category\n\t// Category is set when the list is filtered.\n\tCategory *Category\n}"
+      },
+      {
+        "Name": "Post",
+        "Doc": "\u003cp\u003ePost is a published post as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Post struct {\n\tID      string\n\tTitle   string\n\tExcerpt string\n\tBody    template.HTML\n\t// Date is a calendar date (see frontend.Civil): {{date .Date}} shows the\n\t// same day in every site timezone.\n\tDate time.Time\n\t// URL is the post's page. Latest and the posts template function leave\n\t// it empty while the instance is on no page.\n\tURL string\n\t// ImageURL is the featured image as pages show it, at most media.ImageWidth\n\t// wide (see frontend.Frontend.Image); ImageSrcset lists smaller\n\t// copies for a srcset attribute, ImageWidth and ImageHeight are the\n\t// size of ImageURL and ImageOriginalURL is the uploaded file, for\n\t// downloads. All are empty when the post has no featured image.\n\tImageURL         string\n\tImageSrcset      string\n\tImageOriginalURL string\n\tImageWidth       int\n\tImageHeight      int\n\tCategories       []Category\n}"
+      },
+      {
+        "Name": "PostFields",
+        "Doc": "\u003cp\u003ePostFields are the language-independent parts of a post.\n",
+        "Fields": null,
+        "Decl": "type PostFields struct {\n\tDate       time.Time   `db:\"date\"`\n\tImage      string      `db:\"image_id,null\"`\n\tCategories content.IDs `db:\"category_ids\"`\n}"
+      },
+      {
+        "Name": "PostItem",
+        "Doc": "\u003cp\u003ePostItem is a post with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type PostItem = content.Item[PostFields, PostText]"
+      },
+      {
+        "Name": "PostText",
+        "Doc": "\u003cp\u003ePostText is a post in one language. Body is Markdown.\n",
+        "Fields": null,
+        "Decl": "type PostText struct {\n\tSlug    string `db:\"slug\"`\n\tTitle   string `db:\"title\"`\n\tExcerpt string `db:\"excerpt\"`\n\tBody    string `db:\"body\"`\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Publishing instance, for the website\u0026apos;s own code (for\nexample \u0026quot;latest news\u0026quot; on the home page).\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      }
+    ]
+  }
+}

@@ -27,8 +27,10 @@
             <h2>Small Go packages for HTML-first websites.</h2>
             <p>go-webthings is a family of focused packages for server-rendered Go applications that still want sharp interactivity. The pieces stay small: routing is routing, template knowledge is documented, and partial rendering is explicit.</p>
             <p>Use it when you want ordinary <code>net/http</code>, normal <code>html/template</code> files, and HTMX-friendly updates without turning the browser into the main application runtime.</p>
+            <p>go-webthings itself is the backend of a website built from these packages: database, admin, accounts, pages, media, languages, themes and content modules.</p>
             <nav aria-label="Introduction links">
                 <a href="/components" hx-get="/components" hx-target="#content" hx-push-url="true">View components</a>
+                <a href="/modules" hx-get="/modules" hx-target="#content" hx-push-url="true">View modules</a>
                 <a href="{{ .DocsURL }}">Read docs</a>
                 <a href="{{ .ShowcaseURL }}">Showcase</a>
             </nav>

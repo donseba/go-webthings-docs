@@ -9,6 +9,7 @@
         <tr><td><code>@dot pkg.User</code></td><td>The current dot value</td><td><code>{{`{{ .Name }}`}}</code></td></tr>
         <tr><td><code>@func userByID pkg.UserByID</code></td><td>Declared template function</td><td><code>{{`{{ (userByID 2).Name }}`}}</code></td></tr>
         <tr><td><code>@component Button pkg.Button</code></td><td>Project vocabulary for a typed root</td><td><code>{{`{{ Button.Label }}`}}</code></td></tr>
+        <tr><td><code>@gen time pkg/timefuncs</code></td><td><a href="{{ goCluePath "/generated-helpers" }}" hx-get="{{ goCluePath "/generated-helpers" }}" hx-target="#content" hx-push-url="true">Generated helper namespace</a></td><td><code>{{`{{ time.Format Page.At "15:04" }}`}}</code></td></tr>
     </tbody>
 </table>
 
@@ -23,5 +24,23 @@
 {{ end }}
 
 {{ (userByID 2).Email }}`}}</code></pre>
+
+<h2>Go-side annotations</h2>
+<p>Three comments in Go code describe template functions, so templates do not have to repeat <code>@func</code>. go-clue reads them statically and never runs your code. The old <code>//go-doc:</code> prefix works too.</p>
+<table class="table">
+    <thead><tr><th>Comment</th><th>Meaning</th></tr></thead>
+    <tbody>
+        <tr><td><code>//go-clue:funcmap</code></td><td>Above a func or var that holds a static <code>template.FuncMap</code> literal. Its entries become functions of every template.</td></tr>
+        <tr><td><code>//go-clue:sig func(file string) string</code></td><td>Above a function, a FuncMap entry, or a closure assignment such as <code>funcs["url"] = func() ...</code>. The signature templates call it with. Use one line per call form.</td></tr>
+        <tr><td><code>//go-clue:provider "github.com/acme/ui"</code></td><td>In a Go file of the project. Also index the go-clue annotations of that dependency package; end the path with <code>/...</code> for a subtree.</td></tr>
+    </tbody>
+</table>
+<pre><code>//go-clue:funcmap
+func TemplateFuncs() template.FuncMap {
+    return template.FuncMap{
+        //go-clue:sig func(file string) string
+        "asset": asset,
+    }
+}</code></pre>
 </article>
 

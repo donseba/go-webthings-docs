@@ -1,0 +1,1398 @@
+{
+  "Slug": "registrations",
+  "Name": "Registrations",
+  "Group": "Visitors",
+  "Summary": "Sign-ups for events or other subjects: places, prices and a deadline, a confirmation e-mail with a personal code, and a page where visitors look up or cancel their registration.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/registrations",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/registrations",
+  "Type": "registrations",
+  "Example": {
+    "Key": "signup",
+    "Title": "Sign-ups",
+    "Code": "app.Use(\n\tevents.Module(\"agenda\", \"Agenda\"),\n\tregistrations.Module(\"signup\", \"Sign-ups\", registrations.ForEvents(\"agenda\")),\n)"
+  },
+  "Guide": "\u003cp\u003eAn instance is usually linked to an Events instance, so editors open registration per event. Without that link, editors add their own subjects, such as a course, by ID. The module takes no payments: it shows the editors' payment link, and editors mark registrations as paid.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    events.Module(\u0026quot;agenda\u0026quot;, \u0026quot;Agenda\u0026quot;),\n    registrations.Module(\u0026quot;signup\u0026quot;, \u0026quot;Sign-ups\u0026quot;, registrations.ForEvents(\u0026quot;agenda\u0026quot;)),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003esignup\u003c/code\u003e) is used in the admin, in form actions and in the template functions, and must be unique on the site. The title (\u003ccode\u003eSign-ups\u003c/code\u003e) is what editors see in the admin and the page editor.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003eForEvents(\u0026quot;agenda\u0026quot;)\u003c/code\u003e links the instance to that Events instance. Editors pick its events in the admin, e-mail names the event and when it takes place, and registration closes when the event starts unless editors set a deadline. Add the Events instance as well.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003eCurrency(\u0026quot;GBP\u0026quot;)\u003c/code\u003e sets the currency of the prices; the default is \u003ccode\u003eEUR\u003c/code\u003e. It must be an ISO 4217 code, or the app does not start.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eWithout \u003ccode\u003eForEvents\u003c/code\u003e, editors add subjects in the admin with an ID (letters, digits, \u003ccode\u003e-\u003c/code\u003e, \u003ccode\u003e_\u003c/code\u003e, \u003ccode\u003e.\u003c/code\u003e and \u003ccode\u003e:\u003c/code\u003e, up to 64 characters) and a name. Templates pass that ID wherever they would pass an event's \u003ccode\u003e.ID\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eWith \u003ccode\u003eForEvents\u003c/code\u003e, an event's page also tells search engines about its registration. The Events module gives the page a schema.org \u003ccode\u003eEvent\u003c/code\u003e in its structured data, which core's head tags write with \u003ccode\u003e{{structuredData}}\u003c/code\u003e, and this module adds an \u003ccode\u003eOffer\u003c/code\u003e to it as \u003ccode\u003eoffers\u003c/code\u003e: the price per adult, such as \u003ccode\u003e\u0026quot;12.50\u0026quot;\u003c/code\u003e, or \u003ccode\u003e\u0026quot;0.00\u0026quot;\u003c/code\u003e when it is free, the currency, the event's page as \u003ccode\u003eurl\u003c/code\u003e, \u003ccode\u003eInStock\u003c/code\u003e while visitors can register or \u003ccode\u003eSoldOut\u003c/code\u003e when every place is taken, and as \u003ccode\u003evalidThrough\u003c/code\u003e the time registration closes, the event's start unless editors set a deadline. An event without registration settings, and registration that is switched off or past its deadline while places are left, give no offer. See \u003ca href=\"wt-docs:/go-webthings/search-and-seo#structured-data\"\u003eSearch and SEO\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"show-the-sign-up-form\"\u003eShow the sign-up form\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003eregistrationForm\u003c/code\u003e component renders the sign-up box of one subject. On an event page (\u003ccode\u003eagenda/event.gohtml\u003c/code\u003e or \u003ccode\u003eevents/event.gohtml\u003c/code\u003e):\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{registrationForm \u0026quot;signup\u0026quot; .ID}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eIt shows the prices, the places left, the deadline, the result of the visitor's last post and the form, or a notice when the subject is full or closed. When the instance is placed on a page, it also links to the lookup page. A subject without registration settings renders nothing, so the line can stay in the template of every event.\u003c/p\u003e\n\u003cp\u003eA theme changes the markup with \u003ccode\u003esignup/form.gohtml\u003c/code\u003e for this instance, or \u003ccode\u003eregistrations/form.gohtml\u003c/code\u003e for every instance. Generate the default to start from, together with the other templates and e-mails of the instance:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- signup\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe default uses \u003ccode\u003ewt-registration\u003c/code\u003e classes with the shared \u003ccode\u003ewt-form\u003c/code\u003e, \u003ccode\u003ewt-notice\u003c/code\u003e and \u003ccode\u003ewt-button\u003c/code\u003e, laid out by the optional stylesheet \u003ccode\u003ewebthings.css\u003c/code\u003e, which the layout links with \u003ccode\u003e{{styles \u0026quot;webthings.css\u0026quot; \u0026quot;site.css\u0026quot;}}\u003c/code\u003e (see \u003ca href=\"wt-docs:/go-webthings/themes#the-base-stylesheet\"\u003eThe base stylesheet\u003c/a\u003e). Its texts go through \u003ccode\u003etl\u003c/code\u003e, so the site's translations apply.\u003c/p\u003e\n\u003cp\u003eTo write the form in the template itself, \u003ccode\u003eregistration\u003c/code\u003e returns the subject's availability in the page's language:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{with registration \u0026quot;signup\u0026quot; .ID}}\n    \u0026lt;section id=\u0026quot;signup\u0026quot;\u0026gt;\n        {{with .Notes}}\u0026lt;div class=\u0026quot;notes\u0026quot;\u0026gt;{{.}}\u0026lt;/div\u0026gt;{{end}}\n        {{if .Open}}\n            {{form_open .Form}}\n                {{form_field .Form \u0026quot;subject\u0026quot; nil}}\n                {{form_field .Form \u0026quot;name\u0026quot; nil}}\n                {{form_field .Form \u0026quot;email\u0026quot; nil}}\n                {{form_field .Form \u0026quot;adults\u0026quot; nil}}\n                {{if .AllowChildren}}{{form_field .Form \u0026quot;children\u0026quot; nil}}{{end}}\n                {{form_field .Form \u0026quot;notes\u0026quot; nil}}\n                \u0026lt;button\u0026gt;Sign up\u0026lt;/button\u0026gt;\n            {{form_close}}\n            {{if .Capacity}}\u0026lt;p\u0026gt;{{.Left}} places left\u0026lt;/p\u0026gt;{{end}}\n        {{else if .Full}}\u0026lt;p\u0026gt;This event is full.\u0026lt;/p\u0026gt;\n        {{else if .Configured}}\u0026lt;p\u0026gt;Registration is closed.\u0026lt;/p\u0026gt;{{end}}\n    \u0026lt;/section\u0026gt;\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eConfigured\u003c/code\u003e is set once editors saved settings for the subject. \u003ccode\u003eOpen\u003c/code\u003e is set while registration is switched on, the deadline has not passed and places are left. Prices are amounts in cents: \u003ccode\u003e{{money .Prices.Adult .Currency}}\u003c/code\u003e shows them in the page's language. \u003ccode\u003eNotes\u003c/code\u003e are the editors' notes for registrants, rendered from Markdown with their own paragraphs, so they go in a \u003ccode\u003e\u0026lt;div\u0026gt;\u003c/code\u003e rather than a \u003ccode\u003e\u0026lt;p\u0026gt;\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e.Form\u003c/code\u003e is the sign-up form: \u003ccode\u003eform_open\u003c/code\u003e writes the form tag, posting to \u003ccode\u003e.Action\u003c/code\u003e, with the spam trap and the page to return to, the element whose id is the instance key. \u003ccode\u003eform_field\u003c/code\u003e renders one of its fields by its key, with its label and limits, translated with the site's translations and in the site's form theme; the ids start with the key, such as \u003ccode\u003esignup-name\u003c/code\u003e. \u003ccode\u003esubject\u003c/code\u003e is a hidden field with the subject's ID, adults start at 1, and while places are limited adults and children each go up to \u003ccode\u003e.Left\u003c/code\u003e, at most 50. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e. Inputs written by hand with the field names work too.\u003c/p\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eThe form posts to \u003ccode\u003e/_/signup/register\u003c/code\u003e (\u003ccode\u003e.Action\u003c/code\u003e, or \u003ccode\u003e{{registerURL \u0026quot;signup\u0026quot;}}\u003c/code\u003e anywhere) with the fields of \u003ccode\u003eregistrations.SignupInput\u003c/code\u003e, plus the spam trap and the page to return to that \u003ccode\u003eform_open\u003c/code\u003e adds.\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003esubject\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe subject ID, such as the event's \u003ccode\u003e.ID\u003c/code\u003e (required)\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ename\u003c/code\u003e, \u003ccode\u003eemail\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003erequired; the name on one line\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eadults\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e1 when missing or empty\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003echildren\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e0 when missing; refused unless editors allow children\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003enotes\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eoptional remarks, up to 2000 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eOne sign-up takes at most 50 places, and sign-ups that arrive at the same moment never exceed the capacity. The registration keeps the language of the page the form was on.\u003c/p\u003e\n\u003cp\u003eAfter signing up, the visitor gets a confirmation e-mail with a code such as \u003ccode\u003eK7Q4-9M2X\u003c/code\u003e. When the instance is placed on a page, the visitor then lands on the registration's own page with \u003ccode\u003e?signup=registered\u003c/code\u003e; otherwise back on the form's page with \u003ccode\u003e?signup=registered\u0026amp;code=K7Q4-9M2X\u003c/code\u003e. Other results return to the form's page:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e\u003ccode\u003e?signup=\u003c/code\u003e\u003c/th\u003e\n\u003cth\u003eMeaning\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003efull\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003enot enough places left\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eclosed\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eregistration is not open\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003einvalid\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ea field is missing or wrong, such as a number of places that is not a number\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ethrottled\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003etoo many posts: a visitor may send 10 sign-ups or cancellations per 10 minutes\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eWith \u003ccode\u003einvalid\u003c/code\u003e or \u003ccode\u003efull\u003c/code\u003e, the form shows the visitor's answers again, with a message in the page's language at each field to correct. The component and \u003ccode\u003eform_field\u003c/code\u003e do this without a change to the template; inputs written by hand do not. Of several sign-up forms on one page, only the one for the subject the visitor chose shows them. See \u003ca href=\"wt-docs:/go-webthings/visitor-forms#a-post-with-mistakes\"\u003eA post with mistakes\u003c/a\u003e. A sign-up or cancellation that fails for another reason, such as an unreachable database, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e{{registrationResult \u0026quot;signup\u0026quot;}}\u003c/code\u003e reads the result and \u003ccode\u003e{{registrationCode \u0026quot;signup\u0026quot;}}\u003c/code\u003e the code; the component shows both. Posts that fill in the spam trap are answered with \u003ccode\u003eregistered\u003c/code\u003e and stored nowhere. Visitors are told apart by IP address, so list a reverse proxy in \u003ccode\u003eConfig.TrustedProxies\u003c/code\u003e. A post that stores nothing, spam, \u003ccode\u003einvalid\u003c/code\u003e, \u003ccode\u003efull\u003c/code\u003e, \u003ccode\u003eclosed\u003c/code\u003e or \u003ccode\u003ethrottled\u003c/code\u003e, leaves the pages in the site's output cache as they are; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"the-registration-page\"\u003eThe registration page\u003c/h2\u003e\n\u003cp\u003ePlace the instance on a page to let visitors look up and cancel their registration. With the page at \u003ccode\u003e/en/registration\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/en/registration\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003esignup/lookup.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ea form asking for the code\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/en/registration/\u0026lt;code\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003esignup/registration.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone registration with its cancel form\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003e\u003ccode\u003eregistrations/\u0026lt;name\u0026gt;.gohtml\u003c/code\u003e serves every instance without a design of its own. The lookup page gets a \u003ccode\u003eregistrations.LookupView\u003c/code\u003e. Its \u003ccode\u003e.Form\u003c/code\u003e is the form of \u003ccode\u003eregistrations.LookupInput\u003c/code\u003e, sent to \u003ccode\u003e.Action\u003c/code\u003e with method GET as \u003ccode\u003e?code=\u003c/code\u003e, with the code field's id \u003ccode\u003eregistration-code\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/registrations.LookupView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n{{if .NotFound}}\u0026lt;p\u0026gt;No registration has the code {{.Code}}.\u0026lt;/p\u0026gt;{{end}}\n\n{{form_open .Form}}\n    {{form_field .Form \u0026quot;code\u0026quot; nil}}\n    \u0026lt;button\u0026gt;Look up\u0026lt;/button\u0026gt;\n{{form_close}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA code typed in lowercase, with spaces or without the dash lands on the right address. Every answer below the page, \u0026quot;not found\u0026quot; for an unknown code included, is sent with \u003ccode\u003eCache-Control: private, no-store\u003c/code\u003e and \u003ccode\u003eX-Robots-Tag: noindex\u003c/code\u003e, so neither \u003ca href=\"/stats\"\u003eStats\u003c/a\u003e nor the missed paths of \u003ca href=\"/redirects\"\u003eRedirects\u003c/a\u003e record a code. Cancelling needs the code and the e-mail address used to sign up, the fields of \u003ccode\u003eregistrations.CancelInput\u003c/code\u003e:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/registrations.RegistrationView */}}\n\u0026lt;h1\u0026gt;{{.Subject.Title}}\u0026lt;/h1\u0026gt;\n\u0026lt;p\u0026gt;{{.Code}} · {{.Name}} · {{.Adults}} adults{{if .Total}} · {{money .Total .Currency}}{{end}}\u0026lt;/p\u0026gt;\n{{with .PaymentLink}}\u0026lt;p\u0026gt;Please pay using: {{.}}\u0026lt;/p\u0026gt;{{end}}\n{{with .Info}}\u0026lt;div class=\u0026quot;notes\u0026quot;\u0026gt;{{.}}\u0026lt;/div\u0026gt;{{end}}\n\n\u0026lt;section id=\u0026quot;{{.Key}}\u0026quot;\u0026gt;\n    {{if eq .Result \u0026quot;cancelled\u0026quot;}}\u0026lt;p\u0026gt;Your registration is cancelled.\u0026lt;/p\u0026gt;{{end}}\n    {{if eq .Result \u0026quot;invalid\u0026quot;}}\u0026lt;p\u0026gt;That e-mail address does not match this registration.\u0026lt;/p\u0026gt;{{end}}\n    {{if not .Cancelled}}\n        {{form_open .Form}}\n            {{form_field .Form \u0026quot;code\u0026quot; nil}}\n            {{form_field .Form \u0026quot;email\u0026quot; nil}}\n            \u0026lt;button\u0026gt;Cancel registration\u0026lt;/button\u0026gt;\n        {{form_close}}\n    {{end}}\n\u0026lt;/section\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eHere \u003ccode\u003e.Notes\u003c/code\u003e are the visitor's own remarks, as plain text, and \u003ccode\u003e.Info\u003c/code\u003e the editors' notes for registrants, rendered from Markdown. \u003ccode\u003e.Subject.When\u003c/code\u003e is when the event takes place, a \u003ccode\u003efrontend.When\u003c/code\u003e as an event's \u003ccode\u003e.When\u003c/code\u003e gives it, so the partial of the \u003ca href=\"/events\"\u003eEvents\u003c/a\u003e README shows it too; it is zero for a subject that is no event (\u003ccode\u003e.Subject.When.IsZero\u003c/code\u003e). The starting point from \u003ccode\u003etask templates -- signup\u003c/code\u003e shows it as that partial does: an event over several days with a time as \u0026quot;date, time – date, time\u0026quot;, such as \u0026quot;Monday 16 November 2026, 09:00 – Tuesday 17 November 2026, 18:00\u0026quot;. \u003ccode\u003e.Form\u003c/code\u003e is the cancel form, with the code as a hidden field; it returns the visitor to the element whose id is \u003ccode\u003e.Key\u003c/code\u003e, the instance key. After \u003ccode\u003einvalid\u003c/code\u003e, it shows the address the visitor typed again, as the sign-up form does.\u003c/p\u003e\n\u003cp\u003eCancelling frees the places and sends a cancellation e-mail. An unpaid registration gets the payment status cancelled; a paid one stays paid, so it can be refunded.\u003c/p\u003e\n\u003ch2 id=\"in-the-admin\"\u003eIn the admin\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section (\u003ccode\u003e/admin/signup\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e). The overview lists the subjects with their status (open, closed or full), registrations and places taken. With \u003ccode\u003eForEvents\u003c/code\u003e it lists every event of the agenda; without it, \u003cstrong\u003eNew subject\u003c/strong\u003e adds one.\u003c/p\u003e\n\u003cp\u003eA subject's \u003cstrong\u003eSettings\u003c/strong\u003e hold:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eOpen for registration\u003c/strong\u003e, the number of \u003cstrong\u003ePlaces\u003c/strong\u003e (adults and children together; 0 is unlimited) and \u003cstrong\u003eRegistration closes\u003c/strong\u003e, in the site's timezone.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003ePrice per adult\u003c/strong\u003e and, when \u003cstrong\u003eChildren can be registered\u003c/strong\u003e, \u003cstrong\u003ePrice per child\u003c/strong\u003e, typed as \u003ccode\u003e12.50\u003c/code\u003e or \u003ccode\u003e12,50\u003c/code\u003e.\u003c/li\u003e\n\u003cli\u003ePer language, the \u003cstrong\u003eNotes for registrants\u003c/strong\u003e in Markdown, shown with the form, on the registration page and in the confirmation, and a \u003cstrong\u003ePayment link\u003c/strong\u003e (a payment URL or bank details), shown while payment is pending.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThe subject's page lists its registrations, cancelled ones included, with the totals and \u003cstrong\u003eExport CSV\u003c/strong\u003e. A registration with a total starts as pending. Editors change its payment status, add admin notes, cancel it or move it to the trash; cancelling in the admin sends no e-mail. \u003cstrong\u003eMove to trash\u003c/strong\u003e moves a registration to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e and frees its places; a restored registration keeps its code, and restoring is refused when too few places are left by then. Editors' rights are set per instance in the groups' permission matrix; \u003cstrong\u003eExport CSV\u003c/strong\u003e needs the export right (see \u003ca href=\"wt-docs:/go-webthings/permissions#groups-and-the-matrix\"\u003eGroups and the matrix\u003c/a\u003e). In the export, a value that starts with \u003ccode\u003e=\u003c/code\u003e, \u003ccode\u003e+\u003c/code\u003e, \u003ccode\u003e-\u003c/code\u003e or \u003ccode\u003e@\u003c/code\u003e gets a leading apostrophe, so a spreadsheet shows it as text instead of running it as a formula.\u003c/p\u003e\n\u003ch2 id=\"e-mail\"\u003eE-mail\u003c/h2\u003e\n\u003cp\u003eTwo mail templates, sent to the visitor in the language of the page they signed up on:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ccode\u003econfirmation\u003c/code\u003e, after signing up: the code, the event's date and time, the places, the total, the payment link, the notes for registrants as the Markdown editors wrote (\u003ccode\u003e.Info\u003c/code\u003e), and a link to the registration page when the instance is on a page.\u003c/li\u003e\n\u003cli\u003e\u003ccode\u003ecancellation\u003c/code\u003e, after cancelling on the site.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThe confirmation shows when the event takes place as the starting point of the registration page does, so an event over several days with a time as \u0026quot;date, time – date, time\u0026quot;. Replies go to the site's e-mail address from Site settings. A theme replaces the texts with \u003ccode\u003email/signup/\u0026lt;name\u0026gt;.gohtml\u003c/code\u003e or \u003ccode\u003email/registrations/\u0026lt;name\u0026gt;.gohtml\u003c/code\u003e. A mail that cannot be sent is logged; the registration stands.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003eregistrations.Of(app, \u0026quot;signup\u0026quot;)\u003c/code\u003e returns the instance once the app has started, for example to open registration for an event from seed data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003esignup := registrations.Of(app, \u0026quot;signup\u0026quot;)\n\nerr := signup.SaveSettings(ctx, registrations.Settings{\n    SubjectID:  eventID,\n    Open:       true,\n    Capacity:   40,\n    AdultPrice: 1250, // 12.50\n    Texts:      []registrations.SubjectText{{Locale: \u0026quot;en\u0026quot;, Notes: \u0026quot;Doors open at **19:30**.\u0026quot;}},\n})\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eNotes\u003c/code\u003e are Markdown, as editors write them in the admin.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eAvailability\u003c/code\u003e, \u003ccode\u003eRegistrations\u003c/code\u003e and \u003ccode\u003eSummaries\u003c/code\u003e read the sign-ups, and \u003ccode\u003eByCode\u003c/code\u003e finds one by its code. \u003ccode\u003eRegister\u003c/code\u003e signs someone up with the same checks as the form, but sends no e-mail, and \u003ccode\u003eCancel\u003c/code\u003e cancels a registration, freeing its places. \u003ccode\u003eDelete\u003c/code\u003e, \u003ccode\u003eUndelete\u003c/code\u003e and \u003ccode\u003ePurge\u003c/code\u003e move a registration to the trash, bring it back or remove it for good. What \u003ccode\u003eSaveSettings\u003c/code\u003e, \u003ccode\u003eRegister\u003c/code\u003e, \u003ccode\u003eCancel\u003c/code\u003e, \u003ccode\u003eDelete\u003c/code\u003e and \u003ccode\u003eUndelete\u003c/code\u003e change, such as the places left, shows on the site at once, also on pages in the site's output cache; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/events\"\u003eEvents\u003c/a\u003e holds the events visitors sign up for.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/forms\"\u003eForms\u003c/a\u003e collects other questions from visitors, with an inbox.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string, opts ...Option) webthings.Module",
+    "Doc": ""
+  },
+  "Options": [
+    {
+      "Name": "Currency",
+      "Signature": "func Currency(code string) Option",
+      "Doc": ""
+    },
+    {
+      "Name": "ForEvents",
+      "Signature": "func ForEvents(key string) Option",
+      "Doc": ""
+    }
+  ],
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*registrations.Service"
+  },
+  "Admin": [
+    {
+      "ID": "signup",
+      "Title": "Sign-ups",
+      "Path": "/admin/signup",
+      "Permission": "signup",
+      "Icon": "calendar",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": {
+    "Name": "Settings",
+    "Doc": "\u003cp\u003eSettings decide whether and how visitors can register for one subject.\n",
+    "Fields": [
+      {
+        "Name": "SubjectID",
+        "Type": "string",
+        "Doc": "",
+        "Fields": null
+      },
+      {
+        "Name": "Title",
+        "Type": "string",
+        "Doc": "Title names the subject in the admin and e-mail. Events use their own title when it is empty.",
+        "Fields": null
+      },
+      {
+        "Name": "Open",
+        "Type": "bool",
+        "Doc": "Open switches registration on.",
+        "Fields": null
+      },
+      {
+        "Name": "Capacity",
+        "Type": "int",
+        "Doc": "Capacity is the number of places (adults and children); 0 is unlimited.",
+        "Fields": null
+      },
+      {
+        "Name": "ClosesAt",
+        "Type": "*time.Time",
+        "Doc": "ClosesAt is the registration deadline. Without one, registration for an event closes when it starts.",
+        "Fields": null
+      },
+      {
+        "Name": "AdultPrice",
+        "Type": "Cents",
+        "Doc": "",
+        "Fields": null
+      },
+      {
+        "Name": "ChildPrice",
+        "Type": "Cents",
+        "Doc": "",
+        "Fields": null
+      },
+      {
+        "Name": "AllowChildren",
+        "Type": "bool",
+        "Doc": "",
+        "Fields": null
+      },
+      {
+        "Name": "UpdatedAt",
+        "Type": "time.Time",
+        "Doc": "UpdatedAt and UpdatedBy are the last change by an editor.",
+        "Fields": null
+      },
+      {
+        "Name": "UpdatedBy",
+        "Type": "db.Ref",
+        "Doc": "",
+        "Fields": null
+      },
+      {
+        "Name": "Texts",
+        "Type": "[]SubjectText",
+        "Doc": "Texts are what registrants read, per language. SaveSettings stores the languages given and keeps the others.",
+        "Fields": null
+      }
+    ],
+    "Decl": "type Settings struct {\n\tSubjectID string `db:\"subject_id\"`\n\t// Title names the subject in the admin and e-mail. Events use their own\n\t// title when it is empty.\n\tTitle string `db:\"title\"`\n\t// Open switches registration on.\n\tOpen bool `db:\"is_open\"`\n\t// Capacity is the number of places (adults and children); 0 is unlimited.\n\tCapacity int `db:\"capacity\"`\n\t// ClosesAt is the registration deadline. Without one, registration for an\n\t// event closes when it starts.\n\tClosesAt      *time.Time `db:\"closes_at\"`\n\tAdultPrice    Cents      `db:\"adult_price\"`\n\tChildPrice    Cents      `db:\"child_price\"`\n\tAllowChildren bool       `db:\"allow_children\"`\n\t// UpdatedAt and UpdatedBy are the last change by an editor.\n\tUpdatedAt time.Time `db:\"updated_at\"`\n\tUpdatedBy db.Ref    `db:\"updated_by\"`\n\t// Texts are what registrants read, per language. SaveSettings stores the\n\t// languages given and keeps the others.\n\tTexts []SubjectText\n}"
+  },
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "lookup",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "registration",
+      "Method": "GET",
+      "Path": "/{code}"
+    },
+    {
+      "Kind": "action",
+      "Name": "signup.cancel",
+      "Method": "POST",
+      "Path": "/_/signup/cancel"
+    },
+    {
+      "Kind": "action",
+      "Name": "signup.register",
+      "Method": "POST",
+      "Path": "/_/signup/register"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "registerURL",
+      "Signature": "registerURL(key string) string",
+      "Doc": "\u003cp\u003eregisterURL is the address sign-up forms post to, for example\n\u0026lt;form method=\u0026quot;post\u0026quot; action=\u0026quot;{{registerURL \u0026quot;signup\u0026quot;}}\u0026quot;\u0026gt;, or \u0026quot;\u0026quot; for an\nunknown instance.\n"
+    },
+    {
+      "Name": "registration",
+      "Signature": "registration(key, subjectID string) Availability",
+      "Doc": "\u003cp\u003eavailability tells whether visitors can register for a subject, with the\nnotes in the page\u0026apos;s language, for example\n{{with registration \u0026quot;signup\u0026quot; .ID}}{{if .Open}}…{{end}}{{end}} on an event\npage. An unknown instance or subject is closed and not Configured.\n"
+    },
+    {
+      "Name": "registrationCode",
+      "Signature": "registrationCode(key string) string",
+      "Doc": "\u003cp\u003ecode is the visitor\u0026apos;s registration code after registering on a page when\nthe instance is placed on no page of its own, for example\n{{with registrationCode \u0026quot;signup\u0026quot;}}\u0026lt;p\u0026gt;Your code: {{.}}\u0026lt;/p\u0026gt;{{end}}; \u0026quot;\u0026quot; otherwise.\n"
+    },
+    {
+      "Name": "registrationForm",
+      "Signature": "registrationForm(key, subjectID string) (template.HTML, error)",
+      "Doc": "\u003cp\u003eregistrationForm renders the form component of a subject, for example\n{{registrationForm \u0026quot;signup\u0026quot; .ID}} on an event page. Subjects without\nregistration settings render nothing.\n"
+    },
+    {
+      "Name": "registrationResult",
+      "Signature": "registrationResult(key string) string",
+      "Doc": "\u003cp\u003eresult is the outcome of the visitor\u0026apos;s last post to the instance on this\npage: \u0026quot;registered\u0026quot;, \u0026quot;full\u0026quot;, \u0026quot;closed\u0026quot;, \u0026quot;invalid\u0026quot;, \u0026quot;cancelled\u0026quot;, \u0026quot;throttled\u0026quot;\nor empty.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "lookup",
+      "Files": [
+        "signup/lookup.gohtml",
+        "registrations/lookup.gohtml"
+      ],
+      "DataType": "registrations.LookupView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the form sends its code field to, with method get.",
+          "Fields": null
+        },
+        {
+          "Name": "Code",
+          "Type": "string",
+          "Doc": "Code is the code that was looked up, if any.",
+          "Fields": null
+        },
+        {
+          "Name": "NotFound",
+          "Type": "bool",
+          "Doc": "NotFound is set when no registration has Code.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the lookup form's model (LookupInput, with Code), sent to Action with method get, for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"code\" nil}}.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/registrations.LookupView */}}\n{{/* Starting point generated by WebThings: find a registration by its code. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{if .NotFound}}\u003cp\u003eNo registration has the code {{.Code}}.\u003c/p\u003e{{end}}\n\n    {{form_open .Form}}\n        {{form_field .Form \"code\" nil}}\n        \u003cbutton type=\"submit\"\u003eLook up\u003c/button\u003e\n    {{form_close}}\n\u003c/main\u003e"
+    },
+    {
+      "Name": "registration",
+      "Files": [
+        "signup/registration.gohtml",
+        "registrations/registration.gohtml"
+      ],
+      "DataType": "registrations.RegistrationView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e, and the cancel form returns the visitor to the element with the id Key.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on.",
+          "Fields": null
+        },
+        {
+          "Name": "Subject",
+          "Type": "registrations.Subject",
+          "Doc": "Subject is what the visitor registered for; Start is set for events.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Start",
+              "Type": "time.Time",
+              "Doc": "Start is when an event starts and End when it ends, in the event's timezone; zero for other subjects. End is zero when the event has none, and the last day of all-day events.",
+              "Fields": null
+            },
+            {
+              "Name": "End",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "AllDay",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the event's page, when visitors can see it.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Code",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Adults",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Children",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Total",
+          "Type": "registrations.Cents",
+          "Doc": "Total is in Currency, for {{money .Total .Currency}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Currency",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Payment",
+          "Type": "registrations.PaymentStatus",
+          "Doc": "Payment is none, pending, paid or cancelled.",
+          "Fields": null
+        },
+        {
+          "Name": "PaymentLink",
+          "Type": "string",
+          "Doc": "PaymentLink is the editor's payment link while payment is pending.",
+          "Fields": null
+        },
+        {
+          "Name": "Notes",
+          "Type": "string",
+          "Doc": "Notes are the visitor's own remarks; Info the editor's notes for registrants, in the page's language, rendered from Markdown.",
+          "Fields": null
+        },
+        {
+          "Name": "Info",
+          "Type": "template.HTML",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "CreatedAt",
+          "Type": "time.Time",
+          "Doc": "CreatedAt is when the visitor registered, for {{date .CreatedAt}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Cancelled",
+          "Type": "bool",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "CancelAction",
+          "Type": "string",
+          "Doc": "CancelAction is the address the cancel form posts to (fields code and email); empty when the registration is cancelled.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the cancel form's model (CancelInput, with Code) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"email\" nil}}; the zero value when the registration is cancelled.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is the outcome of the visitor's last post: \"registered\", \"cancelled\", \"invalid\", \"throttled\" or empty.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/registrations.RegistrationView */}}\n{{/* Starting point generated by WebThings: one registration with its cancel form. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Subject.Title}}\u003c/h1\u003e\n\n    {{if eq .Result \"registered\"}}\u003cp\u003eThank you, you are registered. We sent you a confirmation.\u003c/p\u003e{{end}}\n\n    {{/* When the event takes place (frontend.When); zero for other subjects. */}}\n    {{with .Subject.When}}{{if not .IsZero}}\n        \u003cp\u003e{{if .AllDay}}{{dateRange .Start .End \"full\"}}{{else if .SameDay}}{{date .Start \"full\"}} · {{timeRange .Start .End}}{{else}}{{date .Start \"full\"}}, {{time .Start}} – {{date .End \"full\"}}, {{time .End}}{{end}}\u003c/p\u003e\n    {{end}}{{end}}\n\n    \u003cdl\u003e\n        \u003cdt\u003eCode\u003c/dt\u003e\u003cdd\u003e{{.Code}}\u003c/dd\u003e\n        \u003cdt\u003eName\u003c/dt\u003e\u003cdd\u003e{{.Name}}\u003c/dd\u003e\n        \u003cdt\u003eAdults\u003c/dt\u003e\u003cdd\u003e{{.Adults}}\u003c/dd\u003e\n        {{if .Children}}\u003cdt\u003eChildren\u003c/dt\u003e\u003cdd\u003e{{.Children}}\u003c/dd\u003e{{end}}\n        {{if .Total}}\u003cdt\u003eTotal\u003c/dt\u003e\u003cdd\u003e{{money .Total .Currency}} ({{.Payment}})\u003c/dd\u003e{{end}}\n        {{with .Notes}}\u003cdt\u003eYour notes\u003c/dt\u003e\u003cdd\u003e{{.}}\u003c/dd\u003e{{end}}\n        \u003cdt\u003eRegistered on\u003c/dt\u003e\u003cdd\u003e{{date .CreatedAt}}\u003c/dd\u003e\n    \u003c/dl\u003e\n\n    {{with .PaymentLink}}\u003cp\u003ePayment: {{.}}\u003c/p\u003e{{end}}\n    {{with .Info}}\u003cdiv class=\"registration-info\"\u003e{{.}}\u003c/div\u003e{{end}}\n\n    {{/* The cancel form returns the visitor here, to the element with the id {{.Key}}. */}}\n    \u003csection id=\"{{.Key}}\"\u003e\n        {{if eq .Result \"cancelled\"}}\u003cp\u003eYour registration is cancelled.\u003c/p\u003e{{end}}\n        {{if eq .Result \"invalid\"}}\u003cp\u003eThat e-mail address does not match this registration.\u003c/p\u003e{{end}}\n        {{if eq .Result \"throttled\"}}\u003cp\u003eToo many attempts. Please try again later.\u003c/p\u003e{{end}}\n\n        {{if .Cancelled}}\n            \u003cp\u003eThis registration is cancelled.\u003c/p\u003e\n        {{else}}\n            {{form_open .Form}}\n                {{form_field .Form \"code\" nil}}\n                {{form_field .Form \"email\" nil}}\n\n                \u003cbutton type=\"submit\"\u003eCancel registration\u003c/button\u003e\n            {{form_close}}\n        {{end}}\n    \u003c/section\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [
+    {
+      "Name": "form",
+      "Files": [
+        "signup/form.gohtml",
+        "registrations/form.gohtml"
+      ],
+      "DataType": "registrations.FormView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key.",
+          "Fields": null
+        },
+        {
+          "Name": "Availability",
+          "Type": "registrations.Availability",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "SubjectID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Configured",
+              "Type": "bool",
+              "Doc": "Configured is true when editors set up registration for the subject, open or not; without it a page shows no sign-up at all.",
+              "Fields": null
+            },
+            {
+              "Name": "Open",
+              "Type": "bool",
+              "Doc": "Open is true while visitors can register: registration is switched on, the deadline has not passed and places are left.",
+              "Fields": null
+            },
+            {
+              "Name": "Closed",
+              "Type": "bool",
+              "Doc": "Closed is true when registration is switched off or its deadline passed, and for subjects that are not Configured.",
+              "Fields": null
+            },
+            {
+              "Name": "Full",
+              "Type": "bool",
+              "Doc": "Full is true when every place is taken.",
+              "Fields": null
+            },
+            {
+              "Name": "Capacity",
+              "Type": "int",
+              "Doc": "Capacity is the number of places; 0 is unlimited.",
+              "Fields": null
+            },
+            {
+              "Name": "Taken",
+              "Type": "int",
+              "Doc": "Taken is the number of places registered so far.",
+              "Fields": null
+            },
+            {
+              "Name": "Left",
+              "Type": "int",
+              "Doc": "Left is the number of places left; 0 when Capacity is 0.",
+              "Fields": null
+            },
+            {
+              "Name": "ClosesAt",
+              "Type": "time.Time",
+              "Doc": "ClosesAt is the deadline in the site's timezone; zero when there is none.",
+              "Fields": null
+            },
+            {
+              "Name": "AllowChildren",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Prices",
+              "Type": "registrations.Prices",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "Adult",
+                  "Type": "registrations.Cents",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Child",
+                  "Type": "registrations.Cents",
+                  "Doc": "",
+                  "Fields": null
+                }
+              ]
+            },
+            {
+              "Name": "Currency",
+              "Type": "string",
+              "Doc": "Currency is the ISO 4217 code of the prices, for {{money .Prices.Adult .Currency}}.",
+              "Fields": null
+            },
+            {
+              "Name": "Notes",
+              "Type": "template.HTML",
+              "Doc": "Notes are the editor's notes for registrants in the requested language, or in the site's default language, rendered from Markdown.",
+              "Fields": null
+            },
+            {
+              "Name": "Action",
+              "Type": "string",
+              "Doc": "Action is the address the sign-up form posts to.",
+              "Fields": null
+            },
+            {
+              "Name": "Form",
+              "Type": "form.RenderModel",
+              "Doc": "Form is the sign-up form's model (SignupInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"name\" nil}}, with the adults and children at most Left when places are limited; it returns the visitor to the element with the instance key as its id.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is \"registered\", \"full\", \"closed\", \"invalid\", \"cancelled\", \"throttled\" or \"\".",
+          "Fields": null
+        },
+        {
+          "Name": "Code",
+          "Type": "string",
+          "Doc": "Code is the visitor's registration code after registering here, when the instance is placed on no page of its own.",
+          "Fields": null
+        },
+        {
+          "Name": "LookupURL",
+          "Type": "string",
+          "Doc": "LookupURL is the page where visitors look up their registration, or \"\" when the instance is placed on no page.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/registrations.FormView */}}\n{{/* The sign-up box of a subject: prices, places, the result of the last post and the form: {{registrationForm \"signup\" .ID}}. */}}\n{{if .Configured}}\n\u003csection class=\"wt-registration\" id=\"{{.Key}}\" aria-labelledby=\"{{.Key}}-registration-title\"\u003e\n    \u003ch2 class=\"wt-registration__title\" id=\"{{.Key}}-registration-title\"\u003e{{tl localizer \"Sign up\"}}\u003c/h2\u003e\n\n    {{with .Result}}\n        \u003cp class=\"wt-notice\" role=\"status\"\u003e\n            {{if eq . \"registered\"}}{{tl localizer \"Thank you, you are registered. We sent you a confirmation.\"}}\n                {{with $.Code}}{{tl localizer \"Your registration code is %s.\" .}}{{end}}\n            {{else if eq . \"full\"}}{{tl localizer \"Sorry, there are not enough places left.\"}}\n            {{else if eq . \"closed\"}}{{tl localizer \"Registration is closed.\"}}\n            {{else if eq . \"cancelled\"}}{{tl localizer \"Your registration is cancelled.\"}}\n            {{else if eq . \"throttled\"}}{{tl localizer \"Too many attempts. Please try again later.\"}}\n            {{else}}{{tl localizer \"Please check your name, e-mail address and the number of places.\"}}{{end}}\n        \u003c/p\u003e\n    {{end}}\n\n    \u003cdl class=\"wt-registration__facts\"\u003e\n        \u003cdt\u003e{{tl localizer \"Price\"}}\u003c/dt\u003e\n        \u003cdd\u003e\n            {{if .Prices.Free}}{{tl localizer \"Free\"}}{{else}}{{money .Prices.Adult .Currency}} {{tl localizer \"per person\"}}{{end}}\n            {{if and .AllowChildren .Prices.Child}}\u003cbr\u003e{{money .Prices.Child .Currency}} {{tl localizer \"per child\"}}{{end}}\n        \u003c/dd\u003e\n\n        {{if .Capacity}}\n            \u003cdt\u003e{{tl localizer \"Places left\"}}\u003c/dt\u003e\n            \u003cdd\u003e{{if .Full}}{{tl localizer \"None\"}}{{else}}{{tl localizer \"%d of %d\" .Left .Capacity}}{{end}}\u003c/dd\u003e\n        {{end}}\n\n        {{if not .ClosesAt.IsZero}}\n            \u003cdt\u003e{{tl localizer \"Sign up before\"}}\u003c/dt\u003e\n            \u003cdd\u003e{{date .ClosesAt}}, {{time .ClosesAt}}\u003c/dd\u003e\n        {{end}}\n    \u003c/dl\u003e\n\n    {{with .Notes}}\u003cdiv class=\"wt-registration__notes\"\u003e{{.}}\u003c/div\u003e{{end}}\n\n    {{if .Open}}\n        {{/* The form returns the visitor to the element with the id {{.Key}}. */}}\n        {{form_open .Form}}\n            {{form_field .Form \"subject\" nil}}\n            {{form_field .Form \"name\" nil}}\n            {{form_field .Form \"email\" nil}}\n\n            \u003cdiv class=\"wt-form__row\"\u003e\n                {{form_field .Form \"adults\" nil}}\n                {{if .AllowChildren}}{{form_field .Form \"children\" nil}}{{end}}\n            \u003c/div\u003e\n\n            {{form_field .Form \"notes\" nil}}\n\n            \u003cbutton class=\"wt-button\" type=\"submit\"\u003e{{tl localizer \"Sign up\"}}\u003c/button\u003e\n        {{form_close}}\n    {{else if .Full}}\n        \u003cp class=\"wt-notice\"\u003e{{tl localizer \"There are no places left.\"}}\u003c/p\u003e\n    {{else}}\n        \u003cp class=\"wt-notice\"\u003e{{tl localizer \"Registration is closed.\"}}\u003c/p\u003e\n    {{end}}\n\n    {{with .LookupURL}}\n        \u003cp class=\"wt-meta\"\u003e{{tl localizer \"Already registered?\"}} \u003ca href=\"{{.}}\"\u003e{{tl localizer \"Look up your registration\"}}\u003c/a\u003e\u003c/p\u003e\n    {{end}}\n\u003c/section\u003e\n{{end}}"
+    }
+  ],
+  "Mail": [
+    {
+      "Name": "confirmation",
+      "Files": [
+        "mail/signup/confirmation.gohtml",
+        "mail/registrations/confirmation.gohtml"
+      ],
+      "DataType": "registrations.MailView",
+      "Fields": [
+        {
+          "Name": "Subject",
+          "Type": "registrations.Subject",
+          "Doc": "Subject is what the visitor registered for; Start is set for events.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Start",
+              "Type": "time.Time",
+              "Doc": "Start is when an event starts and End when it ends, in the event's timezone; zero for other subjects. End is zero when the event has none, and the last day of all-day events.",
+              "Fields": null
+            },
+            {
+              "Name": "End",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "AllDay",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the event's page, when visitors can see it.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Code",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Adults",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Children",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Total",
+          "Type": "registrations.Cents",
+          "Doc": "Total is in Currency, for {{money .Total .Currency}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Currency",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Payment",
+          "Type": "registrations.PaymentStatus",
+          "Doc": "Payment is none, pending, paid or cancelled.",
+          "Fields": null
+        },
+        {
+          "Name": "PaymentLink",
+          "Type": "string",
+          "Doc": "PaymentLink is the editor's payment link while payment is pending.",
+          "Fields": null
+        },
+        {
+          "Name": "Notes",
+          "Type": "string",
+          "Doc": "Notes are the visitor's own remarks; Info the editor's notes for registrants, as the Markdown they wrote, which reads well as text.",
+          "Fields": null
+        },
+        {
+          "Name": "Info",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the registration's page, to view or cancel it; empty when the module is on no page.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/registrations.MailView */}}\n{{/* Sent to the visitor after registering. */}}\n{{define \"subject\"}}{{tl localizer \"Registration\"}} {{.Code}}: {{.Subject.Title}}{{end}}\n\n{{define \"text\"}}\n{{tl localizer \"Hello %s,\" .Name}}\n\n{{tl localizer \"Thank you for registering for %s.\" .Subject.Title}}\n{{- with .Subject.When}}{{if not .IsZero}}\n{{if .AllDay}}{{dateRange .Start .End \"full\"}}{{else if .SameDay}}{{date .Start \"full\"}} · {{timeRange .Start .End}}{{else}}{{date .Start \"full\"}}, {{time .Start}} – {{date .End \"full\"}}, {{time .End}}{{end}}\n{{- end}}{{end}}\n\n{{tl localizer \"Registration code\"}}: {{.Code}}\n{{tl localizer \"Adults\"}}: {{.Adults}}\n{{- if .Children}}\n{{tl localizer \"Children\"}}: {{.Children}}\n{{- end}}\n{{- if .Total}}\n{{tl localizer \"Total\"}}: {{money .Total .Currency}}\n{{- end}}\n{{- with .PaymentLink}}\n\n{{tl localizer \"Please pay using:\"}}\n{{.}}\n{{- end}}\n{{- with .Info}}\n\n{{.}}\n{{- end}}\n{{- with .URL}}\n\n{{tl localizer \"View or cancel your registration:\"}}\n{{.}}\n{{- end}}\n{{end}}"
+    },
+    {
+      "Name": "cancellation",
+      "Files": [
+        "mail/signup/cancellation.gohtml",
+        "mail/registrations/cancellation.gohtml"
+      ],
+      "DataType": "registrations.MailView",
+      "Fields": [
+        {
+          "Name": "Subject",
+          "Type": "registrations.Subject",
+          "Doc": "Subject is what the visitor registered for; Start is set for events.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Start",
+              "Type": "time.Time",
+              "Doc": "Start is when an event starts and End when it ends, in the event's timezone; zero for other subjects. End is zero when the event has none, and the last day of all-day events.",
+              "Fields": null
+            },
+            {
+              "Name": "End",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "AllDay",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL is the event's page, when visitors can see it.",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Code",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Adults",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Children",
+          "Type": "int",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Total",
+          "Type": "registrations.Cents",
+          "Doc": "Total is in Currency, for {{money .Total .Currency}}.",
+          "Fields": null
+        },
+        {
+          "Name": "Currency",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "Payment",
+          "Type": "registrations.PaymentStatus",
+          "Doc": "Payment is none, pending, paid or cancelled.",
+          "Fields": null
+        },
+        {
+          "Name": "PaymentLink",
+          "Type": "string",
+          "Doc": "PaymentLink is the editor's payment link while payment is pending.",
+          "Fields": null
+        },
+        {
+          "Name": "Notes",
+          "Type": "string",
+          "Doc": "Notes are the visitor's own remarks; Info the editor's notes for registrants, as the Markdown they wrote, which reads well as text.",
+          "Fields": null
+        },
+        {
+          "Name": "Info",
+          "Type": "string",
+          "Doc": "",
+          "Fields": null
+        },
+        {
+          "Name": "URL",
+          "Type": "string",
+          "Doc": "URL is the registration's page, to view or cancel it; empty when the module is on no page.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/registrations.MailView */}}\n{{/* Sent to the visitor after cancelling a registration on the site. */}}\n{{define \"subject\"}}{{tl localizer \"Registration cancelled\"}} {{.Code}}: {{.Subject.Title}}{{end}}\n\n{{define \"text\"}}\n{{tl localizer \"Hello %s,\" .Name}}\n\n{{tl localizer \"Your registration for %s is cancelled.\" .Subject.Title}}\n\n{{tl localizer \"Registration code\"}}: {{.Code}}\n{{- if eq .Payment \"paid\"}}\n\n{{tl localizer \"You already paid; we will contact you about a refund.\"}}\n{{- end}}\n{{end}}"
+    }
+  ],
+  "Forms": [
+    {
+      "Type": "registrations.SignupInput",
+      "Doc": "\u003cp\u003eSignupInput is the sign-up form a visitor posts to /_/\u0026lt;key\u0026gt;/register: the\nsubject, a name, an e-mail address, the number of adults (1 when empty)\nand children, and remarks. Themes render its fields with form_field, with\ntheir limits (Availability.Form), or write inputs with these names.\n",
+      "Fields": [
+        {
+          "Key": "subject",
+          "Control": "input hidden",
+          "Label": "",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 64 characters",
+            "matches ^[A-Za-z0-9_.:\\-]+$"
+          ]
+        },
+        {
+          "Key": "name",
+          "Control": "input text",
+          "Label": "Name",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 200 characters"
+          ]
+        },
+        {
+          "Key": "email",
+          "Control": "input email",
+          "Label": "E-mail address",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 254 characters"
+          ]
+        },
+        {
+          "Key": "adults",
+          "Control": "input number",
+          "Label": "Adults",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "1 to 50"
+          ]
+        },
+        {
+          "Key": "children",
+          "Control": "input number",
+          "Label": "Children",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "0 to 50"
+          ]
+        },
+        {
+          "Key": "notes",
+          "Control": "textarea",
+          "Label": "Remarks",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "at most 2000 characters"
+          ]
+        }
+      ]
+    },
+    {
+      "Type": "registrations.CancelInput",
+      "Doc": "\u003cp\u003eCancelInput is the cancel form a visitor posts to /_/\u0026lt;key\u0026gt;/cancel: the\nregistration\u0026apos;s code and the e-mail address it was made with.\n",
+      "Fields": [
+        {
+          "Key": "code",
+          "Control": "input hidden",
+          "Label": "",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 20 characters"
+          ]
+        },
+        {
+          "Key": "email",
+          "Control": "input email",
+          "Label": "The e-mail address you signed up with",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 254 characters"
+          ]
+        }
+      ]
+    },
+    {
+      "Type": "registrations.LookupInput",
+      "Doc": "\u003cp\u003eLookupInput is the lookup form, LookupView.Form: the code from the\nconfirmation, sent with method get as ?code=. Its field\u0026apos;s id is\nregistration-code.\n",
+      "Fields": [
+        {
+          "Key": "code",
+          "Control": "input text",
+          "Label": "Registration code",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 20 characters"
+          ]
+        }
+      ]
+    }
+  ],
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Settings per subject (usually an event) that visitors can register for.\n-- Prices are in cents. Without closes_at, registration for an event closes\n-- when it starts. What registrants read (notes, payment link) is per\n-- language in wt_registration_subject_text.\nCREATE TABLE wt_registration_subject (\n    instance       VARCHAR(64) NOT NULL,\n    subject_id     VARCHAR(64) NOT NULL,\n    title          VARCHAR(200) NOT NULL DEFAULT '',\n    is_open        BOOLEAN NOT NULL DEFAULT FALSE,\n    capacity       INTEGER NOT NULL DEFAULT 0,\n    closes_at      TIMESTAMPTZ,\n    adult_price    BIGINT NOT NULL DEFAULT 0,\n    child_price    BIGINT NOT NULL DEFAULT 0,\n    allow_children BOOLEAN NOT NULL DEFAULT FALSE,\n    created_at     TIMESTAMPTZ NOT NULL,\n    created_by     UUID,\n    updated_at     TIMESTAMPTZ NOT NULL,\n    updated_by     UUID,\n    PRIMARY KEY (instance, subject_id)\n);\n\n-- The notes for registrants and the payment link of a subject per language.\nCREATE TABLE wt_registration_subject_text (\n    instance     VARCHAR(64) NOT NULL,\n    subject_id   VARCHAR(64) NOT NULL,\n    locale       VARCHAR(35) NOT NULL,\n    notes        TEXT NOT NULL DEFAULT '',\n    payment_link VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (instance, subject_id, locale),\n    FOREIGN KEY (instance, subject_id) REFERENCES wt_registration_subject (instance, subject_id) ON DELETE CASCADE\n);\n\n-- Registrations are visitor submissions; cancelled ones are kept with\n-- cancelled_at set and no longer take places. Deleted ones are in the\n-- admin's trash (deleted_at) and take no places either. Codes stay unique\n-- in the trash too, so a restored registration keeps its code.\nCREATE TABLE wt_registration (\n    id             UUID PRIMARY KEY,\n    instance       VARCHAR(64) NOT NULL,\n    subject_id     VARCHAR(64) NOT NULL,\n    code           VARCHAR(9) NOT NULL UNIQUE,\n    name           VARCHAR(200) NOT NULL,\n    email          VARCHAR(254) NOT NULL,\n    adults         INTEGER NOT NULL DEFAULT 0,\n    children       INTEGER NOT NULL DEFAULT 0,\n    total          BIGINT NOT NULL DEFAULT 0,\n    payment_status VARCHAR(20) NOT NULL DEFAULT 'none',\n    notes          TEXT NOT NULL DEFAULT '',\n    admin_notes    TEXT NOT NULL DEFAULT '',\n    locale         VARCHAR(35) NOT NULL,\n    created_at     TIMESTAMPTZ NOT NULL,\n    created_by     UUID,\n    updated_at     TIMESTAMPTZ NOT NULL,\n    updated_by     UUID,\n    deleted_at     TIMESTAMPTZ,\n    deleted_by     UUID,\n    cancelled_at   TIMESTAMPTZ\n);\n\nCREATE INDEX wt_registration_subject_list ON wt_registration (instance, subject_id, created_at);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Settings per subject (usually an event) that visitors can register for.\n-- Prices are in cents. Without closes_at, registration for an event closes\n-- when it starts. What registrants read (notes, payment link) is per\n-- language in wt_registration_subject_text.\nCREATE TABLE wt_registration_subject (\n    instance       TEXT NOT NULL,\n    subject_id     TEXT NOT NULL,\n    title          TEXT NOT NULL DEFAULT '',\n    is_open        BOOLEAN NOT NULL DEFAULT FALSE,\n    capacity       INTEGER NOT NULL DEFAULT 0,\n    closes_at      TIMESTAMP,\n    adult_price    INTEGER NOT NULL DEFAULT 0,\n    child_price    INTEGER NOT NULL DEFAULT 0,\n    allow_children BOOLEAN NOT NULL DEFAULT FALSE,\n    created_at     TIMESTAMP NOT NULL,\n    created_by     TEXT,\n    updated_at     TIMESTAMP NOT NULL,\n    updated_by     TEXT,\n    PRIMARY KEY (instance, subject_id)\n);\n\n-- The notes for registrants and the payment link of a subject per language.\nCREATE TABLE wt_registration_subject_text (\n    instance     TEXT NOT NULL,\n    subject_id   TEXT NOT NULL,\n    locale       TEXT NOT NULL,\n    notes        TEXT NOT NULL DEFAULT '',\n    payment_link TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (instance, subject_id, locale),\n    FOREIGN KEY (instance, subject_id) REFERENCES wt_registration_subject (instance, subject_id) ON DELETE CASCADE\n);\n\n-- Registrations are visitor submissions; cancelled ones are kept with\n-- cancelled_at set and no longer take places. Deleted ones are in the\n-- admin's trash (deleted_at) and take no places either. Codes stay unique\n-- in the trash too, so a restored registration keeps its code.\nCREATE TABLE wt_registration (\n    id             TEXT PRIMARY KEY,\n    instance       TEXT NOT NULL,\n    subject_id     TEXT NOT NULL,\n    code           TEXT NOT NULL UNIQUE,\n    name           TEXT NOT NULL,\n    email          TEXT NOT NULL,\n    adults         INTEGER NOT NULL DEFAULT 0,\n    children       INTEGER NOT NULL DEFAULT 0,\n    total          INTEGER NOT NULL DEFAULT 0,\n    payment_status TEXT NOT NULL DEFAULT 'none',\n    notes          TEXT NOT NULL DEFAULT '',\n    admin_notes    TEXT NOT NULL DEFAULT '',\n    locale         TEXT NOT NULL,\n    created_at     TIMESTAMP NOT NULL,\n    created_by     TEXT,\n    updated_at     TIMESTAMP NOT NULL,\n    updated_by     TEXT,\n    deleted_at     TIMESTAMP,\n    deleted_by     TEXT,\n    cancelled_at   TIMESTAMP\n);\n\nCREATE INDEX wt_registration_subject_list ON wt_registration (instance, subject_id, created_at);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Settings per subject (usually an event) that visitors can register for.\n-- Prices are in cents. Without closes_at, registration for an event closes\n-- when it starts. What registrants read (notes, payment link) is per\n-- language in wt_registration_subject_text.\nCREATE TABLE wt_registration_subject (\n    instance       VARCHAR(64) NOT NULL,\n    subject_id     VARCHAR(64) NOT NULL,\n    title          VARCHAR(200) NOT NULL DEFAULT '',\n    is_open        BOOLEAN NOT NULL DEFAULT FALSE,\n    capacity       INTEGER NOT NULL DEFAULT 0,\n    closes_at      DATETIME(6) NULL,\n    adult_price    BIGINT NOT NULL DEFAULT 0,\n    child_price    BIGINT NOT NULL DEFAULT 0,\n    allow_children BOOLEAN NOT NULL DEFAULT FALSE,\n    created_at     DATETIME(6) NOT NULL,\n    created_by     VARCHAR(36) NULL,\n    updated_at     DATETIME(6) NOT NULL,\n    updated_by     VARCHAR(36) NULL,\n    PRIMARY KEY (instance, subject_id)\n) ENGINE=InnoDB;\n\n-- The notes for registrants and the payment link of a subject per language.\nCREATE TABLE wt_registration_subject_text (\n    instance     VARCHAR(64) NOT NULL,\n    subject_id   VARCHAR(64) NOT NULL,\n    locale       VARCHAR(35) NOT NULL,\n    notes        TEXT NOT NULL,\n    payment_link VARCHAR(500) NOT NULL DEFAULT '',\n    PRIMARY KEY (instance, subject_id, locale),\n    FOREIGN KEY (instance, subject_id) REFERENCES wt_registration_subject (instance, subject_id) ON DELETE CASCADE\n) ENGINE=InnoDB;\n\n-- Registrations are visitor submissions; cancelled ones are kept with\n-- cancelled_at set and no longer take places. Deleted ones are in the\n-- admin's trash (deleted_at) and take no places either. Codes stay unique\n-- in the trash too, so a restored registration keeps its code.\nCREATE TABLE wt_registration (\n    id             VARCHAR(36) PRIMARY KEY,\n    instance       VARCHAR(64) NOT NULL,\n    subject_id     VARCHAR(64) NOT NULL,\n    code           VARCHAR(9) NOT NULL UNIQUE,\n    name           VARCHAR(200) NOT NULL,\n    email          VARCHAR(254) NOT NULL,\n    adults         INTEGER NOT NULL DEFAULT 0,\n    children       INTEGER NOT NULL DEFAULT 0,\n    total          BIGINT NOT NULL DEFAULT 0,\n    payment_status VARCHAR(20) NOT NULL DEFAULT 'none',\n    notes          TEXT NOT NULL,\n    admin_notes    TEXT NOT NULL,\n    locale         VARCHAR(35) NOT NULL,\n    created_at     DATETIME(6) NOT NULL,\n    created_by     VARCHAR(36) NULL,\n    updated_at     DATETIME(6) NOT NULL,\n    updated_by     VARCHAR(36) NULL,\n    deleted_at     DATETIME(6) NULL,\n    deleted_by     VARCHAR(36) NULL,\n    cancelled_at   DATETIME(6) NULL,\n    INDEX wt_registration_subject_list (instance, subject_id, created_at)\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_registration_subject",
+      "Note": "Settings per subject (usually an event) that visitors can register for. Prices are in cents. Without closes_at, registration for an event closes when it starts. What registrants read (notes, payment link) is per language in wt_registration_subject_text.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "subject_id",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "is_open",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "capacity",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "closes_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "adult_price",
+          "Type": "BIGINT",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "child_price",
+          "Type": "BIGINT",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "allow_children",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, subject_id)"
+      ]
+    },
+    {
+      "Name": "wt_registration_subject_text",
+      "Note": "The notes for registrants and the payment link of a subject per language.",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "subject_id",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "notes",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "payment_link",
+          "Type": "VARCHAR(500)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (instance, subject_id, locale)",
+        "FOREIGN KEY (instance, subject_id) REFERENCES wt_registration_subject (instance, subject_id) ON DELETE CASCADE"
+      ]
+    },
+    {
+      "Name": "wt_registration",
+      "Note": "Registrations are visitor submissions; cancelled ones are kept with cancelled_at set and no longer take places. Deleted ones are in the admin's trash (deleted_at) and take no places either. Codes stay unique in the trash too, so a restored registration keeps its code.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "subject_id",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "code",
+          "Type": "VARCHAR(9)",
+          "Notes": "NOT NULL UNIQUE"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "adults",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "children",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "total",
+          "Type": "BIGINT",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "payment_status",
+          "Type": "VARCHAR(20)",
+          "Notes": "NOT NULL DEFAULT 'none'"
+        },
+        {
+          "Name": "notes",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "admin_notes",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "cancelled_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_registration_subject_list (instance, subject_id, created_at)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "ParseCents",
+        "Signature": "func ParseCents(value string) (Cents, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "AllSettings",
+        "Signature": "func (s *Service) AllSettings(ctx context.Context) ([]Settings, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Availability",
+        "Signature": "func (s *Service) Availability(ctx context.Context, subjectID, locale string) (Availability, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "ByCode",
+        "Signature": "func (s *Service) ByCode(ctx context.Context, code string) (Registration, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Cancel",
+        "Signature": "func (s *Service) Cancel(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Currency",
+        "Signature": "func (s *Service) Currency() string",
+        "Doc": ""
+      },
+      {
+        "Name": "Delete",
+        "Signature": "func (s *Service) Delete(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Purge",
+        "Signature": "func (s *Service) Purge(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Register",
+        "Signature": "func (s *Service) Register(ctx context.Context, signup Signup) (Registration, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Registration",
+        "Signature": "func (s *Service) Registration(ctx context.Context, id string) (Registration, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Registrations",
+        "Signature": "func (s *Service) Registrations(ctx context.Context, subjectID string) ([]Registration, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SaveSettings",
+        "Signature": "func (s *Service) SaveSettings(ctx context.Context, settings Settings) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Settings",
+        "Signature": "func (s *Service) Settings(ctx context.Context, subjectID string) (Settings, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Subject",
+        "Signature": "func (s *Service) Subject(ctx context.Context, subjectID, locale string) (Subject, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Summaries",
+        "Signature": "func (s *Service) Summaries(ctx context.Context) (map[string]Summary, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Trashed",
+        "Signature": "func (s *Service) Trashed(ctx context.Context, limit, offset int) ([]Registration, int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Undelete",
+        "Signature": "func (s *Service) Undelete(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Update",
+        "Signature": "func (s *Service) Update(ctx context.Context, id string, payment PaymentStatus, adminNotes string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "Availability",
+        "Doc": "\u003cp\u003eAvailability tells templates whether and how visitors can register for a\nsubject.\n",
+        "Fields": null,
+        "Decl": "type Availability struct {\n\tSubjectID string\n\t// Configured is true when editors set up registration for the subject,\n\t// open or not; without it a page shows no sign-up at all.\n\tConfigured bool\n\t// Open is true while visitors can register: registration is switched on,\n\t// the deadline has not passed and places are left.\n\tOpen bool\n\t// Closed is true when registration is switched off or its deadline\n\t// passed, and for subjects that are not Configured.\n\tClosed bool\n\t// Full is true when every place is taken.\n\tFull bool\n\t// Capacity is the number of places; 0 is unlimited.\n\tCapacity int\n\t// Taken is the number of places registered so far.\n\tTaken int\n\t// Left is the number of places left; 0 when Capacity is 0.\n\tLeft int\n\t// ClosesAt is the deadline in the site's timezone; zero when there is none.\n\tClosesAt      time.Time\n\tAllowChildren bool\n\tPrices        Prices\n\t// Currency is the ISO 4217 code of the prices, for {{money .Prices.Adult .Currency}}.\n\tCurrency string\n\t// Notes are the editor's notes for registrants in the requested language,\n\t// or in the site's default language, rendered from Markdown.\n\tNotes template.HTML\n\t// Action is the address the sign-up form posts to.\n\tAction string\n\t// Form is the sign-up form's model (SignupInput) for go-form's\n\t// template functions, such as {{form_open .Form}} and {{form_field\n\t// .Form \"name\" nil}}, with the adults and children at most Left when\n\t// places are limited; it returns the visitor to the element with the\n\t// instance key as its id.\n\tForm form.RenderModel\n}"
+      },
+      {
+        "Name": "CancelInput",
+        "Doc": "\u003cp\u003eCancelInput is the cancel form a visitor posts to /_/\u0026lt;key\u0026gt;/cancel: the\nregistration\u0026apos;s code and the e-mail address it was made with.\n",
+        "Fields": null,
+        "Decl": "type CancelInput struct {\n\tCode  string `form:\"input,hidden\" name:\"code\"  required:\"true\" maxLength:\"20\"  line:\"true\"`\n\tEmail string `form:\"input,email\"  name:\"email\" required:\"true\" maxLength:\"254\"             label:\"The e-mail address you signed up with\" autocomplete:\"email\"`\n}"
+      },
+      {
+        "Name": "Cents",
+        "Doc": "\u003cp\u003eCents is an amount of money in hundredths, for example 1250 for 12.50.\nTemplates show it with money, for example {{money .Total .Currency}}.\n",
+        "Fields": null,
+        "Decl": "type Cents int64"
+      },
+      {
+        "Name": "Fact",
+        "Doc": "\u003cp\u003eFact is one setting in the summary; Label is translated.\n",
+        "Fields": null,
+        "Decl": "type Fact struct {\n\tLabel string\n\tValue string\n}"
+      },
+      {
+        "Name": "FormView",
+        "Doc": "\u003cp\u003eFormView is the data of the form component: whether and how visitors can\nregister for a subject, with the result of the visitor\u0026apos;s last post.\n",
+        "Fields": null,
+        "Decl": "type FormView struct {\n\t// Key is the instance key.\n\tKey string\n\tAvailability\n\t// Result is \"registered\", \"full\", \"closed\", \"invalid\", \"cancelled\",\n\t// \"throttled\" or \"\".\n\tResult string\n\t// Code is the visitor's registration code after registering here, when\n\t// the instance is placed on no page of its own.\n\tCode string\n\t// LookupURL is the page where visitors look up their registration, or \"\"\n\t// when the instance is placed on no page.\n\tLookupURL string\n}"
+      },
+      {
+        "Name": "LookupInput",
+        "Doc": "\u003cp\u003eLookupInput is the lookup form, LookupView.Form: the code from the\nconfirmation, sent with method get as ?code=. Its field\u0026apos;s id is\nregistration-code.\n",
+        "Fields": null,
+        "Decl": "type LookupInput struct {\n\tCode string `form:\"input,text\" name:\"code\" required:\"true\" maxLength:\"20\" line:\"true\" label:\"Registration code\" placeholder:\"K7Q4-9M2X\" autocomplete:\"off\"`\n}"
+      },
+      {
+        "Name": "LookupView",
+        "Doc": "\u003cp\u003eLookupView is the data of registrations/lookup.gohtml: a form where\nvisitors enter their code.\n",
+        "Fields": null,
+        "Decl": "type LookupView struct {\n\t// Title is the title of the page the module is mounted on.\n\tTitle string\n\t// Action is the address the form sends its code field to, with method get.\n\tAction string\n\t// Code is the code that was looked up, if any.\n\tCode string\n\t// NotFound is set when no registration has Code.\n\tNotFound bool\n\t// Form is the lookup form's model (LookupInput, with Code), sent to\n\t// Action with method get, for go-form's template functions, such as\n\t// {{form_open .Form}} and {{form_field .Form \"code\" nil}}.\n\tForm form.RenderModel\n}"
+      },
+      {
+        "Name": "MailView",
+        "Doc": "\u003cp\u003eMailView is the data of the mail templates confirmation and cancellation,\nin the language the visitor registered in.\n",
+        "Fields": null,
+        "Decl": "type MailView struct {\n\t// Subject is what the visitor registered for; Start is set for events.\n\tSubject  Subject\n\tCode     string\n\tName     string\n\tAdults   int\n\tChildren int\n\t// Total is in Currency, for {{money .Total .Currency}}.\n\tTotal    Cents\n\tCurrency string\n\t// Payment is none, pending, paid or cancelled.\n\tPayment PaymentStatus\n\t// PaymentLink is the editor's payment link while payment is pending.\n\tPaymentLink string\n\t// Notes are the visitor's own remarks; Info the editor's notes for\n\t// registrants, as the Markdown they wrote, which reads well as text.\n\tNotes string\n\tInfo  string\n\t// URL is the registration's page, to view or cancel it; empty when the\n\t// module is on no page.\n\tURL string\n}"
+      },
+      {
+        "Name": "NewSubjectView",
+        "Doc": "\u003cp\u003eNewSubjectView adds a subject that is not an event.\n",
+        "Fields": null,
+        "Decl": "type NewSubjectView struct {\n\tTitle   string\n\tBackURL string\n\tForm    form.RenderModel\n\tErrors  form.FieldErrors\n}"
+      },
+      {
+        "Name": "OverviewRow",
+        "Doc": "\u003cp\u003eOverviewRow is one event or subject in the overview, with its number of\nregistrations and the places taken, out of the capacity when there is\none.\n",
+        "Fields": null,
+        "Decl": "type OverviewRow struct {\n\tURL   string\n\tTitle string\n\tDate  string\n\t// Status is \"Open\", \"Closed\" or \"Full\"; it is translated.\n\tStatus        string\n\tRegistrations int\n\tPlaces        string\n}"
+      },
+      {
+        "Name": "OverviewView",
+        "Doc": "\u003cp\u003eOverviewView lists the subjects with their registrations.\n",
+        "Fields": null,
+        "Decl": "type OverviewView struct {\n\tTitle string\n\t// Events is set when the subjects are events; rows then have a date.\n\tEvents bool\n\t// NewURL adds a subject; empty for events and without the right.\n\tNewURL string\n\t// TrashURL shows the deleted registrations in the admin's trash.\n\tTrashURL string\n\tRows     []OverviewRow\n}"
+      },
+      {
+        "Name": "PaymentStatus",
+        "Doc": "\u003cp\u003ePaymentStatus tells whether a registration was paid.\n",
+        "Fields": null,
+        "Decl": "type PaymentStatus string\n\nconst (\n\t// PaymentNone is the status of free registrations.\n\tPaymentNone PaymentStatus = \"none\"\n\t// PaymentPending is the status of new registrations with a total.\n\tPaymentPending PaymentStatus = \"pending\"\n\t// PaymentPaid is set by an editor once the payment came in.\n\tPaymentPaid PaymentStatus = \"paid\"\n\t// PaymentCancelled is set when an unpaid registration is cancelled.\n\tPaymentCancelled PaymentStatus = \"cancelled\"\n)"
+      },
+      {
+        "Name": "Prices",
+        "Doc": "\u003cp\u003ePrices are the prices per place.\n",
+        "Fields": null,
+        "Decl": "type Prices struct {\n\tAdult Cents\n\tChild Cents\n}"
+      },
+      {
+        "Name": "Registration",
+        "Doc": "\u003cp\u003eRegistration is one sign-up.\n",
+        "Fields": null,
+        "Decl": "type Registration struct {\n\tID        string `db:\"id\"`\n\tSubjectID string `db:\"subject_id\"`\n\t// Code is the visitor's reference, for example \"K7Q4-9M2X\".\n\tCode       string        `db:\"code\"`\n\tName       string        `db:\"name\"`\n\tEmail      string        `db:\"email\"`\n\tAdults     int           `db:\"adults\"`\n\tChildren   int           `db:\"children\"`\n\tTotal      Cents         `db:\"total\"`\n\tPayment    PaymentStatus `db:\"payment_status\"`\n\tNotes      string        `db:\"notes\"`\n\tAdminNotes string        `db:\"admin_notes\"`\n\t// Locale is the language the visitor registered in.\n\tLocale      string     `db:\"locale\"`\n\tCreatedAt   time.Time  `db:\"created_at\"`\n\tCancelledAt *time.Time `db:\"cancelled_at\"`\n\t// CreatedBy is the editor who added the registration; empty for visitors.\n\tCreatedBy db.Ref `db:\"created_by\"`\n\t// UpdatedAt and UpdatedBy are the last change, by an editor or, when\n\t// cancelling, by the visitor (UpdatedBy empty).\n\tUpdatedAt time.Time `db:\"updated_at\"`\n\tUpdatedBy db.Ref    `db:\"updated_by\"`\n\t// DeletedAt is set while the registration is in the trash, with\n\t// DeletedBy.\n\tDeletedAt *time.Time `db:\"deleted_at\"`\n\tDeletedBy db.Ref     `db:\"deleted_by\"`\n}"
+      },
+      {
+        "Name": "RegistrationAdminView",
+        "Doc": "\u003cp\u003eRegistrationAdminView shows one registration to editors.\n",
+        "Fields": null,
+        "Decl": "type RegistrationAdminView struct {\n\tTitle        string\n\tBackURL      string\n\tRegistration Registration\n\t// Total is the amount in the admin language, such as \"€ 120,00\";\n\t// Payment is the translated payment status.\n\tTotal     string\n\tPayment   string\n\tDate      string\n\tCancelled string\n\t// Form changes payment and admin notes; nil without the right.\n\tForm   *form.RenderModel\n\tErrors form.FieldErrors\n\tCancel *form.RenderModel\n\tDelete *form.RenderModel\n}"
+      },
+      {
+        "Name": "RegistrationRow",
+        "Doc": "\u003cp\u003eRegistrationRow is one registration in the list of an event or\nsubject; Cancelled registrations stay in the list.\n",
+        "Fields": null,
+        "Decl": "type RegistrationRow struct {\n\tURL       string\n\tCode      string\n\tName      string\n\tEmail     string\n\tAdults    int\n\tChildren  int\n\tTotal     string\n\tPayment   string\n\tDate      string\n\tCancelled bool\n}"
+      },
+      {
+        "Name": "RegistrationView",
+        "Doc": "\u003cp\u003eRegistrationView is the data of registrations/registration.gohtml.\n",
+        "Fields": null,
+        "Decl": "type RegistrationView struct {\n\t// Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e, and the\n\t// cancel form returns the visitor to the element with the id Key.\n\tKey string\n\t// Title is the title of the page the module is mounted on.\n\tTitle string\n\t// Subject is what the visitor registered for; Start is set for events.\n\tSubject  Subject\n\tCode     string\n\tName     string\n\tAdults   int\n\tChildren int\n\t// Total is in Currency, for {{money .Total .Currency}}.\n\tTotal    Cents\n\tCurrency string\n\t// Payment is none, pending, paid or cancelled.\n\tPayment PaymentStatus\n\t// PaymentLink is the editor's payment link while payment is pending.\n\tPaymentLink string\n\t// Notes are the visitor's own remarks; Info the editor's notes for\n\t// registrants, in the page's language, rendered from Markdown.\n\tNotes string\n\tInfo  template.HTML\n\t// CreatedAt is when the visitor registered, for {{date .CreatedAt}}.\n\tCreatedAt time.Time\n\tCancelled bool\n\t// CancelAction is the address the cancel form posts to (fields code and\n\t// email); empty when the registration is cancelled.\n\tCancelAction string\n\t// Form is the cancel form's model (CancelInput, with Code) for go-form's\n\t// template functions, such as {{form_open .Form}} and {{form_field\n\t// .Form \"email\" nil}}; the zero value when the registration is\n\t// cancelled.\n\tForm form.RenderModel\n\t// Result is the outcome of the visitor's last post: \"registered\",\n\t// \"cancelled\", \"invalid\", \"throttled\" or empty.\n\tResult string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Registrations instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Settings",
+        "Doc": "\u003cp\u003eSettings decide whether and how visitors can register for one subject.\n",
+        "Fields": null,
+        "Decl": "type Settings struct {\n\tSubjectID string `db:\"subject_id\"`\n\t// Title names the subject in the admin and e-mail. Events use their own\n\t// title when it is empty.\n\tTitle string `db:\"title\"`\n\t// Open switches registration on.\n\tOpen bool `db:\"is_open\"`\n\t// Capacity is the number of places (adults and children); 0 is unlimited.\n\tCapacity int `db:\"capacity\"`\n\t// ClosesAt is the registration deadline. Without one, registration for an\n\t// event closes when it starts.\n\tClosesAt      *time.Time `db:\"closes_at\"`\n\tAdultPrice    Cents      `db:\"adult_price\"`\n\tChildPrice    Cents      `db:\"child_price\"`\n\tAllowChildren bool       `db:\"allow_children\"`\n\t// UpdatedAt and UpdatedBy are the last change by an editor.\n\tUpdatedAt time.Time `db:\"updated_at\"`\n\tUpdatedBy db.Ref    `db:\"updated_by\"`\n\t// Texts are what registrants read, per language. SaveSettings stores the\n\t// languages given and keeps the others.\n\tTexts []SubjectText\n}"
+      },
+      {
+        "Name": "SettingsView",
+        "Doc": "\u003cp\u003eSettingsView edits the settings of a subject.\n",
+        "Fields": null,
+        "Decl": "type SettingsView struct {\n\tTitle   string\n\tBackURL string\n\tForm    form.RenderModel\n\tErrors  form.FieldErrors\n\t// Tabs switch the language of Texts, what registrants read.\n\tTabs       []admin.LocaleTab\n\tTexts      form.RenderModel\n\tTextErrors form.FieldErrors\n}"
+      },
+      {
+        "Name": "Signup",
+        "Doc": "\u003cp\u003eSignup is what a visitor submits.\n",
+        "Fields": null,
+        "Decl": "type Signup struct {\n\tSubjectID string\n\tName      string\n\tEmail     string\n\tAdults    int\n\tChildren  int\n\tNotes     string\n\tLocale    string\n}"
+      },
+      {
+        "Name": "SignupInput",
+        "Doc": "\u003cp\u003eSignupInput is the sign-up form a visitor posts to /_/\u0026lt;key\u0026gt;/register: the\nsubject, a name, an e-mail address, the number of adults (1 when empty)\nand children, and remarks. Themes render its fields with form_field, with\ntheir limits (Availability.Form), or write inputs with these names.\n",
+        "Fields": null,
+        "Decl": "type SignupInput struct {\n\tSubject  string `form:\"input,hidden\" name:\"subject\"  required:\"true\" maxLength:\"64\"   pattern:\"^[A-Za-z0-9_.:\\\\-]+$\"`\n\tName     string `form:\"input,text\"   name:\"name\"     required:\"true\" maxLength:\"200\"                                 label:\"Name\"           line:\"true\" autocomplete:\"name\"`\n\tEmail    string `form:\"input,email\"  name:\"email\"    required:\"true\" maxLength:\"254\"                                 label:\"E-mail address\"             autocomplete:\"email\" validate:\"mail\"`\n\tAdults   int    `form:\"input,number\" name:\"adults\"                                                                   label:\"Adults\"                                                          min:\"1\" max:\"50\"`\n\tChildren int    `form:\"input,number\" name:\"children\"                                                                 label:\"Children\"                                                        min:\"0\" max:\"50\"`\n\tNotes    string `form:\"textarea\"     name:\"notes\"                    maxLength:\"2000\"                                label:\"Remarks\"                                                                          placeholder:\"Allergies, accessibility, questions…\"`\n}"
+      },
+      {
+        "Name": "Subject",
+        "Doc": "\u003cp\u003eSubject is what visitors register for, as the admin and e-mail show it.\n",
+        "Fields": null,
+        "Decl": "type Subject struct {\n\tID    string\n\tTitle string\n\t// Start is when an event starts and End when it ends, in the event's\n\t// timezone; zero for other subjects. End is zero when the event has none,\n\t// and the last day of all-day events.\n\tStart  time.Time\n\tEnd    time.Time\n\tAllDay bool\n\t// URL is the event's page, when visitors can see it.\n\tURL string\n}"
+      },
+      {
+        "Name": "SubjectText",
+        "Doc": "\u003cp\u003eSubjectText is what registrants of a subject read in one language.\n",
+        "Fields": null,
+        "Decl": "type SubjectText struct {\n\tLocale string `db:\"locale\"`\n\t// Notes are shown with the sign-up form, on the registration page and in\n\t// the confirmation. They are Markdown.\n\tNotes string `db:\"notes\"`\n\t// PaymentLink is shown while payment is pending, for example a payment\n\t// request URL or bank details.\n\tPaymentLink string `db:\"payment_link\"`\n}"
+      },
+      {
+        "Name": "SubjectView",
+        "Doc": "\u003cp\u003eSubjectView shows one subject and its registrations.\n",
+        "Fields": null,
+        "Decl": "type SubjectView struct {\n\tTitle   string\n\tDate    string\n\tBackURL string\n\t// BackLabel names the overview BackURL leads to, as a translation key.\n\tBackLabel string\n\t// SettingsURL is empty without the right to change settings.\n\tSettingsURL string\n\t// ExportURL is empty without the right to export.\n\tExportURL string\n\tStatus    string\n\tFacts     []Fact\n\tRows      []RegistrationRow\n\t// Registrations, Places and Total count active registrations.\n\tRegistrations int\n\tPlaces        int\n\tTotal         string\n}"
+      },
+      {
+        "Name": "Summary",
+        "Doc": "\u003cp\u003eSummary counts the active registrations of one subject.\n",
+        "Fields": null,
+        "Decl": "type Summary struct {\n\tSubjectID     string `db:\"subject_id\"`\n\tRegistrations int    `db:\"registrations\"`\n\tPlaces        int    `db:\"places\"`\n}"
+      }
+    ]
+  }
+}

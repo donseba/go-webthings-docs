@@ -14,15 +14,14 @@ content := partial.NewID("content", "templates/contact.gohtml").SetDot(ContactPa
 })
 page := root.Clone().SetContent(content)
 if err := partial.Write(r.Context(), w, r, page); err != nil { return err }</code></pre>
-<p>Configure the partial root and form renderer once. The HTML template uses <code>form_render</code> or its localized variant. Request-specific input, errors and CSRF metadata belong on the clone’s data.</p>
+<p>Configure the partial root and form renderer once. The HTML template uses <code>form_render</code> or its localized variant. Request-specific input, errors and CSRF metadata belong on the content partial of the clone.</p>
+<pre><code>{{"{{"}} form_open .Form .SubmitAttrs }}
+  {{"{{"}} form_field .Form "name" .Errors }}
+  {{"{{"}} form_buttons .Form }}
+{{"{{"}} form_close }}</code></pre>
+<p>A template that lays out the fields itself can give the HTMX attributes to <code>form_open</code> instead of <code>Info.Attributes</code>, as name/value pairs or a <code>template.HTMLAttr</code> another helper renders; go-form does not need to know that helper (see <a href="{{ basePath }}/layout" hx-get="{{ basePath }}/layout" hx-target="#content" hx-push-url="true">laying out fields</a>).</p>
 <h2>Validation responses</h2>
-<p>For a normal request, render a full page with status 422 and the submitted values. For HTMX, return the targeted content region with a fresh token. If you choose status 422, configure HTMX to swap that response; its default error handling does not swap it.</p>
-<pre><code>htmx.config.responseHandling = [
-    {code: "204", swap: false},
-    {code: "[23]..", swap: true},
-    {code: "422", swap: true, error: false},
-    {code: "[45]..", swap: false, error: true}
-];</code></pre>
+<p>For a normal request, render a full page with status 422 and the submitted values, or redirect and show the submission again with a <a href="{{ basePath }}/submissions" hx-get="{{ basePath }}/submissions" hx-target="#content" hx-push-url="true"><code>Carry</code></a>. For HTMX, return the targeted content region with a fresh token. HTMX 4 swaps a 4xx or 5xx answer by default, so a 422 that re-renders the form is swapped without any configuration. Control it per status with an <code>hx-status:&lt;code&gt;:inherited</code> attribute on the body, for example <code>hx-status:422:inherited="swap:innerHTML"</code>; <code>swap:none</code> leaves the page as it is.</p>
 <h2>Keep the plain form usable</h2>
 <p>Retain an ordinary <code>action</code>, <code>method</code> and submit button. Successful ordinary submissions can use a 303 redirect; successful fragment requests can render the updated region directly. Wrap both paths in the same CSRF middleware.</p>
 <h2>Share a service with other clients</h2>

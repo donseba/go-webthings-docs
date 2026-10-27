@@ -4,20 +4,40 @@
 
 <h2>Name routes</h2>
 <pre><code>r.Get("/users/{id}", showUser).As("users.show")</code></pre>
+<p><code>As</code> returns the route, so calls chain. A name belongs to one route: <code>As</code> panics on a name in use, and <code>TryAs</code> returns an error instead.</p>
 
 <h2>Generate paths</h2>
 <pre><code>path := r.RoutePathWithParams("users.show", map[string]any{
     "id": 123,
 })
 // /users/123</code></pre>
+<p>Values are URL-escaped. A rest wildcard such as <code>{path...}</code> takes a string or a <code>[]string</code> of segments and keeps its slashes. The path is the registered pattern without <code>{$}</code>, so a trailing slash is kept: <code>/admin/{$}</code> and <code>/admin/</code> are both <code>/admin/</code>, and <code>/users</code> and <code>/users/</code> stay different routes.</p>
+
+<h2>Errors instead of broken links</h2>
+<p><code>RoutePathWithParams</code> and <code>RouteURL</code> return <code>""</code> for an unknown route and leave a parameter without a value as its placeholder, and log a warning to <code>slog.Default()</code>. <code>RoutePathArgs</code> returns an error wrapping <code>router.ErrUnknownRoute</code>, <code>router.ErrMissingParam</code> or <code>router.ErrUnknownParam</code> instead, and takes a query string:</p>
+<pre><code>path, err := r.RoutePathArgs("users.show", "id", 42, url.Values{"tab": {"posts"}})
+// "/users/42?tab=posts"
+
+path, err = r.RoutePathArgs("users.show", map[string]any{"id": 42})
+// "/users/42"</code></pre>
+<p><code>RoutePathArgs</code> takes key/value pairs, maps of parameters and <code>url.Values</code>. Its method values are <code>router.PathFunc</code>s, so code that only builds links can take a <code>PathFunc</code> instead of a <code>*Router</code>.</p>
 
 <h2>Generate URLs</h2>
 <pre><code>r.Host("admin.example.com", func(admin *router.Router) {
     admin.Get("/users/{id}", showUser).As("admin.users.show")
 })
 
-url := r.RouteURL("admin.users.show", map[string]any{"id": 123}, "https")</code></pre>
+url := r.RouteURL("admin.users.show", map[string]any{"id": 123}, "https")
+// "https://admin.example.com/users/123"</code></pre>
+<p>Wildcard subdomain routes take the subdomain from a <code>subdomain</code> or <code>tenant</code> parameter.</p>
 
-<p>Template helpers are available through <code>r.FuncMap()</code>, including route path, URL, host, and active-route helpers.</p>
+<h2>Templates</h2>
+<p>Template helpers are available through <code>r.FuncMap()</code>. <code>route</code> takes the arguments of <code>RoutePathArgs</code> and fails the template for an unknown route or a missing or unknown parameter, instead of rendering a broken link. <code>hasRoute</code> and <code>routeOr</code> link to routes that may not exist, such as those of an optional module.</p>
+<pre><code>tmpl := template.New("page").Funcs(r.FuncMap())</code></pre>
+<pre><code>&lt;a href="{{"{{"}} route "users.show" "id" .User.ID }}"&gt;Profile&lt;/a&gt;
+{{"{{"}} if hasRoute "news.index" }}&lt;a href="{{"{{"}} route "news.index" }}"&gt;News&lt;/a&gt;{{"{{"}} end }}
+&lt;a href="{{"{{"}} routeOr "news.index" "/" }}"&gt;News&lt;/a&gt;</code></pre>
+<p><code>isActiveRoute</code> reports whether the current page, a request, URL or path, is a route's path or below it, by whole path segments: a route at <code>/admin/news</code> is active on <code>/admin/news/7</code>, not on <code>/admin/newsletter</code>. <code>isActiveRouteExact</code> leaves out the paths below the route. The other functions are <code>routePath</code>, <code>routePathWithParams</code>, <code>routeHost</code>, <code>routeURL</code> and <code>isActiveRouteContains</code>.</p>
+<pre><code>&lt;a href="{{"{{"}} route "admin.news" }}" {{"{{"}} if isActiveRoute .Request "admin.news" }}aria-current="page"{{"{{"}} end }}&gt;News&lt;/a&gt;</code></pre>
 </article>
 

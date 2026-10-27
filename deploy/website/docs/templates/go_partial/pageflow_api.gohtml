@@ -19,7 +19,7 @@
     Validate func(r *http.Request, data map[string]any) error
 }</code></pre>
 
-    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Name</code> should be stable because it is stored in <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">pageflow.SessionData.Current</code>, used as the registered partial ID in templates, and used as the key for step data and validation state.</p>
+    <p class="leading-7 text-slate-400"><code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">Name</code> should be stable because it is stored in <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">pageflow.SessionData.Current</code>, used by <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">FindStep</code> and <code class="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 font-mono text-sm text-sky-100">SetCurrentStep</code>, and used as the key for step data and validation state. The step's partial has an ID of its own: give it the same ID when requests target it.</p>
 
     <h2 class="text-xl font-bold text-slate-50">PageFlow methods</h2>
     <table class="w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-800/90 text-left">

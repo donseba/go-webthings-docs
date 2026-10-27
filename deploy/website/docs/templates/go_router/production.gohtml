@@ -4,15 +4,39 @@
 
 <div class="callout">
     <strong>Configure during startup.</strong>
-    <p>After the first request is served, registration freezes to avoid runtime mutation races.</p>
+    <p>After the first request is served, registration freezes, also on routers mounted on it, to avoid runtime mutation races. Later registration panics, or returns an error through the <code>Try</code> APIs.</p>
 </div>
+
+<h2>Recommended defaults</h2>
+<pre><code>r := router.NewSite()
+r.UseAll(
+    middleware.RequestID,
+    middleware.RealIPWithOptions(middleware.RealIPOptions{
+        TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
+    }),
+    middleware.Logger(),
+    middleware.Recover,
+    // On every response, also the router's own redirects and plain 404s.
+    middleware.SecurityHeaders(middleware.SecurityHeadersOptions{
+        ContentTypeOptions: "nosniff",
+        ReferrerPolicy:     "strict-origin-when-cross-origin",
+    }),
+)
+r.Use(middleware.SecurityHeaders(middleware.SecurityHeadersOptions{FrameOptions: "DENY"})) // pages
+r.Use(middleware.Timeout(10 * time.Second))                                                 // not around streaming routes
+// routes ...
+
+log.Fatal(http.ListenAndServe(":8080", r))</code></pre>
 
 <h2>Before shipping</h2>
 <ul class="docs-list">
     <li>Register routes only during startup.</li>
     <li>Prefer <code>Try*</code> registration if bootstrap should return explicit errors.</li>
-    <li>Use <code>RealIPWithOptions</code> behind proxies.</li>
-    <li>Avoid response buffering middleware for streaming responses.</li>
+    <li>Use <code>RealIPWithOptions</code> behind proxies, listing only your own proxies. <code>RealIP</code> trusts none.</li>
+    <li>Register middleware before routes, since <code>Use</code> after routes panics, and use <code>UseAll</code> (or wrap the router) for middleware that must see every request.</li>
+    <li>Set headers every response must carry, such as <code>X-Content-Type-Options</code>, with <code>UseAll</code>: <code>Use</code> middleware does not run for the router's own redirects and plain 404 and 405 answers.</li>
+    <li>Create <code>Compress</code> with one or two levels: each level in use keeps up to <code>min(GOMAXPROCS, 16)</code> idle gzip writers of about 1 MB.</li>
+    <li>Avoid response buffering middleware, such as <code>Timeout</code> and <code>ContentLengthMiddleware</code>, for streaming responses, and flush those explicitly.</li>
     <li>Run <code>go test ./...</code>, <code>go test -race ./...</code>, and <code>go vet ./...</code>.</li>
     <li>Add app-level tests for mounted routers, subdomains, and custom middleware.</li>
 </ul>

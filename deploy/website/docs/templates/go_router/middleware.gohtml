@@ -6,15 +6,64 @@
 <pre><code>type Middleware func(http.Handler) http.Handler</code></pre>
 
 <h2>Common stack</h2>
-<pre><code>r.Use(middleware.RequestID)
-r.Use(middleware.RealIPWithOptions(middleware.RealIPOptions{
-    TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
-}))
-r.Use(middleware.Logger())
-r.Use(middleware.Recover)
+<pre><code>r.UseAll(
+    middleware.RequestID,
+    middleware.RealIPWithOptions(middleware.RealIPOptions{
+        TrustedProxies: []string{"127.0.0.1/32", "::1/128"},
+    }),
+    middleware.Logger(),
+    middleware.Recover,
+    middleware.SecurityHeaders(),
+)
 r.Use(middleware.Timeout(10 * time.Second))
-r.Use(middleware.SecurityHeaders())</code></pre>
+// routes ...</code></pre>
 
-<p>The bundled middleware package includes request IDs, logging, recovery, timeouts, security headers, CORS, real IP, content length, and timing helpers.</p>
+<h2>Use and UseAll</h2>
+<p><code>Use</code> takes one middleware. It runs around the handlers registered after it on that router and its groups: its routes, every request of a <code>Mount</code>, and its <code>NotFound</code> and <code>MethodNotAllowed</code> handlers. Call it before the routes: <code>Use</code> after routes panics. It does not run for what the router answers without a handler, such as its plain 404 and 405 answers, its redirects and <code>HandleStatus</code> handlers.</p>
+<p><code>UseAll</code> takes several and wraps the whole router, for every request it serves: <code>r.UseAll(a, b)</code> serves as <code>a(b(r))</code>. It runs before the route is matched, so <code>req.PathValue</code> is empty there. It can be called after routes, but only on the router itself, not on a group, <code>With</code> or host router.</p>
+
+<h2>Route middleware</h2>
+<p><code>Use</code> on a route adds middleware to that route only, in the order given, inside the middleware of the router and its groups. On a route it takes several.</p>
+<pre><code>r.Get("/account", account).Use(requireLogin, middleware.NoStore)</code></pre>
+
+<h2>Bundled middleware</h2>
+<p>The bundled middleware package uses the standard library only. Next to request IDs, logging, recovery, timeouts, real IP, security headers and CSP, CORS, content length, and timing helpers, which have pages of their own, it includes:</p>
+<ul class="docs-list">
+    <li><code>Compress</code>, which gzips responses of compressible types of at least 1 KiB for clients that accept gzip, and says <code>Vary: Accept-Encoding</code>.</li>
+    <li><code>ETag</code>, which gives complete <code>GET</code> and <code>HEAD</code> responses of the types in <code>ETagOptions.Types</code> (by default HTML, text, CSS, JavaScript, JSON, XML, Atom and RSS) a weak <code>ETag</code>, a hash of the body, and answers <code>If-None-Match</code> with <code>304 Not Modified</code>.</li>
+    <li><code>LastModified</code>, which answers <code>If-Modified-Since</code> with <code>304 Not Modified</code> for a response whose <code>Last-Modified</code> is not newer.</li>
+    <li><code>NewCache</code>, an output cache that keeps complete responses to <code>GET</code> in memory and serves them again without calling the handler.</li>
+    <li><code>RateLimit</code> and <code>NewLimiter</code>, which allow each client at most <code>Limit</code> requests per sliding <code>Window</code> and answer others with <code>429 Too Many Requests</code>.</li>
+    <li><code>BodyLimit</code>, which limits request bodies as <code>http.MaxBytesHandler</code> does.</li>
+    <li><code>NoStore</code>, <code>CacheControl</code> and <code>Headers</code>, which set response headers before the handler runs.</li>
+    <li><code>Observe</code>, which calls a function when a request is done, for metrics (see the Logger page).</li>
+</ul>
+
+<h2>Compression and caching</h2>
+<p>Put the cache outside <code>Compress</code> and <code>ETag</code>, so the compressed body and the <code>ETag</code> are stored with an entry and a hit costs neither, and <code>LastModified</code> inside <code>ETag</code>, so a request answered by its date costs no hash. Middleware that must count every request, such as access logs, goes outside the cache.</p>
+<pre><code>cache := middleware.NewCache(middleware.CacheOptions{
+    Version: func(req *http.Request) uint64 { return content.Version() }, // raised on every change
+    Skip:    func(req *http.Request) bool { return signedIn(req) },
+})
+
+r.Use(cache.Middleware)
+r.Use(middleware.Compress())
+r.Use(middleware.ETag(middleware.ETagOptions{
+    CacheControl: func(req *http.Request) string { return "no-cache" },
+}))
+r.Use(middleware.LastModified)
+
+stats := cache.Stats() // Hits, Misses, Skips, Evictions, Entries, Bytes</code></pre>
+<p>The cache stores complete responses with status 200, and 404 with <code>NotFound</code>, that set no cookie, are not <code>private</code> or <code>no-store</code> and are not flushed. Requests with <code>Authorization</code>, <code>Range</code> or <code>Upgrade</code> headers, and those <code>Skip</code> reports, pass by it. An entry is used for <code>TTL</code> (default 60 seconds) and while <code>Version</code> returns the version it was stored at. Responses are told apart by the request headers their <code>Vary</code> names, and entries beyond <code>MaxBytes</code> (default 32 MiB) are evicted, least recently used first. Many requests for a missing entry at once render it once. The cache answers conditional requests with <code>304 Not Modified</code> itself, from fresh entries.</p>
+
+<h2>Limits</h2>
+<pre><code>r.Use(middleware.BodyLimit(1 &lt;&lt; 20)) // 1 MiB
+
+r.Post("/comments", postComment).Use(middleware.RateLimit(middleware.RateLimitOptions{
+    Limit:  5,
+    Window: time.Minute,
+    Skip:   middleware.SafeMethod,
+}))</code></pre>
+<p>Reading more of a body than <code>BodyLimit</code> allows fails with an <code>*http.MaxBytesError</code>; with <code>BodyLimitOptions.OnTooLarge</code>, requests whose <code>Content-Length</code> is over the limit are answered before the handler runs. Rate limits are counted in memory, per process, by <code>ClientIP</code> unless <code>Key</code> says otherwise: behind proxies, use <code>RealIPWithOptions</code>.</p>
 </article>
 

@@ -15,7 +15,7 @@ if err := partial.Write(ctx, w, r, page); err != nil { return err }</code></pre>
 })
 errs := forms.ValidateFormLocalized(&amp;input, loc)</code></pre>
 <pre><code>{{"{{"}} form_render_localized .Loc .Form .Errors }}</code></pre>
-<p>Register both function maps with the same template set or partial tree. The callback adapts compatible localizer interfaces without making either package depend on the other. Form labels and validation keys such as <code>form||Validation required</code> belong in the PO files.</p>
+<p>Register both function maps with the same template set or partial tree. The callback adapts compatible localizer interfaces without making either package depend on the other. go-form has English and Dutch texts of its own for its messages, such as <code>form||Validation required</code>, and shows them when the callback returns the key unchanged. Set <code>tr.SetUntranslated(translator.ShowOriginal)</code>, or build the translator with <code>translator.WithUntranslated(translator.ShowOriginal)</code>, so a missing translation comes back as the key: with the default marker the form shows <code>*form||Validation required*</code>. A translation in your PO files still wins.</p>
 <h2>Store meaning, translate presentation</h2>
 <p>Keep stable error codes and parameters in domain services and persistence. Render them in the active locale at the HTTP or presentation boundary. A JSON client can receive the same codes without depending on your HTML templates.</p>
 </article>

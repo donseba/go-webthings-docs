@@ -2,8 +2,8 @@
 <article class="grid max-w-5xl gap-6">
     {{ template "hero.gohtml" . }}
 
-<pre><code>go get github.com/donseba/go-form/v2@v2.3.0</code></pre>
-<p>Use the <code>/v2</code> import path. These examples target v2.3.0. The plain theme works without an external stylesheet; the default Bootstrap theme needs Bootstrap CSS.</p>
+<pre><code>go get github.com/donseba/go-form/v2@v2.6.0</code></pre>
+<p>Use the <code>/v2</code> import path. These examples target v2.6.0. The plain theme works without an external stylesheet; the default Bootstrap theme needs Bootstrap CSS.</p>
 <h2>A complete rendering example</h2>
 <pre><code>package main
 
@@ -37,5 +37,5 @@ func main() {
 }</code></pre>
 <p>This program prints HTML to standard output. It has no HTTP request or CSRF token. For a web form, keep the renderer, wrap the handler with its middleware, and use <code>WithRequestInfo</code> as shown in <a href="{{ basePath }}/submissions" hx-get="{{ basePath }}/submissions" hx-target="#content" hx-push-url="true">handling submissions</a>.</p>
 <h2>Register helpers once</h2>
-<p><code>FuncMap()</code> supplies <code>form_render</code>, <code>form_render_localized</code> and <code>form_has_fields</code>. Configure the theme, translations, custom validators and store before concurrent requests start.</p>
+<p><code>FuncMap()</code> supplies <code>form_render</code>, <code>form_render_localized</code> and <code>form_has_fields</code>, and the functions that render a form one part at a time: <code>form_field</code>, <code>form_errors</code>, <code>form_open</code>, <code>form_hidden</code>, <code>form_buttons</code>, <code>form_close</code> and <code>form_honeypot</code>, with <code>_localized</code> variants of <code>form_field</code>, <code>form_open</code>, <code>form_hidden</code> and <code>form_buttons</code> (see <a href="{{ basePath }}/layout" hx-get="{{ basePath }}/layout" hx-target="#content" hx-push-url="true">laying out fields</a>). Where you merge it with template functions of your own, functions with the same name replace each other. Configure the theme, translations, custom validators and store before concurrent requests start.</p>
 </article>

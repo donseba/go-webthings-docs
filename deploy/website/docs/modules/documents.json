@@ -1,0 +1,642 @@
+{
+  "Slug": "documents",
+  "Name": "Documents",
+  "Group": "Content",
+  "Summary": "Files for download, such as minutes, reports, forms and policies, listed by category and year with a download counter.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/documents",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/documents",
+  "Type": "documents",
+  "Example": {
+    "Key": "downloads",
+    "Title": "Downloads",
+    "Code": "app.Use(documents.Module(\"downloads\", \"Downloads\"))"
+  },
+  "Guide": "\u003cp\u003eA document is a file from the media library or a link to another site. Use one instance per collection, for example \u003ccode\u003edownloads\u003c/code\u003e for public documents and \u003ccode\u003eminutes\u003c/code\u003e for meeting minutes, each with its own admin section and templates.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    documents.Module(\u0026quot;downloads\u0026quot;, \u0026quot;Downloads\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003edownloads\u003c/code\u003e) is the instance's name in URLs and templates and must be unique on the site. The title (\u003ccode\u003eDownloads\u003c/code\u003e) is what editors see in the admin navigation and the page editor. The module has no options.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page then lists the documents; with the page at \u003ccode\u003e/downloads\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eAddress\u003c/th\u003e\n\u003cth\u003eTemplate\u003c/th\u003e\n\u003cth\u003eShows\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/downloads\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edownloads/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eall published documents, newest first\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/downloads/category/\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003edownloads/list.gohtml\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe documents in one category\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eOn a category address \u003ccode\u003e.Category\u003c/code\u003e is set and \u003ccode\u003e.Title\u003c/code\u003e is the category name instead of the page title. The slug is made from the category name: \u0026quot;Annual reports\u0026quot; becomes \u003ccode\u003eannual-reports\u003c/code\u003e, with accents dropped and at most 80 characters. A category name without Latin letters or digits gets no address. Since category names are typed per language, a category address only exists in the languages that use that name.\u003c/p\u003e\n\u003cp\u003eTemplates are looked up by instance key first, then by module type, so \u003ccode\u003edocuments/list.gohtml\u003c/code\u003e serves every Documents instance that has no design of its own. Generate a starting point with every field of the data:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- downloads\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal list, per year:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/documents.ListView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n\u0026lt;nav\u0026gt;\n    \u0026lt;a href=\u0026quot;{{.AllURL}}\u0026quot;\u0026gt;All\u0026lt;/a\u0026gt;\n    {{range .Categories}}\n        \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;{{if .Active}} aria-current=\u0026quot;page\u0026quot;{{end}}\u0026gt;{{.Name}} ({{.Count}})\u0026lt;/a\u0026gt;\n    {{end}}\n\u0026lt;/nav\u0026gt;\n\n{{range .Years}}\n    \u0026lt;h2\u0026gt;{{.Year}}\u0026lt;/h2\u0026gt;\n    {{range .Documents}}\n        \u0026lt;article id=\u0026quot;{{.ID}}\u0026quot;\u0026gt;\n            \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n            {{if .External}}external link{{else}}{{.FileType}}, {{.SizeText}}{{end}}\n            \u0026lt;time datetime=\u0026quot;{{.Date.Format \u0026quot;2006-01-02\u0026quot;}}\u0026quot;\u0026gt;{{date .Date}}\u0026lt;/time\u0026gt;\n            {{.Description}}\n        \u0026lt;/article\u0026gt;\n    {{end}}\n{{end}}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Documents\u003c/code\u003e holds the same documents as one list, for a design without years. \u003ccode\u003e.FileType\u003c/code\u003e is the extension in capitals (\u003ccode\u003ePDF\u003c/code\u003e) and \u003ccode\u003e.SizeText\u003c/code\u003e the size for people (\u003ccode\u003e1.2 MB\u003c/code\u003e); both are empty for an external link. \u003ccode\u003e.Description\u003c/code\u003e is the rendered Markdown and \u003ccode\u003e.Downloads\u003c/code\u003e the count so far. \u003ccode\u003e.Date\u003c/code\u003e is a calendar day, so \u003ccode\u003e{{date .Date}}\u003c/code\u003e shows the same day in every site timezone.\u003c/p\u003e\n\u003cp\u003eGive each document \u003ccode\u003eid=\u0026quot;{{.ID}}\u0026quot;\u003c/code\u003e: site search results link to the document on its list as \u003ccode\u003e#\u0026lt;ID\u0026gt;\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eA document appears in each language it has a title in.\u003c/p\u003e\n\u003ch2 id=\"show-documents-anywhere\"\u003eShow documents anywhere\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003edocuments\u003c/code\u003e returns up to a number of the newest published documents in the current language, for a home page or a sidebar; 0 or less returns all of them. \u003ccode\u003edocumentsIn\u003c/code\u003e returns the documents of one category, newest first, by the category's name in the current language (ignoring case) or by its slug.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{range documents \u0026quot;downloads\u0026quot; 5}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt; {{.FileType}} {{.SizeText}}\n{{end}}\n\n{{range documentsIn \u0026quot;downloads\u0026quot; \u0026quot;Minutes\u0026quot;}}\n    \u0026lt;a href=\u0026quot;{{.URL}}\u0026quot;\u0026gt;{{.Title}}\u0026lt;/a\u0026gt;\n{{end}}\n\n\u0026lt;a href=\u0026quot;{{moduleURL \u0026quot;downloads\u0026quot;}}\u0026quot;\u0026gt;All downloads\u0026lt;/a\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe download links work on every page, also when the instance is not placed on a page; \u003ccode\u003e.CategoryURL\u003c/code\u003e is then empty.\u003c/p\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eA document's \u003ccode\u003e.URL\u003c/code\u003e is its download address, \u003ccode\u003e/_/downloads/\u0026lt;id\u0026gt;/download\u003c/code\u003e. A visit adds one to the count and redirects to the file in the media library or to the external link. HEAD requests, such as those of link checkers, are not counted. Unknown, unpublished and deleted documents get the site's 404 page, \u003ca href=\"wt-docs:/go-webthings/templates#404gohtml\"\u003e404.gohtml\u003c/a\u003e. The redirect and that page are sent with \u003ccode\u003eCache-Control: no-store\u003c/code\u003e and \u003ccode\u003eX-Robots-Tag: noindex\u003c/code\u003e. A download that fails for another reason, such as an unreachable database, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eEvery request counts; there is no limit per visitor. Links straight to the media file work too, but are not counted.\u003c/p\u003e\n\u003ch2 id=\"content-api\"\u003eContent API\u003c/h2\u003e\n\u003cp\u003eWhile the site's \u003ca href=\"wt-docs:/go-webthings/api\"\u003econtent API\u003c/a\u003e is on (\u003ccode\u003eConfig.API\u003c/code\u003e), \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/documents\u003c/code\u003e and \u003ccode\u003e/api/v1/\u0026lt;key\u0026gt;/categories\u003c/code\u003e serve the published documents and their categories as JSON, in the language of \u003ccode\u003e?locale=\u003c/code\u003e, or the site's default language without it. With the instance \u003ccode\u003edownloads\u003c/code\u003e:\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eEndpoint\u003c/th\u003e\n\u003cth\u003eRoute name\u003c/th\u003e\n\u003cth\u003eAnswers with\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/downloads/documents\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.downloads.documents\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe published documents, newest first, as a \u003ca href=\"wt-docs:/go-webthings/api#lists\"\u003elist\u003c/a\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/downloads/documents?category=\u0026lt;slug\u0026gt;\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003ctd\u003eThe documents of one category; a category without published documents answers 404 \u003ccode\u003enot_found\u003c/code\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/downloads/documents/{id}\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.downloads.document\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eOne document\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003e/api/v1/downloads/categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003e\u003ccode\u003eapi.downloads.categories\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eThe categories of the published documents, in alphabetical order, as a list\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eDocuments have no page of their own, so the list gives each document whole: its \u003ccode\u003eid\u003c/code\u003e, \u003ccode\u003etitle\u003c/code\u003e and \u003ccode\u003edescription_html\u003c/code\u003e, its \u003ccode\u003ecategory\u003c/code\u003e, \u003ccode\u003enull\u003c/code\u003e without one, its \u003ccode\u003edate\u003c/code\u003e at midnight UTC, \u003ccode\u003edownload_url\u003c/code\u003e, \u003ccode\u003eexternal\u003c/code\u003e, \u003ccode\u003efile\u003c/code\u003e, \u003ccode\u003eurl\u003c/code\u003e, \u003ccode\u003eapi_url\u003c/code\u003e and \u003ccode\u003eupdated_at\u003c/code\u003e. \u003ccode\u003edownload_url\u003c/code\u003e is the document's download address on the site, which counts the download as the site's links do. \u003ccode\u003eexternal\u003c/code\u003e is true for a link to another site, which has no \u003ccode\u003efile\u003c/code\u003e; \u003ccode\u003efile\u003c/code\u003e has the \u003ccode\u003efilename\u003c/code\u003e, \u003ccode\u003emime_type\u003c/code\u003e, \u003ccode\u003efile_type\u003c/code\u003e, such as \u003ccode\u003ePDF\u003c/code\u003e, and \u003ccode\u003esize\u003c/code\u003e in bytes. \u003ccode\u003eurl\u003c/code\u003e is the document on the list of its category, or on the whole list, such as \u003ccode\u003ehttps://example.com/en/downloads#\u0026lt;id\u0026gt;\u003c/code\u003e, and \u003ccode\u003enull\u003c/code\u003e while the instance is on no page. A category has its \u003ccode\u003eslug\u003c/code\u003e, \u003ccode\u003ename\u003c/code\u003e, \u003ccode\u003edocument_count\u003c/code\u003e, its list as \u003ccode\u003eurl\u003c/code\u003e and its documents in the API as \u003ccode\u003edocuments_url\u003c/code\u003e. The API has no download counts, which change with every download.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003e/documents/{id}\u003c/code\u003e sends no \u003ccode\u003eLast-Modified\u003c/code\u003e, and neither do the lists: a document's category holds \u003ccode\u003edocument_count\u003c/code\u003e, which another document changes. The ETag answers \u003ccode\u003eIf-None-Match\u003c/code\u003e; see \u003ca href=\"wt-docs:/go-webthings/api#caching\"\u003eCaching\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"editing\"\u003eEditing\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section in the admin (\u003ccode\u003e/admin/downloads\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e), which shows how often each document was downloaded.\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eA document has a date and either a file or an external \u003ccode\u003ehttp(s)\u003c/code\u003e link, not both. Upload the file in the media library first, then choose it under \u003cstrong\u003eFile\u003c/strong\u003e. The date, file and link are shared by all languages.\u003c/li\u003e\n\u003cli\u003ePer language a document has a title, a category and a Markdown description.\u003c/li\u003e\n\u003cli\u003eCategories are free text: documents with the same category name belong together, and names that differ only in case or punctuation are one category. Type the name in each language to translate it.\u003c/li\u003e\n\u003cli\u003eThere are no revisions: saving changes the document at once, also when it is published. \u003cstrong\u003ePublish\u003c/strong\u003e and \u003cstrong\u003eUnpublish\u003c/strong\u003e show or hide it; publishing needs a title in the site's default language.\u003c/li\u003e\n\u003cli\u003eThe site sorts documents by date. The order in the admin (\u003cstrong\u003eMove up\u003c/strong\u003e, \u003cstrong\u003eMove down\u003c/strong\u003e) only decides between documents of the same date.\u003c/li\u003e\n\u003cli\u003eSaving a document keeps its download count. A file that a document uses cannot be deleted from the media library.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a document to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored, with its download count, or deleted for good. Until it is deleted for good, its file stays in use.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEditors' rights are set per instance in the groups' permission matrix.\u003c/p\u003e\n\u003cp\u003eOnce the instance is on a page, published documents appear in the site search, found by title, category and description, and the category addresses appear in \u003ccode\u003esitemap.xml\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eLinks to addresses on the site in the descriptions and links of published documents count for \u003ca href=\"wt-docs:/go-webthings/editing#links-to-a-page\"\u003eLinks to a page\u003c/a\u003e: the editor of a page lists the documents that link to it, and \u003cstrong\u003ePages › Broken links\u003c/strong\u003e lists their links that lead nowhere.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003edocuments.Of(app, \u0026quot;downloads\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003edownloads := documents.Of(app, \u0026quot;downloads\u0026quot;)\n\nlatest, err := downloads.Latest(ctx, \u0026quot;en\u0026quot;, 5)\nminutes, err := downloads.InCategory(ctx, \u0026quot;en\u0026quot;, \u0026quot;Minutes\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eWhile the instance is on no page in that language, both still return the documents with their download address as \u003ccode\u003eURL\u003c/code\u003e, and an empty \u003ccode\u003eCategoryURL\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eDownload(ctx, id)\u003c/code\u003e counts a download and returns the address to send the visitor to, for a download route of your own.\u003c/p\u003e\n\u003cp\u003e\u003ccode\u003eStore()\u003c/code\u003e gives write access for imports and seed data, through the same rules the admin uses. New documents are saved unpublished; the date is a day at midnight UTC:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003estore := downloads.Store()\n\nitem, err := store.Save(ctx, content.Draft[documents.Fields, documents.Text]{\n    Fields: documents.Fields{\n        Link: \u0026quot;https://example.com/annual-report-2025.pdf\u0026quot;,\n        Date: time.Date(2025, 12, 1, 0, 0, 0, 0, time.UTC),\n    },\n    Translations: []content.Translation[documents.Text]{\n        {Locale: \u0026quot;en\u0026quot;, Text: documents.Text{Title: \u0026quot;Annual report 2025\u0026quot;, Category: \u0026quot;Reports\u0026quot;}},\n    },\n})\nif err != nil {\n    return err\n}\n\nerr = store.Publish(ctx, item.ID, \u0026quot;\u0026quot;, \u0026quot;en\u0026quot;)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eFor a file, upload it with \u003ccode\u003eapp.Media.Upload(ctx, \u0026quot;report.pdf\u0026quot;, reader)\u003c/code\u003e and set \u003ccode\u003eFields.File\u003c/code\u003e to the asset's ID.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/publishing\"\u003ePublishing\u003c/a\u003e: a post can link to a document's download address, so those downloads are counted too.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/lists\"\u003eLists\u003c/a\u003e keeps short ordered content that is not a file, such as an FAQ.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": true,
+    "API": true,
+    "Middleware": false,
+    "Search": true,
+    "Sitemap": true,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*documents.Service"
+  },
+  "Admin": [
+    {
+      "ID": "downloads",
+      "Title": "Downloads",
+      "Path": "/admin/downloads",
+      "Permission": "downloads",
+      "Icon": "file",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": false,
+      "Group": "",
+      "NewLabel": "New document",
+      "Recent": true,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": null,
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "list",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "page",
+      "Name": "category",
+      "Method": "GET",
+      "Path": "/category/{slug}"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.downloads.categories",
+      "Method": "GET",
+      "Path": "/api/v1/downloads/categories"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.downloads.documents",
+      "Method": "GET",
+      "Path": "/api/v1/downloads/documents"
+    },
+    {
+      "Kind": "api",
+      "Name": "api.downloads.document",
+      "Method": "GET",
+      "Path": "/api/v1/downloads/documents/{id}"
+    },
+    {
+      "Kind": "action",
+      "Name": "downloads.download",
+      "Method": "GET",
+      "Path": "/_/downloads/{id}/download"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "documents",
+      "Signature": "documents(key string, limit int) []Document",
+      "Doc": "\u003cp\u003elatest returns up to limit of the newest published documents of an\ninstance, for example {{range documents \u0026quot;documents\u0026quot; 5}} on the home page. A\nlimit of 0 or less returns all of them.\n"
+    },
+    {
+      "Name": "documentsIn",
+      "Signature": "documentsIn(key, category string) []Document",
+      "Doc": "\u003cp\u003einCategory returns the published documents of one category, newest first,\nfor example {{range documentsIn \u0026quot;documents\u0026quot; \u0026quot;Minutes\u0026quot;}}.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "list",
+      "Files": [
+        "downloads/list.gohtml",
+        "documents/list.gohtml"
+      ],
+      "DataType": "documents.ListView",
+      "Fields": [
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is mounted on, or the category name when the list is filtered.",
+          "Fields": null
+        },
+        {
+          "Name": "Documents",
+          "Type": "[]documents.Document",
+          "Doc": "Documents are newest first, filtered by Category when it is set.",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Description",
+              "Type": "template.HTML",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Category",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "CategoryURL",
+              "Type": "string",
+              "Doc": "CategoryURL lists the document's category, empty without a category or when the module is not mounted.",
+              "Fields": null
+            },
+            {
+              "Name": "Date",
+              "Type": "time.Time",
+              "Doc": "Date is a calendar date (see frontend.Civil): {{date .Date}} shows the same day in every site timezone.",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "URL counts a download and redirects to the file or the link.",
+              "Fields": null
+            },
+            {
+              "Name": "External",
+              "Type": "bool",
+              "Doc": "External is true for a link instead of a file; the file details below are then empty.",
+              "Fields": null
+            },
+            {
+              "Name": "Filename",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "MIMEType",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "FileType",
+              "Type": "string",
+              "Doc": "FileType is the file's extension in capitals, for example \"PDF\".",
+              "Fields": null
+            },
+            {
+              "Name": "Size",
+              "Type": "int64",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "SizeText",
+              "Type": "string",
+              "Doc": "SizeText is Size for people, for example \"1.2 MB\".",
+              "Fields": null
+            },
+            {
+              "Name": "Downloads",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Years",
+          "Type": "[]documents.Year",
+          "Doc": "Years hold the same documents per year, newest first.",
+          "Fields": [
+            {
+              "Name": "Year",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Documents",
+              "Type": "[]documents.Document",
+              "Doc": "",
+              "Fields": [
+                {
+                  "Name": "ID",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Title",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Description",
+                  "Type": "template.HTML",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "Category",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "CategoryURL",
+                  "Type": "string",
+                  "Doc": "CategoryURL lists the document's category, empty without a category or when the module is not mounted.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Date",
+                  "Type": "time.Time",
+                  "Doc": "Date is a calendar date (see frontend.Civil): {{date .Date}} shows the same day in every site timezone.",
+                  "Fields": null
+                },
+                {
+                  "Name": "URL",
+                  "Type": "string",
+                  "Doc": "URL counts a download and redirects to the file or the link.",
+                  "Fields": null
+                },
+                {
+                  "Name": "External",
+                  "Type": "bool",
+                  "Doc": "External is true for a link instead of a file; the file details below are then empty.",
+                  "Fields": null
+                },
+                {
+                  "Name": "Filename",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "MIMEType",
+                  "Type": "string",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "FileType",
+                  "Type": "string",
+                  "Doc": "FileType is the file's extension in capitals, for example \"PDF\".",
+                  "Fields": null
+                },
+                {
+                  "Name": "Size",
+                  "Type": "int64",
+                  "Doc": "",
+                  "Fields": null
+                },
+                {
+                  "Name": "SizeText",
+                  "Type": "string",
+                  "Doc": "SizeText is Size for people, for example \"1.2 MB\".",
+                  "Fields": null
+                },
+                {
+                  "Name": "Downloads",
+                  "Type": "int",
+                  "Doc": "",
+                  "Fields": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "Categories",
+          "Type": "[]documents.Category",
+          "Doc": "Categories are all categories with documents, in alphabetical order.",
+          "Fields": [
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "Category",
+          "Type": "*documents.Category",
+          "Doc": "Category is the active filter, or nil.",
+          "Fields": [
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Slug",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "URL",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Count",
+              "Type": "int",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Active",
+              "Type": "bool",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "AllURL",
+          "Type": "string",
+          "Doc": "AllURL lists all documents.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/documents.ListView */}}\n{{/* Starting point generated by WebThings: every field of the data is used below. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n    {{range .Documents}}\n        \u003carticle\u003e\n            {{/* ID: {{.ID}} — stable, usable as an anchor */}}\n            \u003ch3\u003e{{.Title}}\u003c/h3\u003e\n            \u003cdiv\u003e{{.Description}}\u003c/div\u003e\n            {{with .Category}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .CategoryURL}}\u003ca href=\"{{.}}\"\u003eCategoryURL\u003c/a\u003e{{end}}\n            {{if not .Date.IsZero}}\u003ctime datetime=\"{{.Date.Format \"2006-01-02T15:04:05Z07:00\"}}\"\u003e{{date .Date \"long\"}}\u003c/time\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            {{if .External}}\u003cp\u003eExternal\u003c/p\u003e{{end}}\n            {{with .Filename}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .MIMEType}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .FileType}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            \u003cp\u003eSize: {{.Size}}\u003c/p\u003e\n            {{with .SizeText}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            \u003cp\u003eDownloads: {{.Downloads}}\u003c/p\u003e\n        \u003c/article\u003e\n    {{end}}\n    {{range .Years}}\n        \u003carticle\u003e\n            \u003cp\u003eYear: {{.Year}}\u003c/p\u003e\n            {{range .Documents}}\n                \u003carticle\u003e\n                \u003c/article\u003e\n            {{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{range .Categories}}\n        \u003carticle\u003e\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/article\u003e\n    {{end}}\n    {{with .Category}}\n        \u003csection\u003e\n            {{with .Name}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .Slug}}\u003cp\u003e{{.}}\u003c/p\u003e{{end}}\n            {{with .URL}}\u003ca href=\"{{.}}\"\u003eURL\u003c/a\u003e{{end}}\n            \u003cp\u003eCount: {{.Count}}\u003c/p\u003e\n            {{if .Active}}\u003cp\u003eActive\u003c/p\u003e{{end}}\n        \u003c/section\u003e\n    {{end}}\n    {{with .AllURL}}\u003ca href=\"{{.}}\"\u003eAllURL\u003c/a\u003e{{end}}\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [],
+  "Forms": null,
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Documents are a collection (see package content). A document has a media\n-- file or an external link. downloads is counted by the module itself and is\n-- not one of the collection's fields, so saving a document keeps it.\nCREATE TABLE wt_document (\n    id            UUID PRIMARY KEY,\n    instance      VARCHAR(64) NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    TIMESTAMPTZ NOT NULL,\n    created_by    UUID,\n    updated_at    TIMESTAMPTZ NOT NULL,\n    updated_by    UUID,\n    deleted_at    TIMESTAMPTZ,\n    deleted_by    UUID,\n    file_id       UUID,\n    link          VARCHAR(2000) NOT NULL DEFAULT '',\n    document_date TIMESTAMPTZ NOT NULL,\n    downloads     INTEGER NOT NULL DEFAULT 0\n);\n\nCREATE INDEX wt_document_instance ON wt_document (instance, position);\n\nCREATE TABLE wt_document_translation (\n    item_id     UUID NOT NULL REFERENCES wt_document (id) ON DELETE CASCADE,\n    locale      VARCHAR(35) NOT NULL,\n    title       VARCHAR(200) NOT NULL DEFAULT '',\n    description TEXT NOT NULL DEFAULT '',\n    category    VARCHAR(200) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Documents are a collection (see package content). A document has a media\n-- file or an external link. downloads is counted by the module itself and is\n-- not one of the collection's fields, so saving a document keeps it.\nCREATE TABLE wt_document (\n    id            TEXT PRIMARY KEY,\n    instance      TEXT NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    TIMESTAMP NOT NULL,\n    created_by    TEXT,\n    updated_at    TIMESTAMP NOT NULL,\n    updated_by    TEXT,\n    deleted_at    TIMESTAMP,\n    deleted_by    TEXT,\n    file_id       TEXT,\n    link          TEXT NOT NULL DEFAULT '',\n    document_date TIMESTAMP NOT NULL,\n    downloads     INTEGER NOT NULL DEFAULT 0\n);\n\nCREATE INDEX wt_document_instance ON wt_document (instance, position);\n\nCREATE TABLE wt_document_translation (\n    item_id     TEXT NOT NULL REFERENCES wt_document (id) ON DELETE CASCADE,\n    locale      TEXT NOT NULL,\n    title       TEXT NOT NULL DEFAULT '',\n    description TEXT NOT NULL DEFAULT '',\n    category    TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale)\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Documents are a collection (see package content). A document has a media\n-- file or an external link. downloads is counted by the module itself and is\n-- not one of the collection's fields, so saving a document keeps it.\nCREATE TABLE wt_document (\n    id            VARCHAR(36) PRIMARY KEY,\n    instance      VARCHAR(64) NOT NULL,\n    published     BOOLEAN NOT NULL DEFAULT FALSE,\n    position      INTEGER NOT NULL DEFAULT 0,\n    created_at    DATETIME(6) NOT NULL,\n    created_by    VARCHAR(36) NULL,\n    updated_at    DATETIME(6) NOT NULL,\n    updated_by    VARCHAR(36) NULL,\n    deleted_at    DATETIME(6) NULL,\n    deleted_by    VARCHAR(36) NULL,\n    file_id       VARCHAR(36) NULL,\n    link          VARCHAR(2000) NOT NULL DEFAULT '',\n    document_date DATETIME(6) NOT NULL,\n    downloads     INTEGER NOT NULL DEFAULT 0,\n    INDEX wt_document_instance (instance, position)\n) ENGINE=InnoDB;\n\nCREATE TABLE wt_document_translation (\n    item_id     VARCHAR(36) NOT NULL,\n    locale      VARCHAR(35) NOT NULL,\n    title       VARCHAR(200) NOT NULL DEFAULT '',\n    description MEDIUMTEXT NOT NULL,\n    category    VARCHAR(200) NOT NULL DEFAULT '',\n    PRIMARY KEY (item_id, locale),\n    FOREIGN KEY (item_id) REFERENCES wt_document (id) ON DELETE CASCADE\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_document",
+      "Note": "Documents are a collection (see package content). A document has a media file or an external link. downloads is counted by the module itself and is not one of the collection's fields, so saving a document keeps it.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "published",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "position",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "file_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "link",
+          "Type": "VARCHAR(2000)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "document_date",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "downloads",
+          "Type": "INTEGER",
+          "Notes": "NOT NULL DEFAULT 0"
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_document_instance (instance, position)"
+      ]
+    },
+    {
+      "Name": "wt_document_translation",
+      "Note": "",
+      "Columns": [
+        {
+          "Name": "item_id",
+          "Type": "UUID",
+          "Notes": "NOT NULL REFERENCES wt_document (id) ON DELETE CASCADE"
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "description",
+          "Type": "TEXT",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "category",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL DEFAULT ''"
+        }
+      ],
+      "Indexes": [
+        "PRIMARY KEY (item_id, locale)"
+      ]
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Download",
+        "Signature": "func (s *Service) Download(ctx context.Context, id string) (string, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "InCategory",
+        "Signature": "func (s *Service) InCategory(ctx context.Context, locale, category string) ([]Document, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Latest",
+        "Signature": "func (s *Service) Latest(ctx context.Context, locale string, limit int) ([]Document, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Store",
+        "Signature": "func (s *Service) Store() content.Store[Fields, Text]",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "APICategory",
+        "Doc": "\u003cp\u003eAPICategory is a category of published documents in one language, at\n/api/v1/\u0026lt;key\u0026gt;/categories and with each of its documents. Categories are\nthe documents\u0026apos; category names; the slug is made from the name.\n",
+        "Fields": null,
+        "Decl": "type APICategory struct {\n\tSlug string `json:\"slug\"`\n\tName string `json:\"name\"`\n\t// DocumentCount is the number of published documents in the category.\n\tDocumentCount int `json:\"document_count\"`\n\t// URL is the category's list on the site, null while the instance is\n\t// on no page; DocumentsURL its documents in the API.\n\tURL          *string `json:\"url\"`\n\tDocumentsURL string  `json:\"documents_url\"`\n}"
+      },
+      {
+        "Name": "APIDocument",
+        "Doc": "\u003cp\u003eAPIDocument is a published document in the content API (see package\napi), at /api/v1/\u0026lt;key\u0026gt;/documents/{id} and in the list of\n/api/v1/\u0026lt;key\u0026gt;/documents. Documents have no page of their own: the list\nshows them whole, so the list has their description too.\n",
+        "Fields": null,
+        "Decl": "type APIDocument struct {\n\tID              string `json:\"id\"`\n\tTitle           string `json:\"title\"`\n\tDescriptionHTML string `json:\"description_html\"`\n\t// Category is null for a document without a category.\n\tCategory *APICategory `json:\"category\"`\n\t// Date is the document's own date, such as that of a meeting, at\n\t// midnight UTC.\n\tDate time.Time `json:\"date\"`\n\t// DownloadURL is the site's download address of the document, which\n\t// counts the download and leads to the file or the external link, as\n\t// on the site. External is set for a link, which has no File.\n\tDownloadURL string   `json:\"download_url\"`\n\tExternal    bool     `json:\"external\"`\n\tFile        *APIFile `json:\"file\"`\n\t// URL is the document on the list of its category, or on the whole\n\t// list (#\u003cid\u003e), null while the instance is on no page; APIURL the\n\t// document in the API.\n\tURL       *string   `json:\"url\"`\n\tAPIURL    string    `json:\"api_url\"`\n\tUpdatedAt time.Time `json:\"updated_at\"`\n}"
+      },
+      {
+        "Name": "APIFile",
+        "Doc": "\u003cp\u003eAPIFile is the file of a document from the media library.\n",
+        "Fields": null,
+        "Decl": "type APIFile struct {\n\tFilename string `json:\"filename\"`\n\tMIMEType string `json:\"mime_type\"`\n\t// FileType is the file's extension in capitals, such as \"PDF\"; Size is\n\t// in bytes.\n\tFileType string `json:\"file_type\"`\n\tSize     int64  `json:\"size\"`\n}"
+      },
+      {
+        "Name": "Category",
+        "Doc": "\u003cp\u003eCategory is a category with published documents in one language.\n",
+        "Fields": null,
+        "Decl": "type Category struct {\n\tName   string\n\tSlug   string\n\tURL    string\n\tCount  int\n\tActive bool\n}"
+      },
+      {
+        "Name": "Document",
+        "Doc": "\u003cp\u003eDocument is a published document as templates see it.\n",
+        "Fields": null,
+        "Decl": "type Document struct {\n\tID          string\n\tTitle       string\n\tDescription template.HTML\n\tCategory    string\n\t// CategoryURL lists the document's category, empty without a category or\n\t// when the module is not mounted.\n\tCategoryURL string\n\t// Date is a calendar date (see frontend.Civil): {{date .Date}} shows the\n\t// same day in every site timezone.\n\tDate time.Time\n\t// URL counts a download and redirects to the file or the link.\n\tURL string\n\t// External is true for a link instead of a file; the file details below\n\t// are then empty.\n\tExternal bool\n\tFilename string\n\tMIMEType string\n\t// FileType is the file's extension in capitals, for example \"PDF\".\n\tFileType string\n\tSize     int64\n\t// SizeText is Size for people, for example \"1.2 MB\".\n\tSizeText  string\n\tDownloads int\n}"
+      },
+      {
+        "Name": "Fields",
+        "Doc": "\u003cp\u003eFields are the language-independent parts of a document. A document has\neither a File or a Link. Date is the document\u0026apos;s own date, for example the\ndate of a meeting, stored as midnight UTC of that day.\n",
+        "Fields": null,
+        "Decl": "type Fields struct {\n\tFile string    `db:\"file_id,null\"`\n\tLink string    `db:\"link\"`\n\tDate time.Time `db:\"document_date\"`\n}"
+      },
+      {
+        "Name": "Item",
+        "Doc": "\u003cp\u003eItem is a document with its translations, as the store keeps it.\n",
+        "Fields": null,
+        "Decl": "type Item = content.Item[Fields, Text]"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of documents/list.gohtml.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\t// Title is the title of the page the module is mounted on, or the\n\t// category name when the list is filtered.\n\tTitle string\n\t// Documents are newest first, filtered by Category when it is set.\n\tDocuments []Document\n\t// Years hold the same documents per year, newest first.\n\tYears []Year\n\t// Categories are all categories with documents, in alphabetical order.\n\tCategories []Category\n\t// Category is the active filter, or nil.\n\tCategory *Category\n\t// AllURL lists all documents.\n\tAllURL string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Documents instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Text",
+        "Doc": "\u003cp\u003eText is a document in one language. Description is Markdown.\n",
+        "Fields": null,
+        "Decl": "type Text struct {\n\tTitle       string `db:\"title\"`\n\tDescription string `db:\"description\"`\n\tCategory    string `db:\"category\"`\n}"
+      },
+      {
+        "Name": "Year",
+        "Doc": "\u003cp\u003eYear holds the documents of one year, newest first.\n",
+        "Fields": null,
+        "Decl": "type Year struct {\n\tYear      int\n\tDocuments []Document\n}"
+      }
+    ]
+  }
+}

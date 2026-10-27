@@ -16,10 +16,11 @@ import (
 
 type docsRenderer struct {
 	root      *partial.Partial
+	chrome    *chrome
+	origin    string
 	basePath  string
 	appName   string
 	logName   string
-	logo      string
 	logoImage string
 	title     string
 	subtitle  string
@@ -28,10 +29,14 @@ type docsRenderer struct {
 }
 
 type docsRendererConfig struct {
+	// Chrome is the header and rail of the subdomain; nil is the docs'.
+	Chrome *chrome
+	// Origin is the production address of the site, for canonical URLs;
+	// empty is https://docs.gowebthings.com.
+	Origin    string
 	BasePath  string
 	AppName   string
 	LogName   string
-	Logo      string
 	LogoImage string
 	Title     string
 	Subtitle  string
@@ -47,23 +52,39 @@ type DocsArticleData struct {
 	PromptFace  string
 }
 
+// DocsHeaderPage is the header: the subdomain's name and the website's
+// sections.
 type DocsHeaderPage struct {
-	AppName     string
-	BasePath    string
-	MainURL     string
-	DocsURL     string
-	ShowcaseURL string
-	Logo        string
-	LogoImage   string
-	Title       string
-	Subtitle    string
-	GitHubURL   string
-	Elements    []Element
+	Title     string
+	Subtitle  string
+	LogoImage string
+	Links     []HeaderLink
+	GitHubURL string
 }
 
+// HeaderLink is a link to another part of the website in the docs header.
+type HeaderLink struct {
+	Label  string
+	URL    string
+	Active bool
+}
+
+// DocsNavPage is the second column: the pages of the current component or
+// module, under its name. A page without one has no Nav and hides it.
 type DocsNavPage struct {
+	Head   *DocsNavHead
 	Nav    []DocsNavLink
 	Groups []string
+}
+
+// DocsNavHead names the component or module the pages belong to.
+type DocsNavHead struct {
+	Title     string
+	Subtitle  string
+	URL       string
+	Image     string
+	Icon      string
+	SourceURL string
 }
 
 type DocsNavLink struct {
@@ -81,13 +102,16 @@ type DocsShellData struct {
 	Path        string
 	BasePath    string
 	Header      DocsHeaderPage
+	Rail        DocsRailPage
 	Sidebar     DocsNavPage
 	Nav         []NavItem
 	SEO         SEOData
 }
 
 type docsPage struct {
-	Template    string
+	Template string
+	// Shared are more template files the page uses, such as defined blocks.
+	Shared      []string
 	Title       string
 	Description string
 	Section     string
@@ -130,11 +154,17 @@ func newDocsRenderer(cfg docsRendererConfig) *docsRenderer {
 	if cfg.LogoImage == "" {
 		cfg.LogoImage = docsLogoImage(cfg.AppName)
 	}
+	if cfg.Origin == "" {
+		cfg.Origin = "https://docs.gowebthings.com"
+	}
+	if cfg.Chrome == nil {
+		cfg.Chrome = docsChrome
+	}
 
 	funcs := []template.FuncMap{templatehelpers.FuncMap()}
 	funcs = append(funcs, cfg.Funcs...)
 	root := partial.NewID("shell", "templates/general/layout.gohtml").
-		SetConnector(connector.NewHTMX(nil)).
+		SetConnector(connector.NewHTMX4(nil)).
 		SetFileSystem(websiteFS).
 		SetBasePath(cfg.BasePath).
 		UseTemplateCache(true).
@@ -143,10 +173,11 @@ func newDocsRenderer(cfg docsRendererConfig) *docsRenderer {
 
 	return &docsRenderer{
 		root:      root,
+		chrome:    cfg.Chrome,
+		origin:    cfg.Origin,
 		basePath:  cfg.BasePath,
 		appName:   cfg.AppName,
 		logName:   cfg.LogName,
-		logo:      cfg.Logo,
 		logoImage: cfg.LogoImage,
 		title:     cfg.Title,
 		subtitle:  cfg.Subtitle,
@@ -156,8 +187,15 @@ func newDocsRenderer(cfg docsRendererConfig) *docsRenderer {
 }
 
 func (renderer *docsRenderer) render(w http.ResponseWriter, r *http.Request, page docsPage, dot any, configure ...func(*partial.Partial)) {
-	header := renderer.header(r)
 	sidebar := docsNavPage(renderer.nav, renderer.basePath, r.URL.Path)
+	sidebar.Head = renderer.navHead()
+	renderer.write(w, r, http.StatusOK, page, dot, sidebar, configure...)
+}
+
+// write renders a page with the given sidebar and status.
+func (renderer *docsRenderer) write(w http.ResponseWriter, r *http.Request, status int, page docsPage, dot any, sidebar DocsNavPage, configure ...func(*partial.Partial)) {
+	header := renderer.chrome.header(r)
+	rail := renderer.chrome.rail(r, renderer.appName)
 	data := DocsShellData{
 		Title:       page.Title,
 		Description: page.Description,
@@ -166,6 +204,7 @@ func (renderer *docsRenderer) render(w http.ResponseWriter, r *http.Request, pag
 		Path:        r.URL.Path,
 		BasePath:    renderer.basePath,
 		Header:      header,
+		Rail:        rail,
 		Sidebar:     sidebar,
 		Nav:         renderer.nav,
 		SEO:         renderer.seo(r, page),
@@ -192,16 +231,22 @@ func (renderer *docsRenderer) render(w http.ResponseWriter, r *http.Request, pag
 
 	root := renderer.root.Clone().SetDot(data).SetContent(content)
 	root.WithOOB(docsOOBPartial("header", "templates/general/app_header.gohtml", header))
+	root.WithOOB(docsOOBPartial("rail", "templates/general/app_rail.gohtml", rail))
 	root.WithOOB(docsOOBPartial("sidebar", "templates/general/app_sidebar.gohtml", sidebar))
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if status != http.StatusOK {
+		w.WriteHeader(status)
+	}
 	if err := partial.Write(r.Context(), w, r, root); err != nil {
 		log.Printf("render %s docs error: %v", renderer.logName, err)
 	}
 }
 
 func (page docsPage) partial(dot any) *partial.Partial {
-	return partial.NewID("docs-page", page.Template, docsHeroTemplate).SetDot(dot)
+	templates := append([]string{page.Template, docsHeroTemplate}, page.Shared...)
+
+	return partial.NewID("docs-page", templates...).SetDot(dot)
 }
 
 func docsPages(templateDir string, pages map[string]docsPage) map[string]docsPage {
@@ -213,19 +258,18 @@ func docsPages(templateDir string, pages map[string]docsPage) map[string]docsPag
 	return pages
 }
 
-func (renderer *docsRenderer) header(r *http.Request) DocsHeaderPage {
-	return DocsHeaderPage{
-		AppName:     renderer.appName,
-		BasePath:    renderer.basePath,
-		MainURL:     mainWebsiteURL(r),
-		DocsURL:     docsHomeURL(r),
-		ShowcaseURL: mainFamilyURL(r, "showcase", ""),
-		Logo:        renderer.logo,
-		LogoImage:   renderer.logoImage,
-		Title:       renderer.title,
-		Subtitle:    renderer.subtitle,
-		GitHubURL:   renderer.gitHubURL,
-		Elements:    sectionElements(),
+// navHead names the component above its pages.
+func (renderer *docsRenderer) navHead() *DocsNavHead {
+	if len(renderer.nav) == 0 {
+		return nil
+	}
+
+	return &DocsNavHead{
+		Title:     renderer.title,
+		Subtitle:  renderer.subtitle,
+		URL:       renderer.basePath,
+		Image:     renderer.logoImage,
+		SourceURL: renderer.gitHubURL,
 	}
 }
 
@@ -252,8 +296,8 @@ func (renderer *docsRenderer) seo(r *http.Request, page docsPage) SEOData {
 	return SEOData{
 		Title:       fmt.Sprintf("%s - %s docs", page.Title, renderer.title),
 		Description: description,
-		Canonical:   docsCanonicalURL(r),
-		Image:       absoluteAssetURL("https://docs.gowebthings.com", docsSEOImage(renderer.appName)),
+		Canonical:   canonicalURL(renderer.origin, r),
+		Image:       absoluteAssetURL(renderer.origin, docsSEOImage(renderer.appName)),
 		SiteName:    renderer.title + " docs",
 		Type:        "article",
 	}
@@ -274,12 +318,12 @@ func docsSEOImage(appName string) string {
 	}
 }
 
-func docsCanonicalURL(r *http.Request) string {
+func canonicalURL(origin string, r *http.Request) string {
 	path := "/"
 	if r.URL != nil && r.URL.Path != "" {
 		path = r.URL.Path
 	}
-	return "https://docs.gowebthings.com" + path
+	return origin + path
 }
 
 func absoluteAssetURL(origin, path string) string {

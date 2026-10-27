@@ -17,7 +17,7 @@ func showcaseDocsURL(req *http.Request) string {
 func showcaseFamilyURL(req *http.Request, subdomain, path string) string {
 	host, port := showcaseHostParts(req)
 	scheme := "https"
-	if strings.HasSuffix(host, "rocketweb.nl") || strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
+	if strings.HasSuffix(host, "rocketweb.nl") || strings.HasSuffix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
 		scheme = "http"
 	}
 

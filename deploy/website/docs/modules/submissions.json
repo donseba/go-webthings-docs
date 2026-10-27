@@ -1,0 +1,923 @@
+{
+  "Slug": "submissions",
+  "Name": "Submissions",
+  "Group": "Visitors",
+  "Summary": "Lets visitors send in news with a title, a text and an optional image. Editors review the proposals and accept one as a draft post or reject it.",
+  "Deprecated": "",
+  "ImportPath": "github.com/donseba/go-webthings/modules/submissions",
+  "SourceURL": "https://github.com/donseba/go-webthings/tree/main/modules/submissions",
+  "Type": "submissions",
+  "Example": {
+    "Key": "tips",
+    "Title": "Tips",
+    "Code": "app.Use(\n\tpublishing.Module(\"news\", \"News\"),\n\tsubmissions.Module(\"tips\", \"Tips\", \"news\"),\n)"
+  },
+  "Guide": "\u003cp\u003eEach instance feeds one Publishing instance: an accepted proposal becomes an unpublished post there, which editors finish and publish as usual. Use one instance per stream that takes tips from visitors.\u003c/p\u003e\n\u003ch2 id=\"add-it-to-the-site\"\u003eAdd it to the site\u003c/h2\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003eapp.Use(\n    publishing.Module(\u0026quot;news\u0026quot;, \u0026quot;News\u0026quot;),\n    submissions.Module(\u0026quot;tips\u0026quot;, \u0026quot;Tips\u0026quot;, \u0026quot;news\u0026quot;),\n)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe key (\u003ccode\u003etips\u003c/code\u003e) is used in the admin, the form action and the template functions, and must be unique on the site. The title (\u003ccode\u003eTips\u003c/code\u003e) is what editors see in the admin and the page editor. The third argument is the key of the Publishing instance that accepted proposals go to; add that instance as well. It cannot be empty or the instance's own key.\u003c/p\u003e\n\u003ch2 id=\"place-it-on-a-page\"\u003ePlace it on a page\u003c/h2\u003e\n\u003cp\u003eIn the admin, open a page and choose the instance under \u003cstrong\u003eShows on this page\u003c/strong\u003e. The page shows the proposal form from \u003ccode\u003etips/form.gohtml\u003c/code\u003e, or \u003ccode\u003esubmissions/form.gohtml\u003c/code\u003e for every instance without a design of its own. Other addresses below the page get the site's 404 page. Generate a working starting point, with labels and every result message:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-sh\"\u003etask templates -- tips\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eA minimal form:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e{{/* @dot github.com/donseba/go-webthings/modules/submissions.FormView */}}\n\u0026lt;h1\u0026gt;{{.Title}}\u0026lt;/h1\u0026gt;\n\n\u0026lt;section id=\u0026quot;{{.Key}}\u0026quot;\u0026gt;\n    {{if eq .Result \u0026quot;sent\u0026quot;}}\n        \u0026lt;p\u0026gt;Thank you! The editors will read your proposal.\u0026lt;/p\u0026gt;\n    {{else}}\n        {{if eq .Result \u0026quot;invalid\u0026quot;}}\u0026lt;p\u0026gt;Please fill in every field. Images are JPEG, PNG or GIF up to {{.MaxImageMB}} MB.\u0026lt;/p\u0026gt;{{end}}\n        {{if eq .Result \u0026quot;throttled\u0026quot;}}\u0026lt;p\u0026gt;You sent several proposals already. Please try again later.\u0026lt;/p\u0026gt;{{end}}\n\n        {{form_open .Form}}\n            {{form_field .Form \u0026quot;name\u0026quot; nil}}\n            {{form_field .Form \u0026quot;email\u0026quot; nil}}\n            {{form_field .Form \u0026quot;title\u0026quot; nil}}\n            {{form_field .Form \u0026quot;text\u0026quot; nil}}\n            {{form_field .Form \u0026quot;image\u0026quot; nil}}\n            \u0026lt;button\u0026gt;Send\u0026lt;/button\u0026gt;\n        {{form_close}}\n    {{end}}\n\u0026lt;/section\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003e.Form\u003c/code\u003e is the form: \u003ccode\u003eform_open\u003c/code\u003e writes the form tag, posting to \u003ccode\u003e.Action\u003c/code\u003e as \u003ccode\u003emultipart/form-data\u003c/code\u003e because of the image, with the spam trap and the page to return to, the element whose id is \u003ccode\u003e.Key\u003c/code\u003e, the instance key. \u003ccode\u003eform_field\u003c/code\u003e renders one of its fields by its key, with its label and limits, such as the image's \u003ccode\u003eaccept\u003c/code\u003e, translated with the site's translations and in the site's form theme; the ids start with the key, such as \u003ccode\u003etips-title\u003c/code\u003e. See \u003ca href=\"wt-docs:/go-webthings/template-functions#forms\"\u003eTemplate functions\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"show-the-form-anywhere\"\u003eShow the form anywhere\u003c/h2\u003e\n\u003cp\u003eThe same form works in any template, for example in a sidebar, with three template functions: \u003ccode\u003esubmitInput\u003c/code\u003e is the form, \u003ccode\u003esubmitURL\u003c/code\u003e the address it posts to and \u003ccode\u003esubmitResult\u003c/code\u003e the result of the visitor's last post. The form returns the visitor to the element whose id is the instance key:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-gotemplate\"\u003e\u0026lt;aside id=\u0026quot;tips\u0026quot;\u0026gt;\n    {{if eq (submitResult \u0026quot;tips\u0026quot;) \u0026quot;sent\u0026quot;}}\n        \u0026lt;p\u0026gt;Thank you for your tip!\u0026lt;/p\u0026gt;\n    {{else}}\n        {{with submitInput \u0026quot;tips\u0026quot;}}\n            {{form_open .}}\n                {{form_field . \u0026quot;name\u0026quot; nil}}\n                {{form_field . \u0026quot;email\u0026quot; nil}}\n                {{form_field . \u0026quot;title\u0026quot; nil}}\n                {{form_field . \u0026quot;text\u0026quot; nil}}\n                {{form_field . \u0026quot;image\u0026quot; nil}}\n                \u0026lt;button\u0026gt;Send\u0026lt;/button\u0026gt;\n            {{form_close}}\n        {{end}}\n    {{end}}\n\u0026lt;/aside\u0026gt;\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eInputs written by hand with the names of the fields below work too.\u003c/p\u003e\n\u003ch2 id=\"visitors\"\u003eVisitors\u003c/h2\u003e\n\u003cp\u003eThe form posts the fields of \u003ccode\u003esubmissions.ProposalInput\u003c/code\u003e to \u003ccode\u003e/_/tips/submit\u003c/code\u003e as \u003ccode\u003emultipart/form-data\u003c/code\u003e, because of the image; a form without an image field may be sent url-encoded.\u003c/p\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eField\u003c/th\u003e\n\u003cth\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ename\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone line, up to 200 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eemail\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ea valid e-mail address\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003etitle\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eone line, up to 200 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003etext\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eplain text or Markdown, up to 20000 characters\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eimage\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003eoptional: JPEG, PNG or GIF up to 5 MB, sent as one of those types or with a \u003ccode\u003e.jpg\u003c/code\u003e, \u003ccode\u003e.jpeg\u003c/code\u003e, \u003ccode\u003e.png\u003c/code\u003e or \u003ccode\u003e.gif\u003c/code\u003e name, and recognised by its content\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eThe visitor returns to the form's page with \u003ccode\u003e?tips=sent\u003c/code\u003e, \u003ccode\u003e?tips=invalid\u003c/code\u003e when a field is missing or wrong, or \u003ccode\u003e?tips=throttled\u003c/code\u003e after more than five proposals in an hour from the same IP address (list a reverse proxy in \u003ccode\u003eConfig.TrustedProxies\u003c/code\u003e). Posts that fill in the spam trap that \u003ccode\u003eform_open\u003c/code\u003e adds are answered with \u003ccode\u003esent\u003c/code\u003e and dropped. Only a proposal that was stored makes the site's output cache render the pages again; see \u003ca href=\"wt-docs:/go-webthings/modules#modules-and-the-output-cache\"\u003eModules and the output cache\u003c/a\u003e.\u003c/p\u003e\n\u003cp\u003eWith \u003ccode\u003einvalid\u003c/code\u003e, the form shows the visitor's name, address, title and text again, with a message in the page's language at each field to correct; the image is not kept, so the visitor chooses it again. \u003ccode\u003eform_field\u003c/code\u003e does this without a change to the template; inputs written by hand do not. See \u003ca href=\"wt-docs:/go-webthings/visitor-forms#a-post-with-mistakes\"\u003eA post with mistakes\u003c/a\u003e. A proposal that cannot be saved, such as when the database cannot be reached, gets the site's error page, \u003ca href=\"wt-docs:/go-webthings/templates#500gohtml\"\u003e500.gohtml\u003c/a\u003e, also with HTMX.\u003c/p\u003e\n\u003cp\u003eA proposal keeps the language of the page the form was on. Its image goes into the media library right away and cannot be deleted there until the proposal is deleted for good.\u003c/p\u003e\n\u003ch2 id=\"in-the-admin\"\u003eIn the admin\u003c/h2\u003e\n\u003cp\u003eEach instance has its own section (\u003ccode\u003e/admin/tips\u003c/code\u003e; \u003ccode\u003e/admin\u003c/code\u003e is the default \u003ca href=\"wt-docs:/go-webthings/configuration#admin-path\"\u003eadmin path\u003c/a\u003e) with a badge that counts the new proposals. The list shows the new proposals, newest first, with dates in the site's timezone; filters switch to the accepted, the rejected or all proposals.\u003c/p\u003e\n\u003cp\u003eA proposal shows its text, image, sender, e-mail address and language. Editors with the right to publish in the instance can:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eAccept as draft post\u003c/strong\u003e: this creates an unpublished post in \u003ccode\u003enews\u003c/code\u003e, in the proposal's language, with its title, its text as Markdown and its image as the post's image, dated today. The post's history names the sender. \u003cstrong\u003eOpen draft post\u003c/strong\u003e leads to it. A rejected proposal can still be accepted.\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eReject\u003c/strong\u003e a new proposal.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eMove to trash\u003c/strong\u003e moves a proposal to the \u003ca href=\"wt-docs:/go-webthings/editing#the-trash\"\u003etrash\u003c/a\u003e, where it can be restored or deleted for good; it needs the delete right. Deleting it for good moves its image to the media library's trash too, unless the proposal was accepted or other content uses the image.\u003c/p\u003e\n\u003cp\u003eUnder \u003cstrong\u003eSettings\u003c/strong\u003e, editors who may edit the instance set the address that receives new proposals, and whether senders hear from the site. Other editors do not see the settings.\u003c/p\u003e\n\u003ch2 id=\"e-mail\"\u003eE-mail\u003c/h2\u003e\n\u003cdiv class=\"module-table\"\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eMail\u003c/th\u003e\n\u003cth\u003eSent to\u003c/th\u003e\n\u003cth\u003eWhen\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003enotify\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe notification address, in the admin's language\u003c/td\u003e\n\u003ctd\u003efor every new proposal\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003ereceived\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe sender, in the proposal's language\u003c/td\u003e\n\u003ctd\u003eafter sending, with \u003cstrong\u003eConfirm receipt to submitters\u003c/strong\u003e on\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003ccode\u003eaccepted\u003c/code\u003e, \u003ccode\u003erejected\u003c/code\u003e\u003c/td\u003e\n\u003ctd\u003ethe sender, in the proposal's language\u003c/td\u003e\n\u003ctd\u003ewhen an editor decides, with \u003cstrong\u003eTell submitters when their proposal is accepted or rejected\u003c/strong\u003e on\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\u003c/div\u003e\n\u003cp\u003eThe notification holds the text, a link to the image if there is one, and a link to the proposal in the admin; replying to it answers the sender. Without a notification address no one is notified, and both options for senders are off until editors switch them on. A theme replaces the texts with \u003ccode\u003email/tips/\u0026lt;name\u0026gt;.gohtml\u003c/code\u003e or \u003ccode\u003email/submissions/\u0026lt;name\u0026gt;.gohtml\u003c/code\u003e.\u003c/p\u003e\n\u003ch2 id=\"from-go\"\u003eFrom Go\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003esubmissions.Of(app, \u0026quot;tips\u0026quot;)\u003c/code\u003e returns the instance once the app has started:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-go\"\u003etips := submissions.Of(app, \u0026quot;tips\u0026quot;)\n\nwaiting, err := tips.Count(ctx, submissions.StatusNew)\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003ccode\u003eCreate\u003c/code\u003e stores a proposal (an image must already be in the media library), \u003ccode\u003eList\u003c/code\u003e and \u003ccode\u003eGet\u003c/code\u003e read proposals, \u003ccode\u003eAccept\u003c/code\u003e and \u003ccode\u003eReject\u003c/code\u003e decide as the admin does, and \u003ccode\u003eDelete\u003c/code\u003e, \u003ccode\u003eUndelete\u003c/code\u003e and \u003ccode\u003ePurge\u003c/code\u003e move a proposal to the trash, bring it back or remove it for good. These calls send no e-mail.\u003c/p\u003e\n\u003ch2 id=\"related-modules\"\u003eRelated modules\u003c/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/publishing\"\u003ePublishing\u003c/a\u003e holds the posts that accepted proposals become.\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/forms\"\u003eForms\u003c/a\u003e collects messages that do not become posts, such as a contact form.\u003c/li\u003e\n\u003c/ul\u003e",
+  "Constructor": {
+    "Name": "Module",
+    "Signature": "func Module(key, title, target string) webthings.Module",
+    "Doc": ""
+  },
+  "Options": null,
+  "Parts": {
+    "Public": true,
+    "Actions": true,
+    "Feeds": false,
+    "Links": false,
+    "API": false,
+    "Middleware": false,
+    "Search": false,
+    "Sitemap": false,
+    "Scheduled": false,
+    "Close": false,
+    "Service": "*submissions.Service"
+  },
+  "Admin": [
+    {
+      "ID": "tips",
+      "Title": "Tips",
+      "Path": "/admin/tips",
+      "Permission": "tips",
+      "Icon": "megaphone",
+      "Hidden": false,
+      "AdminOnly": false,
+      "Badge": true,
+      "Group": "",
+      "NewLabel": "",
+      "Recent": false,
+      "Scheduled": false,
+      "Trash": true,
+      "Review": false
+    }
+  ],
+  "Settings": {
+    "Name": "Settings",
+    "Doc": "\u003cp\u003eSettings are the instance\u0026apos;s mail settings.\n",
+    "Fields": [
+      {
+        "Name": "Notify",
+        "Type": "string",
+        "Doc": "Notify receives every new proposal; empty sends nothing.",
+        "Fields": null
+      },
+      {
+        "Name": "ConfirmMail",
+        "Type": "bool",
+        "Doc": "ConfirmMail sends submitters a confirmation of their proposal.",
+        "Fields": null
+      },
+      {
+        "Name": "DecisionMail",
+        "Type": "bool",
+        "Doc": "DecisionMail tells submitters when their proposal is accepted or rejected.",
+        "Fields": null
+      }
+    ],
+    "Decl": "type Settings struct {\n\t// Notify receives every new proposal; empty sends nothing.\n\tNotify string `db:\"notify\"`\n\t// ConfirmMail sends submitters a confirmation of their proposal.\n\tConfirmMail bool `db:\"confirm_mail\"`\n\t// DecisionMail tells submitters when their proposal is accepted or rejected.\n\tDecisionMail bool `db:\"decision_mail\"`\n}"
+  },
+  "Routes": [
+    {
+      "Kind": "page",
+      "Name": "form",
+      "Method": "GET",
+      "Path": "/"
+    },
+    {
+      "Kind": "action",
+      "Name": "tips.submit",
+      "Method": "POST",
+      "Path": "/_/tips/submit"
+    }
+  ],
+  "Funcs": [
+    {
+      "Name": "submitInput",
+      "Signature": "submitInput(key string) form.RenderModel",
+      "Doc": "\u003cp\u003esubmitInput is the model of the proposal form, for a form in any template\nwith go-form\u0026apos;s functions, such as {{form_open (submitInput \u0026quot;tips\u0026quot;)}}; the\nzero value for an unknown instance.\n"
+    },
+    {
+      "Name": "submitResult",
+      "Signature": "submitResult(key string) string",
+      "Doc": "\u003cp\u003esubmitResult is \u0026quot;sent\u0026quot;, \u0026quot;invalid\u0026quot; or \u0026quot;throttled\u0026quot; on the page the visitor\nreturns to after posting a proposal, and \u0026quot;\u0026quot; otherwise, for example\n{{if eq (submitResult \u0026quot;tips\u0026quot;) \u0026quot;sent\u0026quot;}}Thank you!{{end}}.\n"
+    },
+    {
+      "Name": "submitURL",
+      "Signature": "submitURL(key string) string",
+      "Doc": "\u003cp\u003esubmitURL is the address a proposal form posts to, for example\n\u0026lt;form method=\u0026quot;post\u0026quot; action=\u0026quot;{{submitURL \u0026quot;tips\u0026quot;}}\u0026quot; enctype=\u0026quot;multipart/form-data\u0026quot;\u0026gt;,\nor \u0026quot;\u0026quot; for an unknown instance.\n"
+    }
+  ],
+  "Templates": [
+    {
+      "Name": "form",
+      "Files": [
+        "tips/form.gohtml",
+        "submissions/form.gohtml"
+      ],
+      "DataType": "submissions.FormView",
+      "Fields": [
+        {
+          "Name": "Key",
+          "Type": "string",
+          "Doc": "Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e, and the form returns the visitor to the element with the id Key.",
+          "Fields": null
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Doc": "Title is the title of the page the module is placed on.",
+          "Fields": null
+        },
+        {
+          "Name": "Action",
+          "Type": "string",
+          "Doc": "Action is the address the form posts to.",
+          "Fields": null
+        },
+        {
+          "Name": "Result",
+          "Type": "string",
+          "Doc": "Result is \"sent\" after a proposal was received, \"invalid\" when it was refused, \"throttled\" after too many proposals, empty otherwise.",
+          "Fields": null
+        },
+        {
+          "Name": "MaxImageMB",
+          "Type": "int",
+          "Doc": "MaxImageMB is the largest image visitors can add, in megabytes.",
+          "Fields": null
+        },
+        {
+          "Name": "Form",
+          "Type": "form.RenderModel",
+          "Doc": "Form is the form's model (ProposalInput) for go-form's template functions, such as {{form_open .Form}} and {{form_field .Form \"title\" nil}}.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/submissions.FormView */}}\n{{/* Starting point generated by WebThings: a complete proposal form. */}}\n\u003cmain id=\"content\"\u003e\n    \u003ch1\u003e{{.Title}}\u003c/h1\u003e\n\n    {{/* The form returns the visitor here, to the element with the id {{.Key}}. */}}\n    \u003csection id=\"{{.Key}}\"\u003e\n        {{if eq .Result \"sent\"}}\n            \u003cp\u003eThank you! The editors will read your proposal.\u003c/p\u003e\n        {{else}}\n            {{if eq .Result \"invalid\"}}\u003cp\u003ePlease fill in every field. Images are JPEG, PNG or GIF up to {{.MaxImageMB}} MB.\u003c/p\u003e{{end}}\n            {{if eq .Result \"throttled\"}}\u003cp\u003eYou sent several proposals already. Please try again later.\u003c/p\u003e{{end}}\n\n            {{form_open .Form}}\n                {{form_field .Form \"name\" nil}}\n                {{form_field .Form \"email\" nil}}\n                {{form_field .Form \"title\" nil}}\n                {{form_field .Form \"text\" nil}}\n                {{form_field .Form \"image\" nil}}\n\n                \u003cbutton type=\"submit\"\u003eSend\u003c/button\u003e\n            {{form_close}}\n        {{end}}\n    \u003c/section\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "Components": [],
+  "Mail": [
+    {
+      "Name": "received",
+      "Files": [
+        "mail/tips/received.gohtml",
+        "mail/submissions/received.gohtml"
+      ],
+      "DataType": "submissions.MailView",
+      "Fields": [
+        {
+          "Name": "Submission",
+          "Type": "submissions.Submission",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "MediaID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Status",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PostID",
+              "Type": "string",
+              "Doc": "PostID is the draft post of an accepted submission.",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedAt",
+              "Type": "time.Time",
+              "Doc": "DecidedAt and DecidedBy (a user ID) are set once accepted or rejected.",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedBy",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the absolute address of the image; empty without one, and in mail to the submitter.",
+          "Fields": null
+        },
+        {
+          "Name": "AdminURL",
+          "Type": "string",
+          "Doc": "AdminURL opens the submission in the admin; empty in mail to the submitter.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/submissions.MailView */}}\n{{/* Sent to the submitter after sending a proposal, when the settings ask for it. */}}\n{{define \"subject\"}}{{tl localizer \"We received your proposal\"}}: {{.Title}}{{end}}\n\n{{define \"text\"}}\n{{tl localizer \"Hello %s,\" .Name}}\n\n{{tl localizer \"Thank you for your proposal. The editors will read it and decide whether to publish it.\"}}\n\n{{.Title}}\n{{end}}"
+    },
+    {
+      "Name": "accepted",
+      "Files": [
+        "mail/tips/accepted.gohtml",
+        "mail/submissions/accepted.gohtml"
+      ],
+      "DataType": "submissions.MailView",
+      "Fields": [
+        {
+          "Name": "Submission",
+          "Type": "submissions.Submission",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "MediaID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Status",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PostID",
+              "Type": "string",
+              "Doc": "PostID is the draft post of an accepted submission.",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedAt",
+              "Type": "time.Time",
+              "Doc": "DecidedAt and DecidedBy (a user ID) are set once accepted or rejected.",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedBy",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the absolute address of the image; empty without one, and in mail to the submitter.",
+          "Fields": null
+        },
+        {
+          "Name": "AdminURL",
+          "Type": "string",
+          "Doc": "AdminURL opens the submission in the admin; empty in mail to the submitter.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/submissions.MailView */}}\n{{/* Sent to the submitter when an editor accepts the proposal, when the settings ask for it. */}}\n{{define \"subject\"}}{{tl localizer \"Your proposal was accepted\"}}: {{.Title}}{{end}}\n\n{{define \"text\"}}\n{{tl localizer \"Hello %s,\" .Name}}\n\n{{tl localizer \"Good news: the editors accepted your proposal. It will be published after editing.\"}}\n\n{{.Title}}\n{{end}}"
+    },
+    {
+      "Name": "rejected",
+      "Files": [
+        "mail/tips/rejected.gohtml",
+        "mail/submissions/rejected.gohtml"
+      ],
+      "DataType": "submissions.MailView",
+      "Fields": [
+        {
+          "Name": "Submission",
+          "Type": "submissions.Submission",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "MediaID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Status",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PostID",
+              "Type": "string",
+              "Doc": "PostID is the draft post of an accepted submission.",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedAt",
+              "Type": "time.Time",
+              "Doc": "DecidedAt and DecidedBy (a user ID) are set once accepted or rejected.",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedBy",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the absolute address of the image; empty without one, and in mail to the submitter.",
+          "Fields": null
+        },
+        {
+          "Name": "AdminURL",
+          "Type": "string",
+          "Doc": "AdminURL opens the submission in the admin; empty in mail to the submitter.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/submissions.MailView */}}\n{{/* Sent to the submitter when an editor rejects the proposal, when the settings ask for it. */}}\n{{define \"subject\"}}{{tl localizer \"About your proposal\"}}: {{.Title}}{{end}}\n\n{{define \"text\"}}\n{{tl localizer \"Hello %s,\" .Name}}\n\n{{tl localizer \"Thank you for your proposal. The editors decided not to publish it.\"}}\n\n{{.Title}}\n{{end}}"
+    },
+    {
+      "Name": "notify",
+      "Files": [
+        "mail/tips/notify.gohtml",
+        "mail/submissions/notify.gohtml"
+      ],
+      "DataType": "submissions.MailView",
+      "Fields": [
+        {
+          "Name": "Submission",
+          "Type": "submissions.Submission",
+          "Doc": "",
+          "Fields": [
+            {
+              "Name": "ID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Name",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Email",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Title",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Body",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "MediaID",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Locale",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "Status",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "PostID",
+              "Type": "string",
+              "Doc": "PostID is the draft post of an accepted submission.",
+              "Fields": null
+            },
+            {
+              "Name": "CreatedAt",
+              "Type": "time.Time",
+              "Doc": "",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedAt",
+              "Type": "time.Time",
+              "Doc": "DecidedAt and DecidedBy (a user ID) are set once accepted or rejected.",
+              "Fields": null
+            },
+            {
+              "Name": "DecidedBy",
+              "Type": "string",
+              "Doc": "",
+              "Fields": null
+            }
+          ]
+        },
+        {
+          "Name": "ImageURL",
+          "Type": "string",
+          "Doc": "ImageURL is the absolute address of the image; empty without one, and in mail to the submitter.",
+          "Fields": null
+        },
+        {
+          "Name": "AdminURL",
+          "Type": "string",
+          "Doc": "AdminURL opens the submission in the admin; empty in mail to the submitter.",
+          "Fields": null
+        }
+      ],
+      "Starter": "{{/* @dot github.com/donseba/go-webthings/modules/submissions.MailView */}}\n{{/* Sent to the notification address of the settings, in the admin's language. Replying answers the submitter. */}}\n{{define \"subject\"}}{{tl localizer \"New proposal\"}}: {{.Title}}{{end}}\n\n{{define \"text\"}}\n{{.Name}} \u003c{{.Email}}\u003e\n\n{{.Title}}\n\n{{.Body}}\n{{with .ImageURL}}\n{{.}}\n{{end}}\n{{tl localizer \"Review the proposal:\"}}\n{{.AdminURL}}\n{{end}}"
+    }
+  ],
+  "Forms": [
+    {
+      "Type": "submissions.ProposalInput",
+      "Doc": "\u003cp\u003eProposalInput is the form a visitor posts to /_/\u0026lt;key\u0026gt;/submit: a name, an\ne-mail address, a title, the text and optionally an image. Themes render\nits fields with form_field, with their limits (FormView.Form), or write\ninputs with these names; a form with the image is sent as\nmultipart/form-data.\n",
+      "Fields": [
+        {
+          "Key": "name",
+          "Control": "input text",
+          "Label": "Name",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 200 characters"
+          ]
+        },
+        {
+          "Key": "email",
+          "Control": "input email",
+          "Label": "E-mail address",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 254 characters"
+          ]
+        },
+        {
+          "Key": "title",
+          "Control": "input text",
+          "Label": "Title",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "one line",
+            "at most 200 characters"
+          ]
+        },
+        {
+          "Key": "text",
+          "Control": "textarea",
+          "Label": "Text",
+          "Description": "",
+          "Required": true,
+          "Rules": [
+            "at most 20000 characters"
+          ]
+        },
+        {
+          "Key": "image",
+          "Control": "input file",
+          "Label": "Image",
+          "Description": "",
+          "Required": false,
+          "Rules": [
+            "accepts image/jpeg, image/png, image/gif, .jpg, .jpeg, .png, .gif",
+            "at most 5MB"
+          ]
+        }
+      ]
+    }
+  ],
+  "Migrations": [
+    {
+      "Version": "20261005000000",
+      "Description": "init",
+      "SQL": [
+        {
+          "Name": "postgres",
+          "File": "20261005000000_init.postgres.sql",
+          "SQL": "-- Visitors' proposals for a news item. media_id is the uploaded image, if any;\n-- post_id is the draft post an accepted proposal became. Status is new,\n-- accepted or rejected; decided_by is the editor who accepted or rejected it.\n-- Deleting moves a proposal to the trash (deleted_at); its post stays.\nCREATE TABLE wt_submission (\n    id         UUID PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    name       VARCHAR(200) NOT NULL,\n    email      VARCHAR(254) NOT NULL,\n    title      VARCHAR(200) NOT NULL,\n    body       TEXT NOT NULL,\n    media_id   UUID,\n    locale     VARCHAR(35) NOT NULL,\n    status     VARCHAR(16) NOT NULL DEFAULT 'new',\n    post_id    UUID,\n    created_at TIMESTAMPTZ NOT NULL,\n    created_by UUID,\n    updated_at TIMESTAMPTZ NOT NULL,\n    updated_by UUID,\n    deleted_at TIMESTAMPTZ,\n    deleted_by UUID,\n    decided_at TIMESTAMPTZ,\n    decided_by UUID\n);\n\nCREATE INDEX wt_submission_instance ON wt_submission (instance, status, created_at);\n\n-- Settings per instance: who is notified, and whether submitters get a\n-- confirmation and hear about the decision. The texts of the mails are mail\n-- templates (see package submissions).\nCREATE TABLE wt_submission_setting (\n    instance      VARCHAR(64) PRIMARY KEY,\n    notify        VARCHAR(254) NOT NULL DEFAULT '',\n    confirm_mail  BOOLEAN NOT NULL DEFAULT FALSE,\n    decision_mail BOOLEAN NOT NULL DEFAULT FALSE,\n    updated_at    TIMESTAMPTZ NOT NULL,\n    updated_by    UUID\n);"
+        },
+        {
+          "Name": "sqlite",
+          "File": "20261005000000_init.sqlite.sql",
+          "SQL": "-- Visitors' proposals for a news item. media_id is the uploaded image, if any;\n-- post_id is the draft post an accepted proposal became. Status is new,\n-- accepted or rejected; decided_by is the editor who accepted or rejected it.\n-- Deleting moves a proposal to the trash (deleted_at); its post stays.\nCREATE TABLE wt_submission (\n    id         TEXT PRIMARY KEY,\n    instance   TEXT NOT NULL,\n    name       TEXT NOT NULL,\n    email      TEXT NOT NULL,\n    title      TEXT NOT NULL,\n    body       TEXT NOT NULL,\n    media_id   TEXT,\n    locale     TEXT NOT NULL,\n    status     TEXT NOT NULL DEFAULT 'new',\n    post_id    TEXT,\n    created_at TIMESTAMP NOT NULL,\n    created_by TEXT,\n    updated_at TIMESTAMP NOT NULL,\n    updated_by TEXT,\n    deleted_at TIMESTAMP,\n    deleted_by TEXT,\n    decided_at TIMESTAMP,\n    decided_by TEXT\n);\n\nCREATE INDEX wt_submission_instance ON wt_submission (instance, status, created_at);\n\n-- Settings per instance: who is notified, and whether submitters get a\n-- confirmation and hear about the decision. The texts of the mails are mail\n-- templates (see package submissions).\nCREATE TABLE wt_submission_setting (\n    instance      TEXT PRIMARY KEY,\n    notify        TEXT NOT NULL DEFAULT '',\n    confirm_mail  BOOLEAN NOT NULL DEFAULT FALSE,\n    decision_mail BOOLEAN NOT NULL DEFAULT FALSE,\n    updated_at    TIMESTAMP NOT NULL,\n    updated_by    TEXT\n);"
+        },
+        {
+          "Name": "mysql",
+          "File": "20261005000000_init.mysql.sql",
+          "SQL": "-- Visitors' proposals for a news item. media_id is the uploaded image, if any;\n-- post_id is the draft post an accepted proposal became. Status is new,\n-- accepted or rejected; decided_by is the editor who accepted or rejected it.\n-- Deleting moves a proposal to the trash (deleted_at); its post stays.\nCREATE TABLE wt_submission (\n    id         VARCHAR(36) PRIMARY KEY,\n    instance   VARCHAR(64) NOT NULL,\n    name       VARCHAR(200) NOT NULL,\n    email      VARCHAR(254) NOT NULL,\n    title      VARCHAR(200) NOT NULL,\n    body       TEXT NOT NULL,\n    media_id   VARCHAR(36) NULL,\n    locale     VARCHAR(35) NOT NULL,\n    status     VARCHAR(16) NOT NULL DEFAULT 'new',\n    post_id    VARCHAR(36) NULL,\n    created_at DATETIME(6) NOT NULL,\n    created_by VARCHAR(36) NULL,\n    updated_at DATETIME(6) NOT NULL,\n    updated_by VARCHAR(36) NULL,\n    deleted_at DATETIME(6) NULL,\n    deleted_by VARCHAR(36) NULL,\n    decided_at DATETIME(6) NULL,\n    decided_by VARCHAR(36) NULL,\n    INDEX wt_submission_instance (instance, status, created_at)\n) ENGINE=InnoDB;\n\n-- Settings per instance: who is notified, and whether submitters get a\n-- confirmation and hear about the decision. The texts of the mails are mail\n-- templates (see package submissions).\nCREATE TABLE wt_submission_setting (\n    instance      VARCHAR(64) PRIMARY KEY,\n    notify        VARCHAR(254) NOT NULL DEFAULT '',\n    confirm_mail  BOOLEAN NOT NULL DEFAULT FALSE,\n    decision_mail BOOLEAN NOT NULL DEFAULT FALSE,\n    updated_at    DATETIME(6) NOT NULL,\n    updated_by    VARCHAR(36) NULL\n) ENGINE=InnoDB;"
+        }
+      ]
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "wt_submission",
+      "Note": "Visitors' proposals for a news item. media_id is the uploaded image, if any; post_id is the draft post an accepted proposal became. Status is new, accepted or rejected; decided_by is the editor who accepted or rejected it. Deleting moves a proposal to the trash (deleted_at); its post stays.",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "UUID",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "name",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "email",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "title",
+          "Type": "VARCHAR(200)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "body",
+          "Type": "TEXT",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "media_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "locale",
+          "Type": "VARCHAR(35)",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "status",
+          "Type": "VARCHAR(16)",
+          "Notes": "NOT NULL DEFAULT 'new'"
+        },
+        {
+          "Name": "post_id",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "created_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "created_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "deleted_by",
+          "Type": "UUID",
+          "Notes": ""
+        },
+        {
+          "Name": "decided_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": ""
+        },
+        {
+          "Name": "decided_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": [
+        "INDEX wt_submission_instance (instance, status, created_at)"
+      ]
+    },
+    {
+      "Name": "wt_submission_setting",
+      "Note": "Settings per instance: who is notified, and whether submitters get a confirmation and hear about the decision. The texts of the mails are mail templates (see package submissions).",
+      "Columns": [
+        {
+          "Name": "instance",
+          "Type": "VARCHAR(64)",
+          "Notes": "PRIMARY KEY"
+        },
+        {
+          "Name": "notify",
+          "Type": "VARCHAR(254)",
+          "Notes": "NOT NULL DEFAULT ''"
+        },
+        {
+          "Name": "confirm_mail",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "decision_mail",
+          "Type": "BOOLEAN",
+          "Notes": "NOT NULL DEFAULT FALSE"
+        },
+        {
+          "Name": "updated_at",
+          "Type": "TIMESTAMPTZ",
+          "Notes": "NOT NULL"
+        },
+        {
+          "Name": "updated_by",
+          "Type": "UUID",
+          "Notes": ""
+        }
+      ],
+      "Indexes": null
+    }
+  ],
+  "Translations": [
+    "en_US",
+    "nl_NL"
+  ],
+  "API": {
+    "Funcs": [
+      {
+        "Name": "Of",
+        "Signature": "func Of(app *webthings.App, key string) *Service",
+        "Doc": ""
+      }
+    ],
+    "Methods": [
+      {
+        "Name": "Accept",
+        "Signature": "func (s *Service) Accept(ctx context.Context, id, user string) (Submission, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Count",
+        "Signature": "func (s *Service) Count(ctx context.Context, status string) (int, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Create",
+        "Signature": "func (s *Service) Create(ctx context.Context, proposal Proposal) (Submission, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Delete",
+        "Signature": "func (s *Service) Delete(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Get",
+        "Signature": "func (s *Service) Get(ctx context.Context, id string) (Submission, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "List",
+        "Signature": "func (s *Service) List(ctx context.Context, status string, offset, limit int) ([]Submission, bool, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Purge",
+        "Signature": "func (s *Service) Purge(ctx context.Context, id string) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Reject",
+        "Signature": "func (s *Service) Reject(ctx context.Context, id, user string) (Submission, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "SaveSettings",
+        "Signature": "func (s *Service) SaveSettings(ctx context.Context, settings Settings) error",
+        "Doc": ""
+      },
+      {
+        "Name": "Settings",
+        "Signature": "func (s *Service) Settings(ctx context.Context) (Settings, error)",
+        "Doc": ""
+      },
+      {
+        "Name": "Undelete",
+        "Signature": "func (s *Service) Undelete(ctx context.Context, id string) error",
+        "Doc": ""
+      }
+    ],
+    "Types": [
+      {
+        "Name": "DetailView",
+        "Doc": "\u003cp\u003eDetailView is the data of templates/admin/detail.gohtml: one proposal\nwith the buttons to accept or reject it.\n",
+        "Fields": null,
+        "Decl": "type DetailView struct {\n\tTitle   string\n\tBackURL string\n\tName    string\n\tEmail   string\n\tSubject string\n\tBody    string\n\t// ImageURL is empty without an image.\n\tImageURL string\n\tLocale   string\n\tDate     string\n\tStatus   string\n\t// Decided is when and by whom the submission was accepted or rejected.\n\tDecided   string\n\tDecidedBy string\n\t// PostURL opens the draft post of an accepted submission.\n\tPostURL string\n\tAccept  *form.RenderModel\n\tReject  *form.RenderModel\n\tDelete  *form.RenderModel\n}"
+      },
+      {
+        "Name": "FormView",
+        "Doc": "\u003cp\u003eFormView is the data of submissions/form.gohtml.\n",
+        "Fields": null,
+        "Decl": "type FormView struct {\n\t// Key is the instance key; results arrive as ?\u003ckey\u003e=\u003cresult\u003e, and the\n\t// form returns the visitor to the element with the id Key.\n\tKey string\n\t// Title is the title of the page the module is placed on.\n\tTitle string\n\t// Action is the address the form posts to.\n\tAction string\n\t// Result is \"sent\" after a proposal was received, \"invalid\" when it was\n\t// refused, \"throttled\" after too many proposals, empty otherwise.\n\tResult string\n\t// MaxImageMB is the largest image visitors can add, in megabytes.\n\tMaxImageMB int\n\t// Form is the form's model (ProposalInput) for go-form's template\n\t// functions, such as {{form_open .Form}} and {{form_field .Form \"title\"\n\t// nil}}.\n\tForm form.RenderModel\n}"
+      },
+      {
+        "Name": "ListView",
+        "Doc": "\u003cp\u003eListView is the data of templates/admin/list.gohtml: the proposals,\nfiltered by status.\n",
+        "Fields": null,
+        "Decl": "type ListView struct {\n\tTitle string\n\t// SettingsURL is set for editors who may change the settings.\n\tSettingsURL string\n\t// TrashURL shows the instance's deleted proposals.\n\tTrashURL string\n\t// Filters switch between the statuses; new ones are counted.\n\tFilters admin.Tabs\n\tRows    []Row\n\tPager   admin.Pager\n}"
+      },
+      {
+        "Name": "MailView",
+        "Doc": "\u003cp\u003eMailView is the data of the mail templates: the submission, and for the\neditors\u0026apos; notification the links to its image and to the admin.\n",
+        "Fields": null,
+        "Decl": "type MailView struct {\n\tSubmission\n\t// ImageURL is the absolute address of the image; empty without one, and\n\t// in mail to the submitter.\n\tImageURL string\n\t// AdminURL opens the submission in the admin; empty in mail to the\n\t// submitter.\n\tAdminURL string\n}"
+      },
+      {
+        "Name": "Proposal",
+        "Doc": "\u003cp\u003eProposal is what a visitor sends.\n",
+        "Fields": null,
+        "Decl": "type Proposal struct {\n\tName  string\n\tEmail string\n\tTitle string\n\t// Body is plain text or Markdown.\n\tBody string\n\t// MediaID is the uploaded image in the media library, or empty.\n\tMediaID string\n\tLocale  string\n}"
+      },
+      {
+        "Name": "ProposalInput",
+        "Doc": "\u003cp\u003eProposalInput is the form a visitor posts to /_/\u0026lt;key\u0026gt;/submit: a name, an\ne-mail address, a title, the text and optionally an image. Themes render\nits fields with form_field, with their limits (FormView.Form), or write\ninputs with these names; a form with the image is sent as\nmultipart/form-data.\n",
+        "Fields": null,
+        "Decl": "type ProposalInput struct {\n\tName  string                `form:\"input,text\"  name:\"name\"  label:\"Name\"           required:\"true\" maxLength:\"200\"   line:\"true\" autocomplete:\"name\"`\n\tEmail string                `form:\"input,email\" name:\"email\" label:\"E-mail address\" required:\"true\" maxLength:\"254\"               autocomplete:\"email\" validate:\"mail\"`\n\tTitle string                `form:\"input,text\"  name:\"title\" label:\"Title\"          required:\"true\" maxLength:\"200\"   line:\"true\"`\n\tText  string                `form:\"textarea\"    name:\"text\"  label:\"Text\"           required:\"true\" maxLength:\"20000\"`\n\tImage *multipart.FileHeader `form:\"input,file\"  name:\"image\" label:\"Image\"                                                                                             accept:\"image/jpeg,image/png,image/gif,.jpg,.jpeg,.png,.gif\" maxSize:\"5MB\"`\n}"
+      },
+      {
+        "Name": "Row",
+        "Doc": "\u003cp\u003eRow is one proposal in the list.\n",
+        "Fields": null,
+        "Decl": "type Row struct {\n\tURL    string\n\tDate   string\n\tTitle  string\n\tName   string\n\tLocale string\n\t// Status is the translated status label.\n\tStatus string\n}"
+      },
+      {
+        "Name": "Service",
+        "Doc": "\u003cp\u003eService is one Submissions instance, for the website\u0026apos;s own code.\n",
+        "Fields": null,
+        "Decl": "type Service struct {\n\t// contains unexported fields\n}"
+      },
+      {
+        "Name": "Settings",
+        "Doc": "\u003cp\u003eSettings are the instance\u0026apos;s mail settings.\n",
+        "Fields": null,
+        "Decl": "type Settings struct {\n\t// Notify receives every new proposal; empty sends nothing.\n\tNotify string `db:\"notify\"`\n\t// ConfirmMail sends submitters a confirmation of their proposal.\n\tConfirmMail bool `db:\"confirm_mail\"`\n\t// DecisionMail tells submitters when their proposal is accepted or rejected.\n\tDecisionMail bool `db:\"decision_mail\"`\n}"
+      },
+      {
+        "Name": "Submission",
+        "Doc": "\u003cp\u003eSubmission is a stored proposal with the editors\u0026apos; decision.\n",
+        "Fields": null,
+        "Decl": "type Submission struct {\n\tID      string\n\tName    string\n\tEmail   string\n\tTitle   string\n\tBody    string\n\tMediaID string\n\tLocale  string\n\tStatus  string\n\t// PostID is the draft post of an accepted submission.\n\tPostID    string\n\tCreatedAt time.Time\n\t// DecidedAt and DecidedBy (a user ID) are set once accepted or rejected.\n\tDecidedAt time.Time\n\tDecidedBy string\n}"
+      }
+    ]
+  }
+}

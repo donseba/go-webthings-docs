@@ -17,8 +17,8 @@
     <meta name="twitter:description" content="{{ .SEO.Description }}">
     <meta name="twitter:image" content="{{ .SEO.Image }}">
     <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261026">
     <script>
         function scrollToCurrentHash() {
             if (!window.location.hash) {
@@ -29,21 +29,35 @@
                 target.scrollIntoView({ block: "start" });
             }
         }
-        document.addEventListener("htmx:afterSwap", function (event) {
-            if (event.detail && event.detail.target && event.detail.target.id === "content") {
+
+        // htmx 4 fires htmx:after:swap on the element that made the request.
+        // The swap target is in detail.ctx, as a selector after HX-Retarget.
+        function swappedContent(event) {
+            let target = event.detail && event.detail.ctx && event.detail.ctx.target;
+            if (typeof target === "string") {
+                target = document.querySelector(target);
+            }
+
+            return Boolean(target && target.id === "content");
+        }
+
+        document.addEventListener("htmx:after:swap", function (event) {
+            if (swappedContent(event)) {
                 requestAnimationFrame(scrollToCurrentHash);
             }
         });
         window.addEventListener("hashchange", scrollToCurrentHash);
         window.addEventListener("load", scrollToCurrentHash);
     </script>
-    <script src="/assets/js/code-highlight.js" defer></script>
+    <script src="/assets/js/code-highlight.js?v=20261026" defer></script>
 </head>
-<body class="docs-body m-0 min-h-screen bg-[#0b111a] font-sans text-slate-100">
+{{/* htmx 4 swaps a 4xx or 5xx answer and pushes its URL; leave the page as it is, as htmx 2 did. */}}
+<body class="docs-body m-0 min-h-screen bg-[#0b111a] font-sans text-slate-100" hx-status:4xx:inherited="swap:none push:false" hx-status:5xx:inherited="swap:none push:false">
     {{ template "header.gohtml" .Header }}
-    <div class="mx-auto grid max-w-[1240px] grid-cols-[260px_minmax(0,1fr)] max-[900px]:grid-cols-1">
+    <div class="mx-auto flex max-w-[1440px] items-start max-[900px]:flex-col max-[900px]:items-stretch">
+        {{ template "rail.gohtml" .Rail }}
         {{ template "sidebar.gohtml" .Sidebar }}
-        <main id="content" class="content min-w-0 max-w-[840px] px-8 pb-28 pt-10 max-[900px]:px-5 max-[900px]:pb-20 max-[900px]:pt-8">
+        <main id="content" class="content min-w-0 max-w-[880px] flex-1 px-10 pb-28 pt-10 max-[900px]:px-5 max-[900px]:pb-20 max-[900px]:pt-8">
             {{ content }}
         </main>
     </div>

@@ -4,9 +4,19 @@
 
 <h2>Directories</h2>
 <pre><code>r.ServeFiles("/assets/", http.Dir("./assets"))</code></pre>
+<p><code>ServeFiles</code> registers <code>GET /assets/{file...}</code>: <code>/assets</code>, <code>/assets/</code> and <code>/assets/{file...}</code> are the same route, and <code>Walk</code> lists it as <code>/assets/{file...}</code>. The file server gets the wildcard's value as its path, so files are served the same in groups, hosts and mounted routers. A pattern can end in a rest wildcard of its own, such as <code>/static/{path...}</code>.</p>
 
 <h2>Single files</h2>
 <pre><code>r.ServeFile("/favicon.ico", "./static/favicon.ico")</code></pre>
+
+<h2>Named assets</h2>
+<p><code>ServeFiles</code> and <code>ServeFile</code> return the route, so it can be named and get route middleware. A named <code>ServeFiles</code> route reverses to a file's path.</p>
+<pre><code>r.ServeFiles("/assets/", http.FS(assets)).As("assets")</code></pre>
+<pre><code>&lt;link rel="stylesheet" href="{{"{{"}} route "assets" "file" "css/site.css" }}"&gt; &lt;!-- /assets/css/site.css --&gt;</code></pre>
+
+<h2>Versioned URLs</h2>
+<p>For assets whose URL changes with their content, <code>middleware.DefaultImmutable</code> (<code>public, max-age=31536000, immutable</code>) lets browsers keep them for a year without asking again.</p>
+<pre><code>r.ServeFiles("/assets/", http.FS(assets)).As("assets").Use(middleware.CacheControl(middleware.DefaultImmutable))</code></pre>
 
 <h2>Host-scoped assets</h2>
 <pre><code>r.Subdomain("docs", "example.com", func(docs *router.Router) {

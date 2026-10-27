@@ -63,7 +63,7 @@ _, _ = tmpl.ParseFiles("templates/main.gohtml")`}}</code></pre>
   "symbolAnnotations": [
     {
       "name": "interaction",
-      "type": "github.com/donseba/go-partial.Interaction"
+      "type": "github.com/donseba/go-partial/exp/interactions.Interaction"
     },
     {
       "name": "component"
@@ -119,7 +119,7 @@ _, _ = tmpl.ParseFiles("templates/main.gohtml")`}}</code></pre>
     &lt;tr&gt;&lt;td&gt;&#123;&#123; .Name &#125;&#125;&lt;/td&gt;&lt;/tr&gt;
 &#123;&#123; end &#125;&#125;</code></pre>
 
-<p>Contracts can live on named <code>define</code> blocks too. Put the annotation inside the block so it clearly belongs to that section. A leading annotation directly before <code>define</code> still works as a fallback, but go-clue warns and offers to move it inside. A <code>block</code> call is checked like a <code>template</code> call, so the parent value must match the child dot contract.</p>
+<p>Contracts can live on named <code>define</code> blocks too. Put the annotation inside the block so it clearly belongs to that section. A leading annotation directly before <code>define</code> still works as a fallback, but go-clue reports it as information and offers to move it inside. A <code>block</code> call is checked like a <code>template</code> call, so the parent value must match the child dot contract.</p>
 <p>When duplicate define names exist, the current document wins first, then the current file, then the wider template set. That keeps live edits predictable while the index catches up.</p>
 
 <h2>Scoped function checks</h2>

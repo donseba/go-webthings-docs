@@ -27,6 +27,11 @@
     </a>
 </section>
 
+<h2>Install</h2>
+<pre><code>go get github.com/donseba/go-router@v0.12.0</code></pre>
+<p>The module requires Go 1.23.1 or later. It has no dependencies; the bundled <code>middleware</code> package uses the standard library only.</p>
+<p>Coming from v0.11.0, read the <a href="https://github.com/donseba/go-router/tree/v0.12.0#upgrading">upgrading notes</a> first: <code>TryHandle</code>, <code>TryHandleFunc</code> and <code>TryMount</code> return the route, <code>LoggerOptions.Logger</code> is a <code>*slog.Logger</code>, and <code>RealIP</code> no longer trusts forwarding headers.</p>
+
 <h2>A small router</h2>
 <pre><code>r := router.New(http.NewServeMux(), "Example API", "1.0.0")
 
@@ -35,6 +40,12 @@ r.Get("/users/{id}", showUser).As("users.show")
 
 log.Fatal(http.ListenAndServe(":8080", r))</code></pre>
 
-<p><code>go-router</code> stays close to <code>net/http</code>. It adds the website ergonomics that usually collect around a plain mux: groups, middleware, host routing, named routes, static files, status handlers, JSON helpers, and route diagnostics.</p>
+<p><code>New</code> takes an OpenAPI title and version; OpenAPI documentation stays off until <code>UseOpenapiDocs(true)</code>. A website uses <code>NewSite</code>, which creates its own <code>ServeMux</code>, needs no title or version and keeps OpenAPI documentation off:</p>
+<pre><code>r := router.NewSite(
+    router.WithNotFound(http.HandlerFunc(notFound)),
+)
+r.RedirectTrailingSlash(true)</code></pre>
+
+<p><code>go-router</code> stays close to <code>net/http</code>. It adds the website ergonomics that usually collect around a plain mux: groups, middleware for routes and for every request, host routing, named routes, mounted routers, static files, not found pages and status handlers, route matching, JSON helpers, and route diagnostics. The bundled middleware covers request IDs, logging with <code>log/slog</code>, recovery, client IPs behind trusted proxies, security headers and CSP, compression, ETags, an output cache, and rate and body limits.</p>
 </article>
 

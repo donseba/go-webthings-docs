@@ -36,3 +36,5 @@ main
 !deploy/website/main/.gitkeep
 bin
 deploy/website/website
+tools/moduledocs/moduledocs
+/website

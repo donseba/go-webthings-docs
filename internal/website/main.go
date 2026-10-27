@@ -65,6 +65,19 @@ func mainComponentsPage(w http.ResponseWriter, req *http.Request) {
 	renderMainShell(w, req, http.StatusOK, data, content)
 }
 
+func mainModulesPage(w http.ResponseWriter, req *http.Request) {
+	data := PageData{
+		Title:        "go-webthings modules",
+		Section:      SectionMain,
+		Host:         req.Host,
+		ModuleGroups: moduleSite.groups(func(slug string) string { return moduleURL(req, slug) }),
+		ModulesURL:   modulesHomeURL(req),
+		Description:  "Modules add capabilities to a go-webthings site: news, events, galleries, forms, newsletters and more. Each brings its admin sections, templates, template functions and database tables.",
+	}
+	content := partial.NewID("content", "templates/modules.gohtml").SetFileSystem(mainFS).SetDot(data)
+	renderMainShell(w, req, http.StatusOK, data, content)
+}
+
 func mainBulletin(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
@@ -122,7 +135,7 @@ func renderMainShell(w http.ResponseWriter, req *http.Request, status int, data 
 	data.SEO = pageSEO(data)
 	content.SetDot(data)
 	page := partial.NewID("shell", "templates/layout.gohtml").
-		SetConnector(connector.NewHTMX(nil)).
+		SetConnector(connector.NewHTMX4(nil)).
 		SetFileSystem(mainFS).
 		SetDot(data).
 		SetContent(content)
@@ -154,6 +167,14 @@ func mainElements(req *http.Request) []Element {
 func mainComponents(req *http.Request) []Component {
 	return []Component{
 		{
+			Slug:        "go-webthings",
+			Name:        "Go WebThings",
+			Description: "The backend of your website: database, admin, accounts, pages, media, languages, themes and content modules, built on these components.",
+			Image:       mainElementImage("go-webthings"),
+			DocsURL:     docsElementURL(req, "go-webthings"),
+			SourceURL:   "https://github.com/donseba/go-webthings",
+		},
+		{
 			Slug:        "go-clue",
 			Name:        "Go Clue",
 			Description: "Typed contracts and editor metadata for Go html/template files. go-clue keeps templates plain while giving editors enough structure to complete, navigate, and diagnose model access.",
@@ -174,7 +195,7 @@ func mainComponents(req *http.Request) []Component {
 		{
 			Slug:        "go-router",
 			Name:        "Go Router",
-			Description: "Host-aware HTTP routing on top of net/http, with exact hosts, subdomains, route groups, middleware, named routes, diagnostics, and practical helpers for docs websites.",
+			Description: "Host-aware HTTP routing on top of net/http, with route groups, middleware for routes and every request, named routes, mounted routers, not found pages, route matching, and bundled middleware for logging, security headers, compression and output caching.",
 			Image:       mainElementImage("go-router"),
 			DocsURL:     docsElementURL(req, "go-router"),
 			ShowcaseURL: mainFamilyURL(req, "showcase", ""),
@@ -191,7 +212,7 @@ func mainComponents(req *http.Request) []Component {
 		{
 			Slug:        "go-importmap",
 			Name:        "Go ImportMap",
-			Description: "Prepare pinned JavaScript and CSS dependencies from CDNs, reuse local cache files, and generate import maps and stylesheet tags for your templates.",
+			Description: "Vendor pinned JavaScript and CSS packages at build time with a lock file, embed them, serve them with versioned URLs and Subresource Integrity, and generate import maps and stylesheet tags for your templates.",
 			Image:       mainElementImage("go-importmap"),
 			DocsURL:     docsElementURL(req, "go-importmap"),
 			SourceURL:   "https://github.com/donseba/go-importmap",
