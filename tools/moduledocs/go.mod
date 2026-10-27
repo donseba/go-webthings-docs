@@ -1,6 +1,6 @@
 module donseba/go-webthings-docs/tools/moduledocs
 
-go 1.27.1
+go 1.27.3
 
 require (
 	donseba/go-webthings-docs v0.0.0
